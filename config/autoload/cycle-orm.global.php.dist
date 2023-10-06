@@ -1,0 +1,46 @@
+<?php
+
+declare(strict_types=1);
+
+use App\Factory\CycleFactory;
+use App\Factory\DbalFactory;
+use App\Factory\MigratorFactory;
+use Cycle\Database\Config;
+
+
+return [
+    'cycle'           => [
+        'default'     => 'default',
+        'databases'   => [
+            'default' => [
+                'connection' => 'mysql',
+            ]
+        ],
+        'connections' => [
+            'mysql' => new Config\MySQLDriverConfig(
+                connection: new Config\MySQL\TcpConnectionConfig(
+                    database: 'cycle-orm',
+                    host: '127.0.0.1',
+                    port: 3306,
+                    user: 'cycle',
+                    password: 'password
+                ),
+                reconnect: true,
+                timezone: 'UTC',
+                queryCache: true,
+            ),
+        ]
+    ],
+    'migrator'        => [
+        'directory' => 'db/migrations',
+        'table'     => 'migrations'
+    ],
+    'entities'        => [
+        'src/App/src/Entity',
+    ],
+    'schema'   => [
+        'property' => SchemaProperty::GenerateMigrations,
+        'cache'    => true,
+        'directory' => 'data/cache'
+    ],
+];
