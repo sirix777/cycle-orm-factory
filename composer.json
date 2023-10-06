@@ -1,5 +1,5 @@
 {
-    "name": "sirix/cycle-orm",
+    "name": "sirix/cycle-orm-factory",
     "description": "Cycle ORM Factories for Mezzio",
     "type": "library",
     "license": "MIT",
