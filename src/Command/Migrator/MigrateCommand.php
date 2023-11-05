@@ -20,12 +20,15 @@ class MigrateCommand extends Command
 
     protected function configure(): void
     {
-        $this->setName('migrator:migrate')
+        $this
+            ->setName('migrator:migrate')
             ->setDescription('Run migrations');
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output): int
-    {
+    protected function execute(
+        InputInterface $input,
+        OutputInterface $output
+    ): int {
         $this->migratorService->migrate();
 
         return Command::SUCCESS;

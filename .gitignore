@@ -1,4 +1,4 @@
-/idea/
+/.idea/
 /.phpcs-cache
 /.phpunit.result.cache
 /clover.xml

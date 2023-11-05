@@ -35,6 +35,7 @@
     },
     "require-dev": {
         "laminas/laminas-coding-standard": "^2.5",
+        "phpstan/phpstan": "^1.10",
         "roave/security-advisories": "dev-master"
     },
     "autoload": {
@@ -44,6 +45,7 @@
     },
     "scripts": {
         "cs-check": "phpcs",
-        "cs-fix": "phpcbf"
+        "cs-fix": "phpcbf",
+        "phpstan": "phpstan analyse --memory-limit=2G"
     }
 }

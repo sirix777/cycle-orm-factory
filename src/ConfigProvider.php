@@ -10,6 +10,9 @@ use Sirix\Cycle\Factory\MigratorFactory;
 
 class ConfigProvider
 {
+    /**
+     * @return array<string, array<string, array<string, string>|string>>
+     */
     public function __invoke(): array
     {
         return [
@@ -18,6 +21,9 @@ class ConfigProvider
         ];
     }
 
+    /**
+     * @return array<string, array<string, string>>
+     */
     public function getDependencies(): array
     {
         return [
@@ -33,6 +39,9 @@ class ConfigProvider
         ];
     }
 
+    /**
+     * @return array<string, array<string, string>>
+     */
     private function getCliConfig(): array
     {
         return [
