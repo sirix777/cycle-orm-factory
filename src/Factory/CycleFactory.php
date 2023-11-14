@@ -102,8 +102,13 @@ class CycleFactory
         return new ORM\ORM(new ORM\Factory($dbal), new ORMSchema($schema));
     }
 
-    private function getCacheStorage(string $directory = 'data/cache'): FilesystemAdapter
-    {
-        return new FilesystemAdapter('cycle', 0, $directory);
+    private function getCacheStorage(
+        string $directory = 'data/cache'
+    ): FilesystemAdapter {
+        return new FilesystemAdapter(
+            'cycle',
+            0,
+            $directory
+        );
     }
 }

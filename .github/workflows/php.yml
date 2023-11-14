@@ -38,6 +38,9 @@ jobs:
     - name: Run phpstan
       run: composer phpstan
 
+    - name: Run codeception
+      run: composer test
+
     # Add a test script to composer.json, for instance: "test": "vendor/bin/phpunit"
     # Docs: https://getcomposer.org/doc/articles/scripts.md
 
