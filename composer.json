@@ -1,25 +1,14 @@
 {
     "name": "sirix/cycle-orm-factory",
     "description": "Cycle ORM Factories for Mezzio",
-    "type": "library",
     "license": "MIT",
+    "type": "library",
     "authors": [
         {
-            "name":     "Sirix",
+            "name": "Sirix",
             "homepage": "https://github.com/sirix777"
         }
     ],
-    "config": {
-        "sort-packages": true,
-        "allow-plugins": {
-            "dealerdirect/phpcodesniffer-composer-installer": true
-        }
-    },
-    "extra": {
-        "laminas": {
-            "config-provider": "Sirix\\Cycle\\ConfigProvider"
-        }
-    },
     "require": {
         "php": "~8.1.0 || ~8.2.0",
         "composer/package-versions-deprecated": "^1.10.99",
@@ -34,18 +23,47 @@
         "symfony/console": "^6.3"
     },
     "require-dev": {
+        "codeception/codeception": "^5.0",
+        "codeception/module-asserts": "*",
+        "codeception/module-phpbrowser": "*",
+        "ergebnis/composer-normalize": "^2.39",
         "laminas/laminas-coding-standard": "^2.5",
+        "mockery/mockery": "^1.6",
         "phpstan/phpstan": "^1.10",
-        "roave/security-advisories": "dev-master"
+        "roave/security-advisories": "dev-master",
+        "symfony/filesystem": "^6.3"
     },
     "autoload": {
         "psr-4": {
             "Sirix\\Cycle\\": "src/"
         }
     },
+    "autoload-dev": {
+        "psr-4": {
+            "Sirix\\Cycle\\Test\\": "tests/"
+        }
+    },
+    "config": {
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true,
+            "ergebnis/composer-normalize": true
+        },
+        "sort-packages": true
+    },
+    "extra": {
+        "laminas": {
+            "config-provider": "Sirix\\Cycle\\ConfigProvider"
+        }
+    },
     "scripts": {
+        "check": [
+            "@cs-check",
+            "@phpstan",
+            "@test"
+        ],
         "cs-check": "phpcs",
         "cs-fix": "phpcbf",
-        "phpstan": "phpstan analyse --memory-limit=2G"
+        "phpstan": "phpstan analyse",
+        "test": "codecept run"
     }
 }

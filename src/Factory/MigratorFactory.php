@@ -6,10 +6,11 @@ namespace Sirix\Cycle\Factory;
 
 use Cycle\Database\Exception\ConfigException;
 use Cycle\Migrations;
-use Cycle\Migrations\Migrator;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\ContainerInterface;
 use Psr\Container\NotFoundExceptionInterface;
+use Sirix\Cycle\Service\MigratorInterface;
+use Sirix\Cycle\Service\MigratorWrapper;
 
 class MigratorFactory
 {
@@ -17,7 +18,7 @@ class MigratorFactory
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
      */
-    public function __invoke(ContainerInterface $container): Migrator
+    public function __invoke(ContainerInterface $container): MigratorInterface
     {
         $config = $container->has('config') ? $container->get('config') : [];
 
@@ -31,6 +32,12 @@ class MigratorFactory
 
         $dbal = $container->get('dbal');
 
-        return new Migrations\Migrator($migratorConfig, $dbal, new Migrations\FileRepository($migratorConfig));
+        $migrator = new Migrations\Migrator(
+            $migratorConfig,
+            $dbal,
+            new Migrations\FileRepository($migratorConfig)
+        );
+
+        return new MigratorWrapper($migrator);
     }
 }
