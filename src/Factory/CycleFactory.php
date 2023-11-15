@@ -22,6 +22,8 @@ use Symfony\Component\Finder\Finder;
 
 class CycleFactory
 {
+    private const DEFAULT_CACHE_DIRECTORY = 'data/cache';
+
     /**
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
@@ -40,7 +42,8 @@ class CycleFactory
         $entities       = $config['entities'];
         $schemaProperty = $config['schema']['property'] ?? null;
         $isCached       = $config['schema']['cache'] ?? true;
-        $cacheDirectory = $config['schema']['directory'] ?? null;
+        $cacheDirectory = $config['schema']['directory'] ??
+            self::DEFAULT_CACHE_DIRECTORY;
 
         $cache = $this->getCacheStorage($cacheDirectory);
 
@@ -102,9 +105,8 @@ class CycleFactory
         return new ORM\ORM(new ORM\Factory($dbal), new ORMSchema($schema));
     }
 
-    private function getCacheStorage(
-        string $directory = 'data/cache'
-    ): FilesystemAdapter {
+    private function getCacheStorage(string $directory): FilesystemAdapter
+    {
         return new FilesystemAdapter(
             'cycle',
             0,
