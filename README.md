@@ -1,7 +1,5 @@
 # Mezzio Cycle ORM Factory
 
-![GitHub stars](https://img.shields.io/github/stars/sirix777/cycle-orm-factory?style=flat-square)
-![GitHub issues](https://img.shields.io/github/issues/sirix777/cycle-orm-factory?style=flat-square)
 ![GitHub license](https://img.shields.io/github/license/sirix777/cycle-orm-factory?style=flat-square)
 
 This package provides factories for integrating Cycle ORM into the Mezzio framework, providing seamless setup and configuration.
@@ -17,8 +15,8 @@ Create a configuration file, for example, `config/autoload/cycle-orm.global.php`
 
 declare(strict_types=1);
 
-use Sirix\Cycle\Enum\SchemaProperty;
 use Cycle\Database\Config;
+use Sirix\Cycle\Enum\SchemaProperty;
 
 
 return [
