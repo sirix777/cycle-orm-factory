@@ -18,9 +18,6 @@ Create a configuration file, for example, `config/autoload/cycle-orm.global.php`
 declare(strict_types=1);
 
 use Sirix\Cycle\Enum\SchemaProperty;
-use Sirix\Cycle\Factory\CycleFactory;
-use Sirix\Cycle\Factory\DbalFactory;
-use Sirix\Cycle\Factory\MigratorFactory;
 use Cycle\Database\Config;
 
 
