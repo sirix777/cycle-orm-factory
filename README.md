@@ -116,7 +116,7 @@ These factories provide the necessary components to work seamlessly with Cycle O
 For more information about Cycle ORM, see the [Cycle ORM documentation](https://cycle-orm.dev/docs).
 
 ## Migrator Commands
-The `Sirix\Cycle\Command\Migrator` namespace provides two commands for managing database migrations using Cycle ORM. These commands are intended for use  used with the `laminas-cli` tool.
+The `Sirix\Cycle\Command\Migrator` namespace provides two commands for managing database migrations using Cycle ORM. These commands are intended for use with the `laminas-cli` tool.
 
 ### 1. `migrator:migrate` Command
 
