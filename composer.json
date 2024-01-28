@@ -19,8 +19,8 @@
         "cycle/migrations": "^4.1",
         "cycle/orm": "^2.3",
         "cycle/schema-migrations-generator": "^2.1",
-        "symfony/cache": "^6.3",
-        "symfony/console": "^6.3"
+        "symfony/cache": "^6.3 || ^7.0",
+        "symfony/console": "^6.3 || ^7.0"
     },
     "require-dev": {
         "codeception/codeception": "^5.0",
