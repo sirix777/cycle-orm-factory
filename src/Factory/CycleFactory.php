@@ -52,9 +52,13 @@ class CycleFactory
 
         if ($cachedSchema->isHit()) {
             if ($isCached) {
+                $schemaInstance   = new ORMSchema($cachedSchema->get());
+                $commandGenerator = new EventDrivenCommandGenerator($schemaInstance, $container);
+
                 return new ORM\ORM(
-                    new ORM\Factory($dbal),
-                    new ORMSchema($cachedSchema->get())
+                    factory: new ORM\Factory($dbal),
+                    schema: $schemaInstance,
+                    commandGenerator: $commandGenerator
                 );
             }
 
