@@ -6,6 +6,7 @@ namespace Sirix\Cycle\Factory;
 
 use Cycle\Annotated;
 use Cycle\ORM;
+use Cycle\ORM\Entity\Behavior\EventDrivenCommandGenerator;
 use Cycle\ORM\Exception\ConfigException;
 use Cycle\ORM\ORMInterface;
 use Cycle\ORM\Schema as ORMSchema;
@@ -78,6 +79,7 @@ class CycleFactory
             new Schema\Generator\RenderRelations(),
             new Schema\Generator\RenderModifiers(),
             new Annotated\MergeIndexes(),
+            new Schema\Generator\ForeignKeys(),
             new Schema\Generator\GenerateTypecast(),
         ];
 
@@ -102,7 +104,14 @@ class CycleFactory
             $cache->save($cachedSchema);
         }
 
-        return new ORM\ORM(new ORM\Factory($dbal), new ORMSchema($schema));
+        $schemaInstance   = new ORMSchema($schema);
+        $commandGenerator = new EventDrivenCommandGenerator($schemaInstance, $container);
+
+        return new ORM\ORM(
+            factory: new ORM\Factory($dbal),
+            schema: $schemaInstance,
+            commandGenerator: $commandGenerator
+        );
     }
 
     private function getCacheStorage(string $directory): FilesystemAdapter

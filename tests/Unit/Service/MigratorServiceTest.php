@@ -8,7 +8,7 @@ use Codeception\PHPUnit\TestCase;
 use Cycle\Migrations\MigrationInterface;
 use Cycle\Migrations\State;
 use Mockery;
-use PHPUnit\Framework\MockObject\MockObject;
+use Mockery\MockInterface;
 use Sirix\Cycle\Service\MigratorService;
 use Sirix\Cycle\Service\MigratorWrapper;
 use Throwable;
@@ -17,7 +17,7 @@ use const PHP_EOL;
 
 class MigratorServiceTest extends TestCase
 {
-    private MigratorWrapper|MockObject $migratorMock;
+    private MigratorWrapper|MockInterface $migratorMock;
     private MigratorService $migratorService;
 
     public function setUp(): void
