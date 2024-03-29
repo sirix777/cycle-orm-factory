@@ -7,7 +7,7 @@ namespace Tests\Support;
 use Codeception\Actor;
 
 /**
- * Inherited Methods
+ * Inherited Methods.
  *
  * @method void wantTo($text)
  * @method void wantToTest($text)
@@ -19,13 +19,12 @@ use Codeception\Actor;
  * @method void lookForwardTo($achieveValue)
  * @method void comment($description)
  * @method void pause($vars = [])
+ *
  * @SuppressWarnings(PHPMD)
  */
 class FunctionalTester extends Actor
 {
     use _generated\FunctionalTesterActions;
 
-    /**
-     * Define custom actions here
-     */
+    // Define custom actions here
 }

@@ -11,10 +11,8 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class MigrateCommand extends Command
 {
-    public function __construct(
-        private readonly MigratorService $migratorService,
-        ?string $name = null
-    ) {
+    public function __construct(private readonly MigratorService $migratorService, ?string $name = null)
+    {
         parent::__construct($name);
     }
 
@@ -22,13 +20,12 @@ class MigrateCommand extends Command
     {
         $this
             ->setName('migrator:migrate')
-            ->setDescription('Run migrations');
+            ->setDescription('Run migrations')
+        ;
     }
 
-    protected function execute(
-        InputInterface $input,
-        OutputInterface $output
-    ): int {
+    protected function execute(InputInterface $input, OutputInterface $output): int
+    {
         $this->migratorService->migrate();
 
         return Command::SUCCESS;

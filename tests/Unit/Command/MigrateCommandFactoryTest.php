@@ -14,9 +14,14 @@ use Sirix\Cycle\Command\Migrator\MigrateCommand;
 use Sirix\Cycle\Command\Migrator\MigrateCommandFactory;
 use Sirix\Cycle\Service\MigratorService;
 
+/**
+ * @internal
+ *
+ * @coversNothing
+ */
 class MigrateCommandFactoryTest extends TestCase
 {
-    private MockObject|ContainerInterface $container;
+    private ContainerInterface|MockObject $container;
 
     /**
      * @throws Exception
@@ -44,7 +49,8 @@ class MigrateCommandFactoryTest extends TestCase
             ->with(MigratorService::class)
             ->willThrowException(
                 new $exceptionMock('migrator service not found')
-            );
+            )
+        ;
 
         $factory = new MigrateCommandFactory();
         $this->expectException(NotFoundExceptionInterface::class);
@@ -65,9 +71,10 @@ class MigrateCommandFactoryTest extends TestCase
             ->with(MigratorService::class)
             ->willReturn(
                 $this->createMock(MigratorService::class)
-            );
+            )
+        ;
 
-        $factory        = new MigrateCommandFactory();
+        $factory = new MigrateCommandFactory();
         $migrateCommand = $factory($this->container);
         $this->assertInstanceOf(
             MigrateCommand::class,

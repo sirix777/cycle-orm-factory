@@ -40,11 +40,10 @@ class CycleFactory
 
         $dbal = $container->get('dbal');
 
-        $entities       = $config['entities'];
+        $entities = $config['entities'];
         $schemaProperty = $config['schema']['property'] ?? null;
-        $isCached       = $config['schema']['cache'] ?? true;
-        $cacheDirectory = $config['schema']['directory'] ??
-            self::DEFAULT_CACHE_DIRECTORY;
+        $isCached = $config['schema']['cache'] ?? true;
+        $cacheDirectory = $config['schema']['directory'] ?? self::DEFAULT_CACHE_DIRECTORY;
 
         $cache = $this->getCacheStorage($cacheDirectory);
 
@@ -52,7 +51,7 @@ class CycleFactory
 
         if ($cachedSchema->isHit()) {
             if ($isCached) {
-                $schemaInstance   = new ORMSchema($cachedSchema->get());
+                $schemaInstance = new ORMSchema($cachedSchema->get());
                 $commandGenerator = new EventDrivenCommandGenerator($schemaInstance, $container);
 
                 return new ORM\ORM(
@@ -67,7 +66,7 @@ class CycleFactory
 
         $migrator = $container->get('migrator');
 
-        $finder       = (new Finder())->files()->in($entities);
+        $finder = (new Finder())->files()->in($entities);
         $classLocator = new ClassLocator($finder);
 
         $generators = [
@@ -108,7 +107,7 @@ class CycleFactory
             $cache->save($cachedSchema);
         }
 
-        $schemaInstance   = new ORMSchema($schema);
+        $schemaInstance = new ORMSchema($schema);
         $commandGenerator = new EventDrivenCommandGenerator($schemaInstance, $container);
 
         return new ORM\ORM(

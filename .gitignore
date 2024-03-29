@@ -1,6 +1,7 @@
 /.idea/
 /.phpcs-cache
 /.phpunit.result.cache
+/.php-cs-fixer.cache
 /clover.xml
 /coveralls-upload.json
 /phpunit.xml

@@ -14,9 +14,14 @@ use Sirix\Cycle\Command\Migrator\RollbackCommand;
 use Sirix\Cycle\Command\Migrator\RollbackCommandFactory;
 use Sirix\Cycle\Service\MigratorService;
 
+/**
+ * @internal
+ *
+ * @coversNothing
+ */
 class RollbackCommandFactoryTest extends TestCase
 {
-    private MockObject|ContainerInterface $container;
+    private ContainerInterface|MockObject $container;
 
     /**
      * @throws Exception
@@ -44,7 +49,8 @@ class RollbackCommandFactoryTest extends TestCase
             ->with(MigratorService::class)
             ->willThrowException(
                 new $exceptionMock('migrator service not found')
-            );
+            )
+        ;
 
         $factory = new RollbackCommandFactory();
         $this->expectException(NotFoundExceptionInterface::class);
@@ -65,9 +71,10 @@ class RollbackCommandFactoryTest extends TestCase
             ->with(MigratorService::class)
             ->willReturn(
                 $this->createMock(MigratorService::class)
-            );
+            )
+        ;
 
-        $factory        = new RollbackCommandFactory();
+        $factory = new RollbackCommandFactory();
         $migrateCommand = $factory($this->container);
         $this->assertInstanceOf(
             RollbackCommand::class,

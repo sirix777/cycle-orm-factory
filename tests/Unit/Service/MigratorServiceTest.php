@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Sirix\Cycle\Test\Unit\Service;
 
+use const PHP_EOL;
+
 use Codeception\PHPUnit\TestCase;
 use Cycle\Migrations\MigrationInterface;
 use Cycle\Migrations\State;
@@ -13,8 +15,11 @@ use Sirix\Cycle\Service\MigratorService;
 use Sirix\Cycle\Service\MigratorWrapper;
 use Throwable;
 
-use const PHP_EOL;
-
+/**
+ * @internal
+ *
+ * @coversNothing
+ */
 class MigratorServiceTest extends TestCase
 {
     private MigratorWrapper|MockInterface $migratorMock;
@@ -30,7 +35,8 @@ class MigratorServiceTest extends TestCase
         $this->migratorMock
             ->shouldReceive('isConfigured')
             ->once()
-            ->andReturnFalse();
+            ->andReturnFalse()
+        ;
         $this->migratorMock->shouldReceive('configure')->once();
     }
 
@@ -43,16 +49,18 @@ class MigratorServiceTest extends TestCase
     public function testMigrate(): void
     {
         $migrationInterfaceMock = Mockery::mock(MigrationInterface::class);
-        $stateMock              = Mockery::mock('overload:' . State::class);
+        $stateMock = Mockery::mock('overload:' . State::class);
 
         $stateMock
             ->shouldReceive('getName')
-            ->andReturn('tests-migration');
+            ->andReturn('tests-migration')
+        ;
 
         $migrationInterfaceMock
             ->shouldReceive('getState')
             ->once()
-            ->andReturn($stateMock);
+            ->andReturn($stateMock)
+        ;
 
         $this->migratorMock
             ->shouldReceive('run')
@@ -60,7 +68,8 @@ class MigratorServiceTest extends TestCase
             ->andReturn(
                 $migrationInterfaceMock,
                 null
-            );
+            )
+        ;
 
         $this->expectOutputString(
             'Migrating tests-migration' . PHP_EOL
@@ -76,7 +85,8 @@ class MigratorServiceTest extends TestCase
     {
         $this->migratorMock
             ->shouldReceive('rollback')
-            ->once();
+            ->once()
+        ;
 
         $this->expectOutputString(
             'Rollback successful' . PHP_EOL

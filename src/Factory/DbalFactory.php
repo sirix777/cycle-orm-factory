@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Sirix\Cycle\Factory;
 
-use Cycle\Database;
 use Cycle\Database\Config;
 use Cycle\Database\DatabaseManager;
 use Cycle\ORM\Exception\ConfigException;
@@ -28,6 +27,6 @@ class DbalFactory
 
         $config = $config['cycle'];
 
-        return new Database\DatabaseManager(new Config\DatabaseConfig($config));
+        return new DatabaseManager(new Config\DatabaseConfig($config));
     }
 }

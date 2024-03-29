@@ -4,15 +4,13 @@ declare(strict_types=1);
 
 namespace Sirix\Cycle\Service;
 
-use Throwable;
-
 use const PHP_EOL;
+
+use Throwable;
 
 class MigratorService
 {
-    public function __construct(private readonly MigratorInterface $migrator)
-    {
-    }
+    public function __construct(private readonly MigratorInterface $migrator) {}
 
     public function migrate(): void
     {

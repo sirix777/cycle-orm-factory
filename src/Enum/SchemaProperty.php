@@ -6,6 +6,6 @@ namespace Sirix\Cycle\Enum;
 
 enum SchemaProperty: int
 {
-    case SyncTables         = 0;
+    case SyncTables = 0;
     case GenerateMigrations = 1;
 }

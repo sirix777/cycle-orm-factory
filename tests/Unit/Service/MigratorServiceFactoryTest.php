@@ -16,9 +16,14 @@ use Sirix\Cycle\Service\MigratorServiceFactory;
 use Sirix\Cycle\Service\MigratorWrapper;
 use TypeError;
 
+/**
+ * @internal
+ *
+ * @coversNothing
+ */
 class MigratorServiceFactoryTest extends TestCase
 {
-    private MockObject|ContainerInterface $container;
+    private ContainerInterface|MockObject $container;
 
     /**
      * @throws Exception
@@ -61,7 +66,8 @@ class MigratorServiceFactoryTest extends TestCase
             ->expects($this->once())
             ->method('get')
             ->with('migrator')
-            ->willReturn($migratorWrapperMock);
+            ->willReturn($migratorWrapperMock)
+        ;
         $factory = new MigratorServiceFactory();
 
         $this->assertInstanceOf(

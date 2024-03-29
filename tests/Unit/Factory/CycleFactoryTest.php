@@ -21,10 +21,16 @@ use Symfony\Component\Filesystem\Filesystem;
 
 use function file_exists;
 
+/**
+ * @internal
+ *
+ * @coversNothing
+ */
 class CycleFactoryTest extends TestCase
 {
     private const CACHE_DIR = 'tests/cache';
-    private MockObject|ContainerInterface $container;
+    private ContainerInterface|MockObject $container;
+
     /** @var array<string, array<int|string, mixed>> */
     private array $config;
 
@@ -37,13 +43,13 @@ class CycleFactoryTest extends TestCase
         $this->container = $this->createMock(
             ContainerInterface::class
         );
-        $this->config    = [
+        $this->config = [
             'entities' => [
                 'src',
             ],
-            'schema'   => [
-                'property'  => null,
-                'cache'     => false,
+            'schema' => [
+                'property' => null,
+                'cache' => false,
                 'directory' => 'tests/cache',
             ],
         ];
@@ -59,7 +65,7 @@ class CycleFactoryTest extends TestCase
 
     /**
      * @throws ContainerExceptionInterface
-     * @throws NotFoundExceptionInterface|InvalidArgumentException
+     * @throws InvalidArgumentException|NotFoundExceptionInterface
      */
     public function testFactoryWithoutConfig(): void
     {
@@ -67,7 +73,8 @@ class CycleFactoryTest extends TestCase
             ->expects($this->once())
             ->method('has')
             ->with('config')
-            ->willReturn(false);
+            ->willReturn(false)
+        ;
 
         $factory = new CycleFactory();
         $this->expectException(ConfigException::class);
@@ -90,15 +97,17 @@ class CycleFactoryTest extends TestCase
             ->expects($this->once())
             ->method('has')
             ->with('config')
-            ->willReturn(true);
+            ->willReturn(true)
+        ;
 
         $this->container->expects($this->exactly(2))
             ->method('get')
-            ->willReturnCallback(fn($serviceName) => match ($serviceName) {
+            ->willReturnCallback(fn ($serviceName) => match ($serviceName) {
                 'config' => $this->config,
                 'dbal' => throw new $exceptionMock('dbal not found'),
                 default => null,
-            });
+            })
+        ;
 
         $factory = new CycleFactory();
 
@@ -122,16 +131,18 @@ class CycleFactoryTest extends TestCase
             ->expects($this->once())
             ->method('has')
             ->with('config')
-            ->willReturn(true);
+            ->willReturn(true)
+        ;
 
         $this->container->expects($this->exactly(3))
             ->method('get')
-            ->willReturnCallback(fn($serviceName) => match ($serviceName) {
+            ->willReturnCallback(fn ($serviceName) => match ($serviceName) {
                 'config' => $this->config,
                 'dbal' => new DatabaseManager(new DatabaseConfig([])),
                 'migrator' => throw new $exceptionMock('migrator not found'),
                 default => null,
-            });
+            })
+        ;
 
         $factory = new CycleFactory();
 
@@ -183,16 +194,18 @@ class CycleFactoryTest extends TestCase
             ->expects($this->once())
             ->method('has')
             ->with('config')
-            ->willReturn(true);
+            ->willReturn(true)
+        ;
 
         $this->container->expects($this->exactly(3))
             ->method('get')
-            ->willReturnCallback(fn($serviceName) => match ($serviceName) {
+            ->willReturnCallback(fn ($serviceName) => match ($serviceName) {
                 'config' => $config,
                 'dbal' => new DatabaseManager(new DatabaseConfig([])),
                 'migrator' => $migratorMock,
                 default => null,
-            });
+            })
+        ;
 
         $factory = new CycleFactory();
 

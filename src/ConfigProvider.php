@@ -17,7 +17,7 @@ class ConfigProvider
     {
         return [
             'dependencies' => $this->getDependencies(),
-            'laminas-cli'  => $this->getCliConfig(),
+            'laminas-cli' => $this->getCliConfig(),
         ];
     }
 
@@ -28,12 +28,12 @@ class ConfigProvider
     {
         return [
             'invokables' => [],
-            'factories'  => [
-                'orm'                                   => CycleFactory::class,
-                'migrator'                              => MigratorFactory::class,
-                'dbal'                                  => DbalFactory::class,
-                Service\MigratorService::class          => Service\MigratorServiceFactory::class,
-                Command\Migrator\MigrateCommand::class  => Command\Migrator\MigrateCommandFactory::class,
+            'factories' => [
+                'orm' => CycleFactory::class,
+                'migrator' => MigratorFactory::class,
+                'dbal' => DbalFactory::class,
+                Service\MigratorService::class => Service\MigratorServiceFactory::class,
+                Command\Migrator\MigrateCommand::class => Command\Migrator\MigrateCommandFactory::class,
                 Command\Migrator\RollbackCommand::class => Command\Migrator\RollbackCommandFactory::class,
             ],
         ];
@@ -46,7 +46,7 @@ class ConfigProvider
     {
         return [
             'commands' => [
-                'migrator:migrate'  => Command\Migrator\MigrateCommand::class,
+                'migrator:migrate' => Command\Migrator\MigrateCommand::class,
                 'migrator:rollback' => Command\Migrator\RollbackCommand::class,
             ],
         ];
