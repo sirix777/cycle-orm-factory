@@ -57,6 +57,9 @@
         }
     },
     "scripts": {
+        "post-install-cmd": [
+            "if [ ! -d \"tools/php-cs-fixer/vendor\" ]; then composer install --working-dir=tools/php-cs-fixer; fi"
+        ],
         "check": [
             "@cs-check",
             "@phpstan",
