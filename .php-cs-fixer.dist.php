@@ -7,5 +7,6 @@ use Sirix\CsFixerConfig\ConfigBuilder;
 return ConfigBuilder::create()
     ->inDir(__DIR__.'/src')
     ->inDir(__DIR__ . '/tests')
+	->inDir(__DIR__ . '/config')
     ->getConfig()
 ;

@@ -2,19 +2,19 @@
 
 declare(strict_types=1);
 
-use App\Factory\CycleFactory;
-use App\Factory\DbalFactory;
-use App\Factory\MigratorFactory;
 use Cycle\Database\Config;
-
+use Cycle\ORM\Mapper\Mapper;
+use Cycle\ORM\Relation;
+use Cycle\ORM\SchemaInterface;
+use Sirix\Cycle\Enum\SchemaProperty;
 
 return [
-    'cycle'           => [
-        'default'     => 'default',
-        'databases'   => [
+    'cycle' => [
+        'default' => 'default',
+        'databases' => [
             'default' => [
                 'connection' => 'mysql',
-            ]
+            ],
         ],
         'connections' => [
             'mysql' => new Config\MySQLDriverConfig(
@@ -29,18 +29,64 @@ return [
                 timezone: 'UTC',
                 queryCache: true,
             ),
-        ]
+        ],
     ],
-    'migrator'        => [
+    'migrator' => [
         'directory' => 'db/migrations',
-        'table'     => 'migrations'
+        'table' => 'migrations',
     ],
-    'entities'        => [
+    'entities' => [
         'src/App/src/Entity',
     ],
-    'schema'   => [
+    'schema' => [
         'property' => SchemaProperty::GenerateMigrations,
-        'cache'    => true,
-        'directory' => 'data/cache'
+        'cache' => true,
+        'directory' => 'data/cache',
+        'manual_entity_schema_definition' => [
+            'user' => [
+                SchemaInterface::ENTITY => User::class,
+                SchemaInterface::MAPPER => Mapper::class,
+                SchemaInterface::DATABASE => 'default',
+                SchemaInterface::TABLE => 'user',
+                SchemaInterface::PRIMARY_KEY => 'id',
+                SchemaInterface::COLUMNS => [
+                    'id' => 'id',
+                    'email' => 'email',
+                    'balance' => 'balance',
+                ],
+                SchemaInterface::TYPECAST => [
+                    'id' => 'int',
+                    'balance' => 'float',
+                ],
+                SchemaInterface::RELATIONS => [
+                    'profile' => [
+                        Relation::TYPE => Relation::HAS_ONE,
+                        Relation::TARGET => 'profile',
+                        Relation::SCHEMA => [
+                            Relation::CASCADE => true,
+                            Relation::INNER_KEY => 'id',
+                            Relation::OUTER_KEY => 'user_id',
+                        ],
+                    ],
+                ],
+            ],
+            'profile' => [
+                SchemaInterface::ENTITY => Profile::class,
+                SchemaInterface::MAPPER => Mapper::class,
+                SchemaInterface::DATABASE => 'default',
+                SchemaInterface::TABLE => 'profile',
+                SchemaInterface::PRIMARY_KEY => 'id',
+                SchemaInterface::COLUMNS => [
+                    'id' => 'id',
+                    'user_id' => 'user_id',
+                    'image' => 'image',
+                ],
+                SchemaInterface::TYPECAST => [
+                    'id' => 'int',
+                    'user_id' => 'int',
+                ],
+                SchemaInterface::RELATIONS => [],
+            ],
+        ],
     ],
 ];

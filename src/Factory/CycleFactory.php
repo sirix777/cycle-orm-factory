@@ -21,6 +21,8 @@ use Spiral\Tokenizer\ClassLocator;
 use Symfony\Component\Cache\Adapter\FilesystemAdapter;
 use Symfony\Component\Finder\Finder;
 
+use function array_merge;
+
 class CycleFactory
 {
     private const DEFAULT_CACHE_DIRECTORY = 'data/cache';
@@ -44,6 +46,7 @@ class CycleFactory
         $schemaProperty = $config['schema']['property'] ?? null;
         $isCached = $config['schema']['cache'] ?? true;
         $cacheDirectory = $config['schema']['directory'] ?? self::DEFAULT_CACHE_DIRECTORY;
+        $manualEntitySchemaDefinition = $config['schema']['manual_entity_schema_definition'] ?? [];
 
         $cache = $this->getCacheStorage($cacheDirectory);
 
@@ -101,6 +104,8 @@ class CycleFactory
             new Schema\Registry($dbal),
             $generators
         );
+
+        $schema = array_merge($schema, $manualEntitySchemaDefinition);
 
         if ($isCached) {
             $cachedSchema->set($schema);
