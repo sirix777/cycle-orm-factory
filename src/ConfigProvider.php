@@ -35,6 +35,7 @@ class ConfigProvider
                 Service\MigratorService::class => Service\MigratorServiceFactory::class,
                 Command\Migrator\MigrateCommand::class => Command\Migrator\MigrateCommandFactory::class,
                 Command\Migrator\RollbackCommand::class => Command\Migrator\RollbackCommandFactory::class,
+                Command\Migrator\CreateMigrationCommand::class => Command\Migrator\CreateMigrationCommandFactory::class,
             ],
         ];
     }
@@ -48,6 +49,7 @@ class ConfigProvider
             'commands' => [
                 'migrator:migrate' => Command\Migrator\MigrateCommand::class,
                 'migrator:rollback' => Command\Migrator\RollbackCommand::class,
+                'migrator:create-migration' => Command\Migrator\CreateMigrationCommand::class,
             ],
         ];
     }

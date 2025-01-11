@@ -18,7 +18,7 @@ use Throwable;
 /**
  * @internal
  *
- * @coversNothing
+ * @covers \Sirix\Cycle\Service\MigratorService
  */
 class MigratorServiceTest extends TestCase
 {
