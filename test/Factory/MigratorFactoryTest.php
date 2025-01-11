@@ -4,21 +4,22 @@ declare(strict_types=1);
 
 namespace Sirix\Cycle\Test\Factory;
 
-use PHPUnit\Framework\TestCase;
-use Sirix\Cycle\Factory\MigratorFactory;
-use Sirix\Cycle\Service\MigratorInterface;
 use Cycle\Database\Config\DatabaseConfig;
 use Cycle\Database\DatabaseManager;
 use Cycle\Database\Exception\ConfigException;
 use PHPUnit\Framework\MockObject\Exception;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\ContainerInterface;
 use Psr\Container\NotFoundExceptionInterface;
+use Sirix\Cycle\Factory\MigratorFactory;
+use Sirix\Cycle\Service\MigratorInterface;
 
 class MigratorFactoryTest extends TestCase
 {
-    private MockObject|ContainerInterface $container;
+    private ContainerInterface|MockObject $container;
+
     /** @var array<string, array<string, string>> */
     private array $config;
 
@@ -49,7 +50,8 @@ class MigratorFactoryTest extends TestCase
             ->expects($this->once())
             ->method('has')
             ->with('config')
-            ->willReturn(false);
+            ->willReturn(false)
+        ;
 
         $factory = new MigratorFactory();
         $this->expectException(ConfigException::class);
@@ -72,15 +74,17 @@ class MigratorFactoryTest extends TestCase
             ->expects($this->once())
             ->method('has')
             ->with('config')
-            ->willReturn(true);
+            ->willReturn(true)
+        ;
 
         $this->container->expects($this->exactly(2))
             ->method('get')
-            ->willReturnCallback(fn($serviceName) => match ($serviceName) {
+            ->willReturnCallback(fn ($serviceName) => match ($serviceName) {
                 'config' => $this->config,
                 'dbal' => throw new $exceptionMock('dbal not found'),
                 default => null,
-            });
+            })
+        ;
 
         $factory = new MigratorFactory();
 
@@ -100,7 +104,8 @@ class MigratorFactoryTest extends TestCase
             ->expects($this->once())
             ->method('has')
             ->with('config')
-            ->willReturn(true);
+            ->willReturn(true)
+        ;
 
         $this->container
             ->expects($this->exactly(2))
@@ -110,7 +115,8 @@ class MigratorFactoryTest extends TestCase
                     ['config', $this->config],
                     ['dbal', new DatabaseManager(new DatabaseConfig([]))],
                 ]
-            );
+            )
+        ;
 
         $factory = new MigratorFactory();
 

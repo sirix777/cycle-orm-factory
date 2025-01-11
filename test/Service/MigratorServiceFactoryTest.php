@@ -4,21 +4,21 @@ declare(strict_types=1);
 
 namespace Sirix\Cycle\Test\Service;
 
-use PHPUnit\Framework\TestCase;
-use Sirix\Cycle\Service\MigratorService;
-use Sirix\Cycle\Service\MigratorServiceFactory;
-use Sirix\Cycle\Service\MigratorWrapper;
 use Mockery;
 use PHPUnit\Framework\MockObject\Exception;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\ContainerInterface;
 use Psr\Container\NotFoundExceptionInterface;
+use Sirix\Cycle\Service\MigratorService;
+use Sirix\Cycle\Service\MigratorServiceFactory;
+use Sirix\Cycle\Service\MigratorWrapper;
 use TypeError;
 
 class MigratorServiceFactoryTest extends TestCase
 {
-    private MockObject|ContainerInterface $container;
+    private ContainerInterface|MockObject $container;
 
     /**
      * @throws Exception
@@ -61,7 +61,8 @@ class MigratorServiceFactoryTest extends TestCase
             ->expects($this->once())
             ->method('get')
             ->with('migrator')
-            ->willReturn($migratorWrapperMock);
+            ->willReturn($migratorWrapperMock)
+        ;
         $factory = new MigratorServiceFactory();
 
         $this->assertInstanceOf(

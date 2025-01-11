@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace Sirix\Cycle\Test\Service;
 
-use PHPUnit\Framework\TestCase;
-use Sirix\Cycle\Service\MigratorInterface;
-use Sirix\Cycle\Service\MigratorService;
+use const PHP_EOL;
+
 use Cycle\Migrations\MigrationInterface;
 use Cycle\Migrations\State;
 use Mockery;
 use Mockery\MockInterface;
+use PHPUnit\Framework\TestCase;
+use Sirix\Cycle\Service\MigratorInterface;
+use Sirix\Cycle\Service\MigratorService;
 use Throwable;
-
-use const PHP_EOL;
 
 class MigratorServiceTest extends TestCase
 {
@@ -32,7 +32,8 @@ class MigratorServiceTest extends TestCase
         $this->migratorMock
             ->shouldReceive('isConfigured')
             ->once()
-            ->andReturnFalse();
+            ->andReturnFalse()
+        ;
         $this->migratorMock->shouldReceive('configure')->once();
     }
 
@@ -50,12 +51,14 @@ class MigratorServiceTest extends TestCase
 
         $stateMock
             ->shouldReceive('getName')
-            ->andReturn('tests-migration');
+            ->andReturn('tests-migration')
+        ;
 
         $migrationInterfaceMock
             ->shouldReceive('getState')
             ->once()
-            ->andReturn($stateMock);
+            ->andReturn($stateMock)
+        ;
 
         $this->migratorMock
             ->shouldReceive('run')
@@ -63,7 +66,8 @@ class MigratorServiceTest extends TestCase
             ->andReturn(
                 $migrationInterfaceMock,
                 null
-            );
+            )
+        ;
 
         $this->expectOutputString(
             'Migrating tests-migration' . PHP_EOL
@@ -79,7 +83,8 @@ class MigratorServiceTest extends TestCase
     {
         $this->migratorMock
             ->shouldReceive('rollback')
-            ->once();
+            ->once()
+        ;
 
         $this->expectOutputString(
             'Rollback successful' . PHP_EOL
