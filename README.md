@@ -141,6 +141,19 @@ php vendor/bin/laminas migrator:rollback
 This command does not have any additional options.
 
 
+### 3. `migrator:create-migration` Command
+
+#### Description
+The `migrator:create-migration` command generates a new empty migration file in the migration directory.
+
+#### Usage
+```bash
+php vendor/bin/laminas migrator:create-migration PascalCaseMigrationName
+```
+
+#### Options
+- `migrationName`: The name of the migration file to be created. This should be in PascalCase format.
+
 **Note**: Make sure that you have correctly configured the database connection and migrations settings in your project's configuration file.
 
 For more information about using migrations with Cycle ORM, see the [Cycle ORM Documentation](https://cycle-orm.dev/docs/database-migrations/current/en).
