@@ -17,7 +17,7 @@ use Sirix\Cycle\Service\MigratorService;
 /**
  * @internal
  *
- * @coversNothing
+ * @covers \Sirix\Cycle\Command\Migrator\MigrateCommandFactory
  */
 class MigrateCommandFactoryTest extends TestCase
 {
