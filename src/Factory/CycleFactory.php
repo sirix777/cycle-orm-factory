@@ -84,8 +84,8 @@ class CycleFactory
             new Schema\Generator\RenderTables(),
             new Schema\Generator\RenderRelations(),
             new Schema\Generator\RenderModifiers(),
-            new Annotated\MergeIndexes(),
             new Schema\Generator\ForeignKeys(),
+            new Annotated\MergeIndexes(),
             new Schema\Generator\GenerateTypecast(),
         ];
 
