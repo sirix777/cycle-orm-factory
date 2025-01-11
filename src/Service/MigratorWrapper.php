@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Sirix\Cycle\Service;
 
+use Cycle\Migrations\Config\MigrationConfig;
 use Cycle\Migrations\MigrationInterface;
 use Cycle\Migrations\Migrator;
+use Cycle\Migrations\RepositoryInterface;
 use Throwable;
 
 class MigratorWrapper implements MigratorInterface
@@ -33,5 +35,15 @@ class MigratorWrapper implements MigratorInterface
     public function rollback(): void
     {
         $this->migrator->rollback();
+    }
+
+    public function getRepository(): RepositoryInterface
+    {
+        return $this->migrator->getRepository();
+    }
+
+    public function getConfig(): MigrationConfig
+    {
+        return $this->migrator->getConfig();
     }
 }
