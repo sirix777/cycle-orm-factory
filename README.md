@@ -75,6 +75,86 @@ return [
 ```
 - Specifies the directory in which your entity classes are located.
 
+### Manual mapping schema definitions
+
+You can define manual mapping schema definitions for your entities. This is useful when you need to customize the schema for a specific entity. For example, you can define the table name, primary key, columns, typecast handlers, typecasts, and relations for an entity.
+
+```php
+<?php
+
+/**
+ * Example of a Cycle ORM schema configuration.
+ * Use this template to define your entities, relationships, and database mappings.
+ * Note: This configuration must be placed within the 'schema' => ['manual_mapping_schema_definitions'] array.
+ */
+
+use Cycle\ORM\Relation;
+use Cycle\ORM\SchemaInterface;
+
+return [
+    'schema' => [
+        'manual_mapping_schema_definitions' => [
+            'example_entity' => [
+                // Entity class for mapping
+                SchemaInterface::ENTITY => YourEntity::class,
+
+                // Database and table name for the entity
+                SchemaInterface::DATABASE => 'your-database',
+                SchemaInterface::TABLE => 'your_table_name',
+
+                // Primary key column
+                SchemaInterface::PRIMARY_KEY => 'id',
+
+                // Column mappings: database columns to entity properties
+                SchemaInterface::COLUMNS => [
+                    'id' => 'id',
+                    'name' => 'name',
+                    'createdAt' => 'created_at',
+                    'updatedAt' => 'updated_at',
+                ],
+
+                // Typecasting for fields
+                SchemaInterface::TYPECAST => [
+                    'id' => 'int',
+                    'createdAt' => 'datetime',
+                    'updatedAt' => 'datetime',
+                ],
+
+                // Optional: Custom typecast handlers
+                SchemaInterface::TYPECAST_HANDLER => YourTypecastHandler::class,
+
+                // Relationships definition
+                SchemaInterface::RELATIONS => [
+                    'relatedEntities' => [
+                        Relation::TYPE => Relation::HAS_MANY, // Relation type
+                        Relation::TARGET => RelatedEntity::class, // Target entity class
+                        Relation::SCHEMA => [
+                            Relation::CASCADE => true, // Cascade updates/deletes
+                            Relation::INNER_KEY => 'id', // Local key in this entity
+                            Relation::OUTER_KEY => 'related_entity_id', // Foreign key in the related entity
+                            Relation::WHERE => [
+                                'status' => 'active', // Optional filter for the relation
+                            ],
+                        ],
+                    ],
+                    'anotherEntity' => [
+                        Relation::TYPE => Relation::BELONGS_TO,
+                        Relation::TARGET => AnotherEntity::class,
+                        Relation::SCHEMA => [
+                            Relation::CASCADE => true,
+                            Relation::INNER_KEY => 'another_entity_id',
+                            Relation::OUTER_KEY => 'id',
+                        ],
+                    ],
+                ],
+            ],
+        ],
+    ],
+];
+```
+See the [Cycle ORM documentation](https://cycle-orm.dev/docs/schema-manual/current/en) for more information on manual mapping schema definitions.
+
+
 ### Schema Configuration
 ```php
 'schema' => [
@@ -111,7 +191,7 @@ These factories provide the necessary components to work seamlessly with Cycle O
 For more information about Cycle ORM, see the [Cycle ORM documentation](https://cycle-orm.dev/docs).
 
 ## Migrator Commands
-The `Sirix\Cycle\Command\Migrator` namespace provides two commands for managing database migrations using Cycle ORM. These commands are intended for use with the `laminas-cli` tool.
+The `Sirix\Cycle\Command\Migrator` namespace provides three commands for managing database migrations using Cycle ORM. These commands are intended for use with the `laminas-cli` tool.
 
 ### 1. `migrator:migrate` Command
 
