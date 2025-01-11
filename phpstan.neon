@@ -2,13 +2,11 @@ parameters:
 	level: 8
 	paths:
 		- src
-		- tests
-	excludePaths:
-		- tests/Support/*
+		- test
 	ignoreErrors:
 	    -
 	        messages:
 	            - '#^Call to an undefined method.*(?:MockObject|Mockery).*$#'
 	            - '#^Parameter \#1.*MockObject.*$#'
 	        paths:
-	            - tests/Unit/*
+	            - test/*

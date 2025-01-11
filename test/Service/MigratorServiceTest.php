@@ -2,41 +2,37 @@
 
 declare(strict_types=1);
 
-namespace Sirix\Cycle\Test\Unit\Service;
+namespace Sirix\Cycle\Test\Service;
 
-use const PHP_EOL;
-
-use Codeception\PHPUnit\TestCase;
+use PHPUnit\Framework\TestCase;
+use Sirix\Cycle\Service\MigratorInterface;
+use Sirix\Cycle\Service\MigratorService;
 use Cycle\Migrations\MigrationInterface;
 use Cycle\Migrations\State;
 use Mockery;
 use Mockery\MockInterface;
-use Sirix\Cycle\Service\MigratorService;
-use Sirix\Cycle\Service\MigratorWrapper;
 use Throwable;
 
-/**
- * @internal
- *
- * @covers \Sirix\Cycle\Service\MigratorService
- */
+use const PHP_EOL;
+
 class MigratorServiceTest extends TestCase
 {
-    private MigratorWrapper|MockInterface $migratorMock;
+    private MigratorInterface|MockInterface $migratorMock;
     private MigratorService $migratorService;
 
     public function setUp(): void
     {
         parent::setUp();
-        $this->migratorMock = Mockery::mock(MigratorWrapper::class);
+        $this->migratorMock = Mockery::mock(MigratorInterface::class);
 
-        $this->migratorService = new MigratorService($this->migratorMock);
+        /** @var MigratorInterface $migratorMock */
+        $migratorMock = $this->migratorMock;
+        $this->migratorService = new MigratorService($migratorMock);
 
         $this->migratorMock
             ->shouldReceive('isConfigured')
             ->once()
-            ->andReturnFalse()
-        ;
+            ->andReturnFalse();
         $this->migratorMock->shouldReceive('configure')->once();
     }
 
@@ -49,18 +45,17 @@ class MigratorServiceTest extends TestCase
     public function testMigrate(): void
     {
         $migrationInterfaceMock = Mockery::mock(MigrationInterface::class);
+
         $stateMock = Mockery::mock('overload:' . State::class);
 
         $stateMock
             ->shouldReceive('getName')
-            ->andReturn('tests-migration')
-        ;
+            ->andReturn('tests-migration');
 
         $migrationInterfaceMock
             ->shouldReceive('getState')
             ->once()
-            ->andReturn($stateMock)
-        ;
+            ->andReturn($stateMock);
 
         $this->migratorMock
             ->shouldReceive('run')
@@ -68,8 +63,7 @@ class MigratorServiceTest extends TestCase
             ->andReturn(
                 $migrationInterfaceMock,
                 null
-            )
-        ;
+            );
 
         $this->expectOutputString(
             'Migrating tests-migration' . PHP_EOL
@@ -85,8 +79,7 @@ class MigratorServiceTest extends TestCase
     {
         $this->migratorMock
             ->shouldReceive('rollback')
-            ->once()
-        ;
+            ->once();
 
         $this->expectOutputString(
             'Rollback successful' . PHP_EOL

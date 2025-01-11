@@ -19,19 +19,17 @@
         "cycle/migrations": "^4.2",
         "cycle/orm": "^2.9",
         "cycle/schema-migrations-generator": "^2.3",
-        "symfony/cache": "^5.4 || ^6.3 || ^7.2",
+        "symfony/cache": "^6.3 || ^7.2",
         "symfony/console": "^6.3 || ^7.2",
         "symfony/filesystem": "^6.3 || ^7.2"
     },
     "require-dev": {
-        "codeception/codeception": "^5.0",
-        "codeception/module-asserts": "*",
-        "codeception/module-phpbrowser": "*",
         "ergebnis/composer-normalize": "^2.39",
         "mockery/mockery": "^1.6",
         "phpstan/extension-installer": "^1.3",
         "phpstan/phpstan": "^1.10",
         "phpstan/phpstan-mockery": "^1.1",
+        "phpunit/phpunit": "^10.5 || ^11.5",
         "roave/security-advisories": "dev-master"
     },
     "autoload": {
@@ -41,7 +39,7 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "Sirix\\Cycle\\Test\\": "tests/"
+            "Sirix\\Cycle\\Test\\": "test/"
         }
     },
     "config": {
@@ -68,6 +66,6 @@
         "cs-check": "export PHP_CS_FIXER_IGNORE_ENV=1 && php tools/php-cs-fixer/vendor/bin/php-cs-fixer fix -vvv --dry-run --diff",
         "cs-fix": "export PHP_CS_FIXER_IGNORE_ENV=1 && php tools/php-cs-fixer/vendor/bin/php-cs-fixer fix -vvv",
         "phpstan": "php vendor/bin/phpstan analyse",
-        "test": "codecept run"
+        "test": "phpunit --colors=always  --testdox"
     }
 }

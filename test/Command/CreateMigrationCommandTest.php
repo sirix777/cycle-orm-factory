@@ -2,12 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Sirix\Cycle\Test\Unit\Command;
+namespace Sirix\Cycle\Test\Command;
 
-use const DIRECTORY_SEPARATOR;
-
-use PHPUnit\Framework\TestCase;
 use Sirix\Cycle\Command\Migrator\CreateMigrationCommand;
+use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Exception\ExceptionInterface;
 use Symfony\Component\Console\Input\ArrayInput;
@@ -21,11 +19,8 @@ use function mkdir;
 use function sys_get_temp_dir;
 use function uniqid;
 
-/**
- * @internal
- *
- * @covers \Sirix\Cycle\Command\Migrator\CreateMigrationCommand
- */
+use const DIRECTORY_SEPARATOR;
+
 class CreateMigrationCommandTest extends TestCase
 {
     private string $migrationDirectory;

@@ -2,9 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Sirix\Cycle\Test\Unit\Factory;
+namespace Sirix\Cycle\Test\Factory;
 
-use Codeception\PHPUnit\TestCase;
+use PHPUnit\Framework\TestCase;
+use Sirix\Cycle\Factory\DbalFactory;
 use Cycle\Database\DatabaseProviderInterface;
 use Cycle\ORM\Exception\ConfigException;
 use PHPUnit\Framework\MockObject\Exception;
@@ -12,16 +13,10 @@ use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\ContainerInterface;
 use Psr\Container\NotFoundExceptionInterface;
-use Sirix\Cycle\Factory\DbalFactory;
 
-/**
- * @internal
- *
- * @coversNothing
- */
 class DbalFactoryTest extends TestCase
 {
-    private ContainerInterface|MockObject $container;
+    private MockObject|ContainerInterface $container;
 
     /**
      * @throws Exception
@@ -44,8 +39,7 @@ class DbalFactoryTest extends TestCase
             ->expects($this->once())
             ->method('has')
             ->with('config')
-            ->willReturn(false)
-        ;
+            ->willReturn(false);
         $factory = new DbalFactory();
         $this->expectException(ConfigException::class);
         $this->expectExceptionMessage('Expected config databases');
@@ -62,15 +56,13 @@ class DbalFactoryTest extends TestCase
             ->expects($this->once())
             ->method('has')
             ->with('config')
-            ->willReturn(true)
-        ;
+            ->willReturn(true);
 
         $this->container
             ->expects($this->once())
             ->method('get')
             ->with('config')
-            ->willReturn(['cycle' => []])
-        ;
+            ->willReturn(['cycle' => []]);
 
         $factory = new DbalFactory();
         $this->assertInstanceOf(

@@ -2,26 +2,21 @@
 
 declare(strict_types=1);
 
-namespace Sirix\Cycle\Test\Unit\Command;
+namespace Sirix\Cycle\Test\Command;
 
-use Codeception\PHPUnit\TestCase;
+use PHPUnit\Framework\TestCase;
+use Sirix\Cycle\Command\Migrator\RollbackCommand;
+use Sirix\Cycle\Command\Migrator\RollbackCommandFactory;
+use Sirix\Cycle\Service\MigratorService;
 use PHPUnit\Framework\MockObject\Exception;
 use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\ContainerInterface;
 use Psr\Container\NotFoundExceptionInterface;
-use Sirix\Cycle\Command\Migrator\RollbackCommand;
-use Sirix\Cycle\Command\Migrator\RollbackCommandFactory;
-use Sirix\Cycle\Service\MigratorService;
 
-/**
- * @internal
- *
- * @covers \Sirix\Cycle\Command\Migrator\RollbackCommandFactory
- */
 class RollbackCommandFactoryTest extends TestCase
 {
-    private ContainerInterface|MockObject $container;
+    private MockObject|ContainerInterface $container;
 
     /**
      * @throws Exception
@@ -49,8 +44,7 @@ class RollbackCommandFactoryTest extends TestCase
             ->with(MigratorService::class)
             ->willThrowException(
                 new $exceptionMock('migrator service not found')
-            )
-        ;
+            );
 
         $factory = new RollbackCommandFactory();
         $this->expectException(NotFoundExceptionInterface::class);
@@ -71,8 +65,7 @@ class RollbackCommandFactoryTest extends TestCase
             ->with(MigratorService::class)
             ->willReturn(
                 $this->createMock(MigratorService::class)
-            )
-        ;
+            );
 
         $factory = new RollbackCommandFactory();
         $migrateCommand = $factory($this->container);
