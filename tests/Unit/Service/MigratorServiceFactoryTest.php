@@ -19,7 +19,7 @@ use TypeError;
 /**
  * @internal
  *
- * @coversNothing
+ * @covers \Sirix\Cycle\Service\MigratorServiceFactory
  */
 class MigratorServiceFactoryTest extends TestCase
 {
