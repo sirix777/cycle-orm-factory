@@ -171,7 +171,7 @@ class CycleFactory
     private function resolveCacheAdapter(ContainerInterface $container, array $config): CacheItemPoolInterface
     {
         if (isset($config['cycle']['schema']['cache']['service'])) {
-            $cacheService = $container->get($config['schema']['cache']['service']);
+            $cacheService = $container->get($config['cycle']['schema']['cache']['service']);
             if ($cacheService instanceof CacheItemPoolInterface) {
                 return $cacheService;
             }
