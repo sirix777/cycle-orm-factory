@@ -5,6 +5,8 @@
   <img src="https://img.shields.io/packagist/dt/sirix/cycle-orm-factory?style=flat-square" alt="Total Installs">
 </a>
 
+[Migration Guide from v1 to v2](docs/v1-to-v2.md)
+
 This package provides factories for integrating Cycle ORM into the Mezzio framework, providing seamless setup and configuration.
 ### Installation
 ```bash
@@ -255,3 +257,47 @@ php vendor/bin/laminas migrator:create-migration PascalCaseMigrationName
 **Note**: Make sure that you have correctly configured the database connection and migrations settings in your project's configuration file.
 
 For more information about using migrations with Cycle ORM, see the [Cycle ORM Documentation](https://cycle-orm.dev/docs/database-migrations/current/en).
+
+### Cache Configuration Example
+
+You can create a Symfony Cache Filesystem Adapter for your application like this:
+
+```php
+<?php
+
+declare(strict_types=1);
+
+use Symfony\Component\Cache\Adapter\FilesystemAdapter;
+
+return [
+    'dependencies' => [
+        'factories' => [
+            'Cache\Symfony\Filesystem' => function () {
+                // Create a Symfony Cache File Adapter instance
+                return new FilesystemAdapter(
+                    'cycle', // Namespace prefix for cache keys
+                    0, // Default TTL of items in seconds (0 means infinite)
+                    'data/cycle/cache' // Absolute or relative directory for cache files storage
+                );
+            },
+        ],
+    ],
+];
+```
+
+This configuration creates a Filesystem Cache Adapter with the following parameters:
+- `'cycle'`: A namespace prefix for cache keys, helping to avoid key collisions
+- `0`: Default Time-To-Live (TTL) set to infinite, meaning cached items won't expire automatically
+- `'data/cycle/cache'`: Directory where cache files will be stored
+
+    'cache' => [
+        'enabled' => true,
+        'key' => 'cycle_orm_cached_schema',
+        'service' => function () {
+            return new Symfony\Component\Cache\Adapter\FilesystemAdapter(
+                'cycle', // Namespace prefix for cache keys
+                0,      // Default TTL of items in seconds (0 means infinite)
+                'data/cycle/cache' // Directory for cache files storage
+            );
+        },
+    ],
