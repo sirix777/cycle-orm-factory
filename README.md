@@ -293,10 +293,12 @@ This configuration creates a Filesystem Cache Adapter with the following paramet
 
 Then, you can configure the Cycle ORM Factory to use this cache service like this:
 ```php
-    'cache' => [
-        'enabled' => true,
-        'key' => 'cycle_orm_cached_schema',
-        'service' => 'Cache\Symfony\Filesystem'
-        },
-    ],
+'schema' => [
+  'cache' => [
+      'enabled' => true,
+      'key' => 'cycle_orm_cached_schema',
+      'service' => 'Cache\Symfony\Filesystem'
+      ],
+  // Other schema configurations...   
+],
 ```
