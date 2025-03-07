@@ -21,11 +21,11 @@ class DbalFactory
     {
         $config = $container->has('config') ? $container->get('config') : [];
 
-        if (! isset($config['cycle'])) {
+        if (! isset($config['cycle']['db-config'])) {
             throw new ConfigException('Expected config databases');
         }
 
-        $config = $config['cycle'];
+        $config = $config['cycle']['db-config'];
 
         return new DatabaseManager(new Config\DatabaseConfig($config));
     }

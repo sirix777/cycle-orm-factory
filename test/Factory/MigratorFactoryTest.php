@@ -20,7 +20,7 @@ class MigratorFactoryTest extends TestCase
 {
     private ContainerInterface|MockObject $container;
 
-    /** @var array<string, array<string, string>> */
+    /** @var array<string, mixed> */
     private array $config;
 
     /**
@@ -33,9 +33,11 @@ class MigratorFactoryTest extends TestCase
             ContainerInterface::class
         );
         $this->config = [
-            'migrator' => [
-                'directory' => 'db/migrations',
-                'table' => 'migrations',
+            'cycle' => [
+                'migrator' => [
+                    'directory' => 'db/migrations',
+                    'table' => 'migrations',
+                ],
             ],
         ];
     }
