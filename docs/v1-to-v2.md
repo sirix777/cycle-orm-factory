@@ -10,7 +10,7 @@ compatibility with the new version. Here are the changes related to dependencies
 #### PSR-6 Cache Implementation
 
 Cycle ORM Factory v2 now requires a PSR-6 compliant cache implementation for schema caching. If your project does not
-already include one, consider adding a library such as `symfony/cache` or `cache/filesystem-adapter`.
+already include one, consider adding a library such as `symfony/cache`.
 
 - The configuration structure has been updated in v2. All configuration keys like `schema`, `migrator`, and `entities`
   are now grouped under the `cycle` key, and database configurations should be moved to
