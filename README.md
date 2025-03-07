@@ -290,14 +290,13 @@ This configuration creates a Filesystem Cache Adapter with the following paramet
 - `0`: Default Time-To-Live (TTL) set to infinite, meaning cached items won't expire automatically
 - `'data/cycle/cache'`: Directory where cache files will be stored
 
+
+Then, you can configure the Cycle ORM Factory to use this cache service like this:
+```php
     'cache' => [
         'enabled' => true,
         'key' => 'cycle_orm_cached_schema',
-        'service' => function () {
-            return new Symfony\Component\Cache\Adapter\FilesystemAdapter(
-                'cycle', // Namespace prefix for cache keys
-                0,      // Default TTL of items in seconds (0 means infinite)
-                'data/cycle/cache' // Directory for cache files storage
-            );
+        'service' => 'Cache\Symfony\Filesystem'
         },
     ],
+```
