@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Sirix\Cycle\Enum;
 
 enum CommandName: string

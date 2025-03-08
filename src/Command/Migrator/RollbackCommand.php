@@ -9,6 +9,7 @@ use Sirix\Cycle\Service\MigratorService;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Style\SymfonyStyle;
 use Throwable;
 
 final class RollbackCommand extends Command
@@ -31,7 +32,17 @@ final class RollbackCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $this->migratorService->rollback();
+        $io = new SymfonyStyle($input, $output);
+
+        try {
+            $this->migratorService->rollback();
+        } catch (Throwable $e) {
+            $io->error($e->getMessage());
+
+            return Command::FAILURE;
+        }
+
+        $io->success('Migration rollback successful');
 
         return Command::SUCCESS;
     }

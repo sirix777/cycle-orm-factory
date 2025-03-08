@@ -4,15 +4,16 @@ declare(strict_types=1);
 
 namespace Sirix\Cycle\Command\Migrator;
 
-use Sirix\Cycle\Enum\CommandName;
 use const DIRECTORY_SEPARATOR;
 
 use DateTime;
 use Exception;
+use Sirix\Cycle\Enum\CommandName;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Filesystem\Filesystem;
 
 use function bin2hex;
@@ -42,10 +43,12 @@ final class CreateMigrationCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
+        $io = new SymfonyStyle($input, $output);
+
         $migrationName = $input->getArgument('migrationName');
 
         if (! preg_match('/^[A-Z][A-Za-z0-9]+$/', $migrationName)) {
-            $output->writeln('<error>Invalid migration name. Use PascalCase format.</error>');
+            $io->error('Invalid migration name. Use PascalCase format.');
 
             return Command::FAILURE;
         }
@@ -61,9 +64,9 @@ final class CreateMigrationCommand extends Command
 
         try {
             $filesystem->dumpFile($filePath, $fileContent);
-            $output->writeln("<info>Migration created: {$filePath}</info>");
+            $io->success("Migration created: {$filePath}");
         } catch (Exception $e) {
-            $output->writeln("<error>Failed to create migration: {$e->getMessage()}</error>");
+            $io->error("Failed to create migration: {$e->getMessage()}");
 
             return Command::FAILURE;
         }
