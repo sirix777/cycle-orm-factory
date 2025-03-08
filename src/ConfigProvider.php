@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Sirix\Cycle;
 
+use Sirix\Cycle\Enum\CommandName;
 use Sirix\Cycle\Factory\CycleFactory;
 use Sirix\Cycle\Factory\DbalFactory;
 use Sirix\Cycle\Factory\MigratorFactory;
@@ -48,10 +49,10 @@ class ConfigProvider
     {
         return [
             'commands' => [
-                'migrator:migrate' => Command\Migrator\MigrateCommand::class,
-                'migrator:rollback' => Command\Migrator\RollbackCommand::class,
-                'migrator:create-migration' => Command\Migrator\CreateMigrationCommand::class,
-                'cycle:schema:cache:clear' => Command\Cycle\ClearCycleSchemaCache::class,
+                CommandName::GenerateMigrations->value => Command\Migrator\MigrateCommand::class,
+                CommandName::RollbackMigrations->value => Command\Migrator\RollbackCommand::class,
+                CommandName::RunMigrations->value => Command\Migrator\CreateMigrationCommand::class,
+                CommandName::ClearCache->value => Command\Cycle\ClearCycleSchemaCache::class,
             ],
         ];
     }

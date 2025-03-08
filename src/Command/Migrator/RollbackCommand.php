@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Sirix\Cycle\Command\Migrator;
 
+use Sirix\Cycle\Enum\CommandName;
 use Sirix\Cycle\Service\MigratorService;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -20,7 +21,7 @@ final class RollbackCommand extends Command
     protected function configure(): void
     {
         $this
-            ->setName('migrator:rollback')
+            ->setName(CommandName::RollbackMigrations->value)
             ->setDescription('Rollback last migration')
         ;
     }

@@ -213,42 +213,42 @@ For more information about Cycle ORM, see the [Cycle ORM documentation](https://
 ## Migrator Commands
 The `Sirix\Cycle\Command\Migrator` namespace provides three commands for managing database migrations using Cycle ORM. These commands are intended for use with the `laminas-cli` tool.
 
-### 1. `migrator:migrate` Command
+### 1. `cycle:migrator:run` Command
 
 #### Description
-The `migrator:migrate` command performs the necessary database migration steps, applying changes specified in migration files to synchronize your database schema.
+The `cycle:migrator:run` command performs the necessary database migration steps, applying changes specified in migration files to synchronize your database schema.
 
 #### Usage
 ```bash
-php vendor/bin/laminas migrator:migrate
+php vendor/bin/laminas cycle:migrator:run
 ```
 
 #### Options
 This command has no additional options.
 
 
-### 2. `migrator:rollback` Command
+### 2. `cycle:migrator:rollback` Command
 
 #### Description
-The `migrator:rollback` command undoes the changes made by the last migration, reverting your database schema to its previous state.
+The `cycle:migrator:rollback` command undoes the changes made by the last migration, reverting your database schema to its previous state.
 
 #### Usage
 ```bash
-php vendor/bin/laminas migrator:rollback
+php vendor/bin/laminas cycle:migrator:rollback
 ```
 
 #### Options
 This command does not have any additional options.
 
 
-### 3. `migrator:create-migration` Command
+### 3. `cycle:migrator:generate` Command
 
 #### Description
-The `migrator:create-migration` command generates a new empty migration file in the migration directory.
+The `cycle:migrator:generate` command generates a new empty migration file in the migration directory.
 
 #### Usage
 ```bash
-php vendor/bin/laminas migrator:create-migration PascalCaseMigrationName
+php vendor/bin/laminas cycle:migrator:generate PascalCaseMigrationName
 ```
 
 #### Options

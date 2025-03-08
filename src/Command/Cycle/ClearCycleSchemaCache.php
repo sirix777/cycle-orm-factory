@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Sirix\Cycle\Command\Cycle;
 
 use Psr\Cache\CacheItemPoolInterface;
+use Sirix\Cycle\Enum\CommandName;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -23,7 +24,9 @@ final class ClearCycleSchemaCache extends Command
 
     protected function configure(): void
     {
-        $this->setDescription('Clears the Cycle ORM schema cache')
+        $this
+            ->setName(CommandName::ClearCache->value)
+            ->setDescription('Clears the Cycle ORM schema cache')
             ->setHelp('This command clears the cached schema for Cycle ORM')
         ;
     }

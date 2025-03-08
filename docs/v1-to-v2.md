@@ -38,6 +38,32 @@ introduced in Cycle ORM Factory v2.
 
 ## Key Changes in v2
 
+### Command Name Changes and New Command for Clearing Cache
+
+As part of the migration to Cycle ORM Factory v2, some command names have been updated for consistency, and new commands
+have been introduced. Here are the details:
+
+#### Updated Command Names
+
+- Old command names may no longer be valid in v2. Ensure you update any references to match their new names. You can
+  find the updated commands in the Laminas CLI.
+
+##### Example Usage:
+
+To clear the schema cache, run the following command:
+
+```shell
+php mezzio cycle:cache:clear
+```
+
+This command eliminates cached schema data, forcing the ORM to rebuild the schema on the next execution.
+
+### Important Notes:
+
+1. Clearing the schema cache is useful during development when schema updates are frequent.
+2. In production, consider clearing cache only when necessary, as clearing it forces a rebuild, which can cause a brief
+   performance overhead.
+
 ### Configuration Changes
 
 In Cycle ORM Factory v2, the configurations for `schema`, `migrator`, and `entities` have been moved under the `cycle` key. Additionally, database configurations have been relocated under `cycle => [ 'db-config' => [`.

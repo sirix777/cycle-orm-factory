@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Sirix\Cycle\Command\Migrator;
 
+use Sirix\Cycle\Enum\CommandName;
 use const DIRECTORY_SEPARATOR;
 
 use DateTime;
@@ -24,6 +25,8 @@ use function ucfirst;
 
 final class CreateMigrationCommand extends Command
 {
+    private const UNIQUE_ID_LENGTH = 18;
+
     public function __construct(private readonly string $migrationDirectory, ?string $name = null)
     {
         parent::__construct($name);
@@ -31,7 +34,7 @@ final class CreateMigrationCommand extends Command
 
     protected function configure(): void
     {
-        $this->setName('migrator:create-migration')
+        $this->setName(CommandName::GenerateMigrations->value)
             ->setDescription('Create an empty migration file')
             ->addArgument('migrationName', InputArgument::REQUIRED, 'The name of the migration in PascalCase format')
         ;
@@ -104,7 +107,7 @@ final class CreateMigrationCommand extends Command
     private function getUniqueId(): string
     {
         try {
-            return bin2hex(random_bytes(18));
+            return bin2hex(random_bytes(self::UNIQUE_ID_LENGTH));
         } catch (Exception) {
             return bin2hex(md5(microtime()));
         }
