@@ -10,7 +10,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
 
-class RollbackCommand extends Command
+final class RollbackCommand extends Command
 {
     public function __construct(private readonly MigratorService $migratorService, ?string $name = null)
     {

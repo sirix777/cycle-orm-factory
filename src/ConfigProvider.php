@@ -36,6 +36,7 @@ class ConfigProvider
                 Command\Migrator\MigrateCommand::class => Command\Migrator\MigrateCommandFactory::class,
                 Command\Migrator\RollbackCommand::class => Command\Migrator\RollbackCommandFactory::class,
                 Command\Migrator\CreateMigrationCommand::class => Command\Migrator\CreateMigrationCommandFactory::class,
+                Command\Cycle\ClearCycleSchemaCache::class => Command\Cycle\ClearCycleSchemaCacheFactory::class,
             ],
         ];
     }
@@ -50,6 +51,7 @@ class ConfigProvider
                 'migrator:migrate' => Command\Migrator\MigrateCommand::class,
                 'migrator:rollback' => Command\Migrator\RollbackCommand::class,
                 'migrator:create-migration' => Command\Migrator\CreateMigrationCommand::class,
+                'cycle:schema:cache:clear' => Command\Cycle\ClearCycleSchemaCache::class,
             ],
         ];
     }

@@ -22,7 +22,7 @@ use function random_bytes;
 use function sprintf;
 use function ucfirst;
 
-class CreateMigrationCommand extends Command
+final class CreateMigrationCommand extends Command
 {
     public function __construct(private readonly string $migrationDirectory, ?string $name = null)
     {

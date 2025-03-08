@@ -9,7 +9,7 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class MigrateCommand extends Command
+final class MigrateCommand extends Command
 {
     public function __construct(private readonly MigratorService $migratorService, ?string $name = null)
     {

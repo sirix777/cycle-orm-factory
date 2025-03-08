@@ -5,7 +5,7 @@
   <img src="https://img.shields.io/packagist/dt/sirix/cycle-orm-factory?style=flat-square" alt="Total Installs">
 </a>
 
-[Migration Guide from v1 to v2](docs/v1-to-v2.md)
+
 
 This package provides factories for integrating Cycle ORM into the Mezzio framework, providing seamless setup and configuration.
 ### Installation
@@ -258,6 +258,26 @@ php vendor/bin/laminas migrator:create-migration PascalCaseMigrationName
 
 For more information about using migrations with Cycle ORM, see the [Cycle ORM Documentation](https://cycle-orm.dev/docs/database-migrations/current/en).
 
+
+### 4. `cycle:schema:cache:clear` Command
+
+#### Description
+
+The `cycle:schema:cache:clear` command clears the cached Cycle ORM schema configuration, forcing the ORM to
+regenerate it on the next application run. This can be useful during development when changes to entity definitions or
+configurations have been made, and you want to ensure fresh schema generation.
+
+#### Usage
+
+```bash
+php vendor/bin/laminas cycle:schema:cache:clear
+```
+
+#### Options
+
+This command does not have any additional options.
+
+
 ### Cache Configuration Example
 
 You can create a Symfony Cache Filesystem Adapter for your application like this:
@@ -291,14 +311,12 @@ This configuration creates a Filesystem Cache Adapter with the following paramet
 - `'data/cycle/cache'`: Directory where cache files will be stored
 
 
-Then, you can configure the Cycle ORM Factory to use this cache service like this:
+The cache configuration will look like this:
 ```php
-'schema' => [
-  'cache' => [
-      'enabled' => true,
-      'key' => 'cycle_orm_cached_schema',
-      'service' => 'Cache\Symfony\Filesystem'
-      ],
-  // Other schema configurations...   
-],
+    'cache' => [
+        'enabled' => true,
+        'key' => 'cycle_orm_cached_schema',
+        'service' => 'Cache\Symfony\Filesystem';
+        },
+    ],
 ```

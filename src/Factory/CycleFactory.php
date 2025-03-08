@@ -15,24 +15,24 @@ use Cycle\ORM\ORMInterface;
 use Cycle\ORM\Schema as ORMSchema;
 use Cycle\Schema;
 use Cycle\Schema\Generator\Migrations\GenerateMigrations;
-use Psr\Cache\CacheItemPoolInterface;
 use Psr\Cache\InvalidArgumentException;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\ContainerInterface;
 use Psr\Container\NotFoundExceptionInterface;
 use Sirix\Cycle\Enum\SchemaProperty;
+use Sirix\Cycle\Resolver\CacheAdapterResolver;
 use Sirix\Cycle\Service\MigratorInterface;
 use Spiral\Tokenizer\ClassLocator;
 use Symfony\Component\Finder\Finder;
 
 use function array_merge;
-use function sprintf;
 
 class CycleFactory
 {
-    private const DEFAULT_CACHE_KEY = 'cycle_orm_schema';
+    public const DEFAULT_CACHE_KEY = 'cycle_orm_schema';
 
     /**
+     * @throws ConfigException
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
      * @throws InvalidArgumentException
@@ -53,7 +53,7 @@ class CycleFactory
         $cacheKey = $config['cycle']['schema']['cache']['key'] ?? self::DEFAULT_CACHE_KEY;
 
         if ($isCacheEnabled) {
-            $cache = $this->resolveCacheAdapter($container, $config);
+            $cache = (new CacheAdapterResolver())->resolve($container, $config);
             $cachedSchema = $cache->getItem($cacheKey);
 
             if ($cachedSchema->isHit()) {
@@ -157,45 +157,6 @@ class CycleFactory
             factory: new ORM\Factory($dbal),
             schema: $schemaInstance,
             commandGenerator: $commandGenerator,
-        );
-    }
-
-    /**
-     * Resolves cache adapter from container or configuration.
-     *
-     * @param array<string, mixed> $config
-     *
-     * @throws ContainerExceptionInterface
-     * @throws NotFoundExceptionInterface
-     */
-    private function resolveCacheAdapter(ContainerInterface $container, array $config): CacheItemPoolInterface
-    {
-        if (isset($config['cycle']['schema']['cache']['service'])) {
-            $cacheService = $container->get($config['cycle']['schema']['cache']['service']);
-            if ($cacheService instanceof CacheItemPoolInterface) {
-                return $cacheService;
-            }
-
-            throw new ConfigException(
-                sprintf(
-                    'Cache service "%s" must implement Psr\Cache\CacheItemPoolInterface',
-                    $config['cycle']['schema']['cache']['service']
-                )
-            );
-        }
-
-        if ($container->has('cache')) {
-            $cache = $container->get('cache');
-            if ($cache instanceof CacheItemPoolInterface) {
-                return $cache;
-            }
-
-            throw new ConfigException('Cache service must implement Psr\Cache\CacheItemPoolInterface');
-        }
-
-        throw new ConfigException(
-            'No PSR-6 cache implementation found. Please configure a cache service '
-            . 'that implements Psr\Cache\CacheItemPoolInterface'
         );
     }
 }
