@@ -11,20 +11,23 @@ use Cycle\ORM\ORM;
 use PHPUnit\Framework\MockObject\Exception;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Psr\Cache\CacheItemPoolInterface;
 use Psr\Cache\InvalidArgumentException;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\ContainerInterface;
 use Psr\Container\NotFoundExceptionInterface;
 use Sirix\Cycle\Factory\CycleFactory;
 use Sirix\Cycle\Service\MigratorInterface;
+use Symfony\Component\Cache\Adapter\FilesystemAdapter;
 use Symfony\Component\Filesystem\Filesystem;
 
 use function file_exists;
 
 class CycleFactoryTest extends TestCase
 {
-    private const CACHE_DIR = 'tests/cache';
+    private const DEFAULT_CACHE_DIR = 'tests/cache';
     private ContainerInterface|MockObject $container;
+    private CacheItemPoolInterface $cache;
 
     /** @var array<string, array<int|string, mixed>> */
     private array $config;
@@ -39,21 +42,27 @@ class CycleFactoryTest extends TestCase
             ContainerInterface::class
         );
         $this->config = [
-            'entities' => [
-                'src',
-            ],
-            'schema' => [
-                'property' => null,
-                'cache' => false,
-                'directory' => 'tests/cache',
+            'cycle' => [
+                'entities' => [
+                    'src',
+                ],
+                'schema' => [
+                    'property' => null,
+                ],
             ],
         ];
+
+        $this->cache = new FilesystemAdapter(
+            'cycle_orm_test',
+            0,
+            self::DEFAULT_CACHE_DIR
+        );
     }
 
     public function tearDown(): void
     {
         parent::tearDown();
-        if (file_exists(self::CACHE_DIR)) {
+        if (file_exists(self::DEFAULT_CACHE_DIR)) {
             $this->removeCacheDir();
         }
     }
@@ -99,6 +108,7 @@ class CycleFactoryTest extends TestCase
             ->method('get')
             ->willReturnCallback(fn ($serviceName) => match ($serviceName) {
                 'config' => $this->config,
+                'cache' => $this->cache,
                 'dbal' => throw new $exceptionMock('dbal not found'),
                 default => null,
             })
@@ -125,7 +135,6 @@ class CycleFactoryTest extends TestCase
         $this->container
             ->expects($this->once())
             ->method('has')
-            ->with('config')
             ->willReturn(true)
         ;
 
@@ -133,6 +142,7 @@ class CycleFactoryTest extends TestCase
             ->method('get')
             ->willReturnCallback(fn ($serviceName) => match ($serviceName) {
                 'config' => $this->config,
+                'cache' => $this->cache,
                 'dbal' => new DatabaseManager(new DatabaseConfig([])),
                 'migrator' => throw new $exceptionMock('migrator not found'),
                 default => null,
@@ -155,7 +165,7 @@ class CycleFactoryTest extends TestCase
     public function testFactoryWithConfigWithDbalWithMigratorWithCache(): void
     {
         $this->makeFactory(true);
-        $this->assertTrue(file_exists(self::CACHE_DIR));
+        $this->assertTrue(file_exists(self::DEFAULT_CACHE_DIR));
     }
 
     /**
@@ -176,28 +186,30 @@ class CycleFactoryTest extends TestCase
      */
     private function makeFactory(bool $cache = false): void
     {
-        $migratorMock = $this->createMock(
-            MigratorInterface::class
-        );
+        $migratorMock = $this->createMock(MigratorInterface::class);
 
         $config = $this->config;
         if ($cache) {
-            $config['schema']['cache'] = true;
+            $config['cycle']['schema']['cache']['enabled'] = true;
         }
 
         $this->container
-            ->expects($this->once())
             ->method('has')
-            ->with('config')
-            ->willReturn(true)
+            ->willReturnCallback(fn ($serviceName) => match ($serviceName) {
+                'config' => true,
+                'cache' => $cache,
+                default => false,
+            })
         ;
 
-        $this->container->expects($this->exactly(3))
+        $this->container
+            ->expects($this->exactly($cache ? 4 : 3))
             ->method('get')
             ->willReturnCallback(fn ($serviceName) => match ($serviceName) {
                 'config' => $config,
                 'dbal' => new DatabaseManager(new DatabaseConfig([])),
                 'migrator' => $migratorMock,
+                'cache' => $cache ? $this->cache : null,
                 default => null,
             })
         ;
@@ -213,6 +225,6 @@ class CycleFactoryTest extends TestCase
     private function removeCacheDir(): void
     {
         $filesystem = new Filesystem();
-        $filesystem->remove(self::CACHE_DIR);
+        $filesystem->remove(self::DEFAULT_CACHE_DIR);
     }
 }

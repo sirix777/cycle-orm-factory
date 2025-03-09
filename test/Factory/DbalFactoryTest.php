@@ -64,7 +64,13 @@ class DbalFactoryTest extends TestCase
             ->expects($this->once())
             ->method('get')
             ->with('config')
-            ->willReturn(['cycle' => []])
+            ->willReturn(
+                [
+                    'cycle' => [
+                        'db-config' => [],
+                    ],
+                ]
+            )
         ;
 
         $factory = new DbalFactory();

@@ -12,18 +12,28 @@ class MigratorService
 {
     public function __construct(private readonly MigratorInterface $migrator) {}
 
-    public function migrate(): void
+    public function migrate(callable $output): void
     {
         if (! $this->migrator->isConfigured()) {
             $this->migrator->configure();
         }
 
         while (($migration = $this->migrator->run()) !== null) {
-            echo 'Migrating ' . $migration->getState()->getName() . PHP_EOL;
+            $output('Migrating ' . $migration->getState()->getName());
         }
-
-        echo 'Migrate successful' . PHP_EOL;
     }
+    //    public function migrate(): void
+    //    {
+    //        if (! $this->migrator->isConfigured()) {
+    //            $this->migrator->configure();
+    //        }
+    //
+    //        while (($migration = $this->migrator->run()) !== null) {
+    //            echo 'Migrating ' . $migration->getState()->getName() . PHP_EOL;
+    //        }
+    //
+    //        echo 'Migrate successful' . PHP_EOL;
+    //    }
 
     /**
      * @throws Throwable
@@ -35,7 +45,5 @@ class MigratorService
         }
 
         $this->migrator->rollback();
-
-        echo 'Rollback successful' . PHP_EOL;
     }
 }

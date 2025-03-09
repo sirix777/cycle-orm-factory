@@ -20,20 +20,19 @@ use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\ContainerInterface;
 use Psr\Container\NotFoundExceptionInterface;
 use Sirix\Cycle\Enum\SchemaProperty;
+use Sirix\Cycle\Resolver\CacheAdapterResolver;
 use Sirix\Cycle\Service\MigratorInterface;
 use Spiral\Tokenizer\ClassLocator;
-use Symfony\Component\Cache\Adapter\FilesystemAdapter;
 use Symfony\Component\Finder\Finder;
 
 use function array_merge;
 
 class CycleFactory
 {
-    private const DEFAULT_CACHE_DIRECTORY = 'data/cache';
-    private const CACHE_KEY = 'schema';
-    private const CACHE_NAMESPACE = 'cycle';
+    public const DEFAULT_CACHE_KEY = 'cycle_orm_schema';
 
     /**
+     * @throws ConfigException
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
      * @throws InvalidArgumentException
@@ -42,31 +41,29 @@ class CycleFactory
     {
         $config = $container->has('config') ? $container->get('config') : [];
 
-        if (! isset($config['entities'])) {
+        if (! isset($config['cycle']['entities'])) {
             throw new ConfigException('Expected config entities');
         }
 
         $dbal = $container->get('dbal');
-        $entities = $config['entities'];
-        $schemaProperty = $config['schema']['property'] ?? null;
-        $isCached = $config['schema']['cache'] ?? true;
-        $cacheDirectory = $config['schema']['directory'] ?? self::DEFAULT_CACHE_DIRECTORY;
-        $manualMappingSchemaDefinitions = $config['schema']['manual_mapping_schema_definitions'] ?? [];
+        $entities = $config['cycle']['entities'];
+        $schemaProperty = $config['cycle']['schema']['property'] ?? null;
+        $isCacheEnabled = $config['cycle']['schema']['cache']['enabled'] ?? false;
+        $manualMappingSchemaDefinitions = $config['cycle']['schema']['manual_mapping_schema_definitions'] ?? [];
+        $cacheKey = $config['cycle']['schema']['cache']['key'] ?? self::DEFAULT_CACHE_KEY;
 
-        $cache = $this->getCacheStorage($cacheDirectory);
-        $cachedSchema = $cache->getItem(self::CACHE_KEY);
+        if ($isCacheEnabled) {
+            $cache = (new CacheAdapterResolver())->resolve($container, $config);
+            $cachedSchema = $cache->getItem($cacheKey);
 
-        if ($cachedSchema->isHit() && $isCached) {
-            return $this->createOrmInstance($container, $dbal, $cachedSchema->get());
-        }
-
-        if ($cachedSchema->isHit() && ! $isCached) {
-            $cache->deleteItem(self::CACHE_KEY);
+            if ($cachedSchema->isHit()) {
+                return $this->createOrmInstance($container, $dbal, $cachedSchema->get());
+            }
         }
 
         $schema = $this->compileSchema($container, $entities, $dbal, $manualMappingSchemaDefinitions, $schemaProperty);
 
-        if ($isCached) {
+        if ($isCacheEnabled) {
             $cachedSchema->set($schema);
             $cache->save($cachedSchema);
         }
@@ -160,15 +157,6 @@ class CycleFactory
             factory: new ORM\Factory($dbal),
             schema: $schemaInstance,
             commandGenerator: $commandGenerator,
-        );
-    }
-
-    private function getCacheStorage(string $directory): FilesystemAdapter
-    {
-        return new FilesystemAdapter(
-            self::CACHE_NAMESPACE,
-            0,
-            $directory
         );
     }
 }

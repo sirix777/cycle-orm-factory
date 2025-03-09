@@ -22,11 +22,11 @@ class MigratorFactory
     {
         $config = $container->has('config') ? $container->get('config') : [];
 
-        if (! isset($config['migrator'])) {
+        if (! isset($config['cycle']['migrator'])) {
             throw new ConfigException('Expected config migrator');
         }
 
-        $config = $config['migrator'];
+        $config = $config['cycle']['migrator'];
 
         $migratorConfig = new Migrations\Config\MigrationConfig($config);
 
