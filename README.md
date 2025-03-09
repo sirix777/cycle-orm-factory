@@ -5,7 +5,7 @@
   <img src="https://img.shields.io/packagist/dt/sirix/cycle-orm-factory?style=flat-square" alt="Total Installs">
 </a>
 
-
+[Migration Guide: Cycle ORM Factory v1 to v2](docs/v1-to-v2.md)
 
 This package provides factories for integrating Cycle ORM into the Mezzio framework, providing seamless setup and configuration.
 ### Installation
@@ -54,7 +54,7 @@ return [
             'table' => 'migrations'
         ],
         'entities' => [
-            'src/App/src/Entity',
+            'src/App/src/Entity', // The 'entities' configuration must always be present and point to an existing directory, even when working with manual entities.
         ],
         'schema' => [
             'property' => SchemaProperty::GenerateMigrations,
@@ -166,6 +166,7 @@ return [
 ];
 ```
 See the [Cycle ORM documentation](https://cycle-orm.dev/docs/schema-manual/current/en) for more information on manual mapping schema definitions.
+
 
 
 ### Schema Configuration

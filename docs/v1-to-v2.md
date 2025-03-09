@@ -48,15 +48,17 @@ have been introduced. Here are the details:
 - Old command names may no longer be valid in v2. Ensure you update any references to match their new names. You can
   find the updated commands in the Laminas CLI.
 
-##### Example Usage:
-
-To clear the schema cache, run the following command:
-
 ```shell
-php mezzio cycle:cache:clear
+./vendor/bin/laminas
 ```
 
-This command eliminates cached schema data, forcing the ORM to rebuild the schema on the next execution.
+```
+Command list:
+  cycle:cache:clear                       Clears the Cycle ORM schema cache
+  cycle:migrator:generate                 Create an empty migration file
+  cycle:migrator:rollback                 Rollback last migration
+  cycle:migrator:run                      Run migrations
+```
 
 ### Important Notes:
 
