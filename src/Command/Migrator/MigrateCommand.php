@@ -22,7 +22,7 @@ final class MigrateCommand extends Command
     protected function configure(): void
     {
         $this
-            ->setName(CommandName::RunMigrations->value)
+            ->setName(CommandName::RunMigration->value)
             ->setDescription('Run migrations')
         ;
     }

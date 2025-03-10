@@ -49,8 +49,8 @@ class ConfigProvider
     {
         return [
             'commands' => [
-                CommandName::RunMigrations->value => Command\Migrator\MigrateCommand::class,
-                CommandName::RollbackMigrations->value => Command\Migrator\RollbackCommand::class,
+                CommandName::RunMigration->value => Command\Migrator\MigrateCommand::class,
+                CommandName::RollbackMigration->value => Command\Migrator\RollbackCommand::class,
                 CommandName::GenerateMigration->value => Command\Migrator\CreateMigrationCommand::class,
                 CommandName::ClearCache->value => Command\Cycle\ClearCycleSchemaCache::class,
             ],
