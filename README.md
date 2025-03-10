@@ -260,7 +260,7 @@ php vendor/bin/laminas cycle:migrator:generate PascalCaseMigrationName
 For more information about using migrations with Cycle ORM, see the [Cycle ORM Documentation](https://cycle-orm.dev/docs/database-migrations/current/en).
 
 
-### 4. `cycle:schema:cache:clear` Command
+### 4. `cycle:cache:clear` Command
 
 #### Description
 
@@ -271,7 +271,7 @@ configurations have been made, and you want to ensure fresh schema generation.
 #### Usage
 
 ```bash
-php vendor/bin/laminas cycle:schema:cache:clear
+php vendor/bin/laminas cycle:cache:clear
 ```
 
 #### Options
