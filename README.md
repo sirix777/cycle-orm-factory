@@ -200,6 +200,9 @@ The GenerateMigrations option is used to automatically generate migration files 
 
 Select the appropriate SchemaProperty option based on the requirements of your project. Customize the configuration to your needs and enjoy the seamless integration of Cycle ORM with Mezzio.
 
+* Note: The schema properties (e.g., SyncTables, GenerateMigrations) work only with annotated entities.
+* Ensure that your entity classes are properly annotated to leverage these features.
+
 ### Use in your project
 ```php
 $container->get('orm'); // Cycle\ORM\ORM
