@@ -21,11 +21,11 @@ class CreateMigrationCommandFactory
             ? $container->get('config')
             : [];
 
-        if (! isset($config['migrator']['directory'])) {
+        if (! isset($config['cycle']['migrator']['directory'])) {
             throw new ConfigException('Expected config migrator');
         }
 
-        $migrationDirectory = $config['migrator']['directory'];
+        $migrationDirectory = $config['cycle']['migrator']['directory'];
 
         return new CreateMigrationCommand($migrationDirectory);
     }

@@ -8,10 +8,12 @@ use const DIRECTORY_SEPARATOR;
 
 use DateTime;
 use Exception;
+use Sirix\Cycle\Enum\CommandName;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Filesystem\Filesystem;
 
 use function bin2hex;
@@ -22,8 +24,10 @@ use function random_bytes;
 use function sprintf;
 use function ucfirst;
 
-class CreateMigrationCommand extends Command
+final class CreateMigrationCommand extends Command
 {
+    private const UNIQUE_ID_LENGTH = 18;
+
     public function __construct(private readonly string $migrationDirectory, ?string $name = null)
     {
         parent::__construct($name);
@@ -31,7 +35,7 @@ class CreateMigrationCommand extends Command
 
     protected function configure(): void
     {
-        $this->setName('migrator:create-migration')
+        $this->setName(CommandName::GenerateMigration->value)
             ->setDescription('Create an empty migration file')
             ->addArgument('migrationName', InputArgument::REQUIRED, 'The name of the migration in PascalCase format')
         ;
@@ -39,10 +43,12 @@ class CreateMigrationCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
+        $io = new SymfonyStyle($input, $output);
+
         $migrationName = $input->getArgument('migrationName');
 
         if (! preg_match('/^[A-Z][A-Za-z0-9]+$/', $migrationName)) {
-            $output->writeln('<error>Invalid migration name. Use PascalCase format.</error>');
+            $io->error('Invalid migration name. Use PascalCase format.');
 
             return Command::FAILURE;
         }
@@ -58,9 +64,9 @@ class CreateMigrationCommand extends Command
 
         try {
             $filesystem->dumpFile($filePath, $fileContent);
-            $output->writeln("<info>Migration created: {$filePath}</info>");
+            $io->success("Migration created: {$filePath}");
         } catch (Exception $e) {
-            $output->writeln("<error>Failed to create migration: {$e->getMessage()}</error>");
+            $io->error("Failed to create migration: {$e->getMessage()}");
 
             return Command::FAILURE;
         }
@@ -104,7 +110,7 @@ class CreateMigrationCommand extends Command
     private function getUniqueId(): string
     {
         try {
-            return bin2hex(random_bytes(18));
+            return bin2hex(random_bytes(self::UNIQUE_ID_LENGTH));
         } catch (Exception) {
             return bin2hex(md5(microtime()));
         }

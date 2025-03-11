@@ -4,13 +4,15 @@ declare(strict_types=1);
 
 namespace Sirix\Cycle\Command\Migrator;
 
+use Sirix\Cycle\Enum\CommandName;
 use Sirix\Cycle\Service\MigratorService;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Style\SymfonyStyle;
 use Throwable;
 
-class RollbackCommand extends Command
+final class RollbackCommand extends Command
 {
     public function __construct(private readonly MigratorService $migratorService, ?string $name = null)
     {
@@ -20,7 +22,7 @@ class RollbackCommand extends Command
     protected function configure(): void
     {
         $this
-            ->setName('migrator:rollback')
+            ->setName(CommandName::RollbackMigration->value)
             ->setDescription('Rollback last migration')
         ;
     }
@@ -30,7 +32,17 @@ class RollbackCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $this->migratorService->rollback();
+        $io = new SymfonyStyle($input, $output);
+
+        try {
+            $this->migratorService->rollback();
+        } catch (Throwable $e) {
+            $io->error($e->getMessage());
+
+            return Command::FAILURE;
+        }
+
+        $io->success('Migration rollback successful');
 
         return Command::SUCCESS;
     }

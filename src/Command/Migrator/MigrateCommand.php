@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace Sirix\Cycle\Command\Migrator;
 
+use Sirix\Cycle\Enum\CommandName;
 use Sirix\Cycle\Service\MigratorService;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Style\SymfonyStyle;
+use Throwable;
 
-class MigrateCommand extends Command
+final class MigrateCommand extends Command
 {
     public function __construct(private readonly MigratorService $migratorService, ?string $name = null)
     {
@@ -19,14 +22,28 @@ class MigrateCommand extends Command
     protected function configure(): void
     {
         $this
-            ->setName('migrator:migrate')
+            ->setName(CommandName::RunMigration->value)
             ->setDescription('Run migrations')
         ;
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $this->migratorService->migrate();
+        $io = new SymfonyStyle($input, $output);
+
+        $io->section('Starting Migration Process');
+
+        try {
+            $this->migratorService->migrate(function(string $message) use ($io): void {
+                $io->writeln($message);
+            });
+        } catch (Throwable $exception) {
+            $io->error("An error occurred during migration: {$exception->getMessage()}");
+
+            return Command::FAILURE;
+        }
+
+        $io->success('Migration successful');
 
         return Command::SUCCESS;
     }

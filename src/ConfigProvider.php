@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Sirix\Cycle;
 
+use Sirix\Cycle\Enum\CommandName;
 use Sirix\Cycle\Factory\CycleFactory;
 use Sirix\Cycle\Factory\DbalFactory;
 use Sirix\Cycle\Factory\MigratorFactory;
@@ -36,6 +37,7 @@ class ConfigProvider
                 Command\Migrator\MigrateCommand::class => Command\Migrator\MigrateCommandFactory::class,
                 Command\Migrator\RollbackCommand::class => Command\Migrator\RollbackCommandFactory::class,
                 Command\Migrator\CreateMigrationCommand::class => Command\Migrator\CreateMigrationCommandFactory::class,
+                Command\Cycle\ClearCycleSchemaCache::class => Command\Cycle\ClearCycleSchemaCacheFactory::class,
             ],
         ];
     }
@@ -47,9 +49,10 @@ class ConfigProvider
     {
         return [
             'commands' => [
-                'migrator:migrate' => Command\Migrator\MigrateCommand::class,
-                'migrator:rollback' => Command\Migrator\RollbackCommand::class,
-                'migrator:create-migration' => Command\Migrator\CreateMigrationCommand::class,
+                CommandName::RunMigration->value => Command\Migrator\MigrateCommand::class,
+                CommandName::RollbackMigration->value => Command\Migrator\RollbackCommand::class,
+                CommandName::GenerateMigration->value => Command\Migrator\CreateMigrationCommand::class,
+                CommandName::ClearCache->value => Command\Cycle\ClearCycleSchemaCache::class,
             ],
         ];
     }

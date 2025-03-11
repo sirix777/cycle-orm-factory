@@ -1,6 +1,11 @@
 # Mezzio Cycle ORM Factory
 
 ![GitHub license](https://img.shields.io/github/license/sirix777/cycle-orm-factory?style=flat-square)
+<a href="https://packagist.org/packages/sirix/cycle-orm-factory">
+  <img src="https://img.shields.io/packagist/dt/sirix/cycle-orm-factory?style=flat-square" alt="Total Installs">
+</a>
+
+[Migration Guide: Cycle ORM Factory v1 to v2](docs/v1-to-v2.md)
 
 This package provides factories for integrating Cycle ORM into the Mezzio framework, providing seamless setup and configuration.
 ### Installation
@@ -16,43 +21,49 @@ Create a configuration file, for example, `config/autoload/cycle-orm.global.php`
 declare(strict_types=1);
 
 use Cycle\Database\Config;
+use Psr\Cache\CacheItemPoolInterface;
 use Sirix\Cycle\Enum\SchemaProperty;
 
 
 return [
-    'cycle'           => [
-        'default'     => 'default',
-        'databases'   => [
-            'default' => [
-                'connection' => 'mysql',
+    'cycle' => [
+        'db-config' => [
+            'default' => 'default',
+            'databases' => [
+                'default' => [
+                    'connection' => 'mysql',
+                ]
+            ],
+            'connections' => [
+                'mysql' => new Config\MySQLDriverConfig(
+                    connection: new Config\MySQL\TcpConnectionConfig(
+                        database: 'cycle-orm',
+                        host: '127.0.0.1',
+                        port: 3306,
+                        user: 'cycle',
+                        password: 'password'
+                    ),
+                    reconnect: true,
+                    timezone: 'UTC',
+                    queryCache: true,
+                ),
             ]
         ],
-        'connections' => [
-            'mysql' => new Config\MySQLDriverConfig(
-                connection: new Config\MySQL\TcpConnectionConfig(
-                    database: 'cycle-orm',
-                    host: '127.0.0.1',
-                    port: 3306,
-                    user: 'cycle',
-                    password: 'password'
-                ),
-                reconnect: true,
-                timezone: 'UTC',
-                queryCache: true,
-            ),
-        ]
-    ],
-    'migrator'        => [
-        'directory' => 'db/migrations',
-        'table'     => 'migrations'
-    ],
-    'entities'        => [
-        'src/App/src/Entity',
-    ],
-    'schema'   => [
-        'property' => SchemaProperty::GenerateMigrations,
-        'cache'    => true,
-        'directory' => 'data/cache'
+        'migrator' => [
+            'directory' => 'db/migrations',
+            'table' => 'migrations'
+        ],
+        'entities' => [
+            'src/App/src/Entity', // The 'entities' configuration must always be present and point to an existing directory, even when working with manual entities.
+        ],
+        'schema' => [
+            'property' => SchemaProperty::GenerateMigrations,
+            'cache' => [
+                'enabled' => true,
+                'key' => 'cycle_cached_schema', // optional parameter
+                'service' => CacheItemPoolInterface::class, // optional parameter if psr container have 'cache' CacheItemPoolInterface service
+            ]
+        ],
     ],
 ];
 ```
@@ -92,58 +103,60 @@ use Cycle\ORM\Relation;
 use Cycle\ORM\SchemaInterface;
 
 return [
-    'schema' => [
-        'manual_mapping_schema_definitions' => [
-            'example_entity' => [
-                // Entity class for mapping
-                SchemaInterface::ENTITY => YourEntity::class,
-
-                // Database and table name for the entity
-                SchemaInterface::DATABASE => 'your-database',
-                SchemaInterface::TABLE => 'your_table_name',
-
-                // Primary key column
-                SchemaInterface::PRIMARY_KEY => 'id',
-
-                // Column mappings: database columns to entity properties
-                SchemaInterface::COLUMNS => [
-                    'id' => 'id',
-                    'name' => 'name',
-                    'createdAt' => 'created_at',
-                    'updatedAt' => 'updated_at',
-                ],
-
-                // Typecasting for fields
-                SchemaInterface::TYPECAST => [
-                    'id' => 'int',
-                    'createdAt' => 'datetime',
-                    'updatedAt' => 'datetime',
-                ],
-
-                // Optional: Custom typecast handlers
-                SchemaInterface::TYPECAST_HANDLER => YourTypecastHandler::class,
-
-                // Relationships definition
-                SchemaInterface::RELATIONS => [
-                    'relatedEntities' => [
-                        Relation::TYPE => Relation::HAS_MANY, // Relation type
-                        Relation::TARGET => RelatedEntity::class, // Target entity class
-                        Relation::SCHEMA => [
-                            Relation::CASCADE => true, // Cascade updates/deletes
-                            Relation::INNER_KEY => 'id', // Local key in this entity
-                            Relation::OUTER_KEY => 'related_entity_id', // Foreign key in the related entity
-                            Relation::WHERE => [
-                                'status' => 'active', // Optional filter for the relation
+    'cycle' => [
+        'schema' => [
+            'manual_mapping_schema_definitions' => [
+                'example_entity' => [
+                    // Entity class for mapping
+                    SchemaInterface::ENTITY => YourEntity::class,
+    
+                    // Database and table name for the entity
+                    SchemaInterface::DATABASE => 'your-database',
+                    SchemaInterface::TABLE => 'your_table_name',
+    
+                    // Primary key column
+                    SchemaInterface::PRIMARY_KEY => 'id',
+    
+                    // Column mappings: database columns to entity properties
+                    SchemaInterface::COLUMNS => [
+                        'id' => 'id',
+                        'name' => 'name',
+                        'createdAt' => 'created_at',
+                        'updatedAt' => 'updated_at',
+                    ],
+    
+                    // Typecasting for fields
+                    SchemaInterface::TYPECAST => [
+                        'id' => 'int',
+                        'createdAt' => 'datetime',
+                        'updatedAt' => 'datetime',
+                    ],
+    
+                    // Optional: Custom typecast handlers
+                    SchemaInterface::TYPECAST_HANDLER => YourTypecastHandler::class,
+    
+                    // Relationships definition
+                    SchemaInterface::RELATIONS => [
+                        'relatedEntities' => [
+                            Relation::TYPE => Relation::HAS_MANY, // Relation type
+                            Relation::TARGET => RelatedEntity::class, // Target entity class
+                            Relation::SCHEMA => [
+                                Relation::CASCADE => true, // Cascade updates/deletes
+                                Relation::INNER_KEY => 'id', // Local key in this entity
+                                Relation::OUTER_KEY => 'related_entity_id', // Foreign key in the related entity
+                                Relation::WHERE => [
+                                    'status' => 'active', // Optional filter for the relation
+                                ],
                             ],
                         ],
-                    ],
-                    'anotherEntity' => [
-                        Relation::TYPE => Relation::BELONGS_TO,
-                        Relation::TARGET => AnotherEntity::class,
-                        Relation::SCHEMA => [
-                            Relation::CASCADE => true,
-                            Relation::INNER_KEY => 'another_entity_id',
-                            Relation::OUTER_KEY => 'id',
+                        'anotherEntity' => [
+                            Relation::TYPE => Relation::BELONGS_TO,
+                            Relation::TARGET => AnotherEntity::class,
+                            Relation::SCHEMA => [
+                                Relation::CASCADE => true,
+                                Relation::INNER_KEY => 'another_entity_id',
+                                Relation::OUTER_KEY => 'id',
+                            ],
                         ],
                     ],
                 ],
@@ -155,17 +168,25 @@ return [
 See the [Cycle ORM documentation](https://cycle-orm.dev/docs/schema-manual/current/en) for more information on manual mapping schema definitions.
 
 
+
 ### Schema Configuration
 ```php
-'schema' => [
-    'property' => null,
-    'cache'    => true,
-    'directory' => 'data/cache'
-],
+    'schema'   => [
+        'property' => SchemaProperty::GenerateMigrations,
+        'cache'    => [
+            'enabled' => true,
+            'key' => 'cycle_orm_cached_schema',
+            'service' => CacheItemPoolInterface::class, 
+        ],
+    ],
 ```
 - `property`: Configures the schema property, options include `null`, `SchemaProperty::SyncTables`, or `SchemaProperty::GenerateMigrations`.
-- `cache`: Enables or disables caching of the generated schema.
-- `directory`: Specifies the directory in which to store the cached schema.
+- `cache.enabled`: Enables or disables caching of the generated schema.
+- `cache.key`: Specifies the key used for storing the schema cache. This is optional and can be left empty if not
+  needed.
+- `cache.service`: Defines the PSR-6 `CacheItemPoolInterface` service to be used for schema caching. This allows
+  integration with various caching mechanisms supported in your application. If left out, the default service (with name 'cache') from the
+  container will be utilized if configured.
 
 ### Schema Property Options
 
@@ -178,6 +199,9 @@ The SyncTables option synchronizes the database tables based on the provided ent
 The GenerateMigrations option is used to automatically generate migration files based on changes detected in your entity classes. When enabled, the ORM analyzes the differences between the current database schema and the defined entities. It then generates migration files to apply these changes, making it easier to version and manage your database schema changes.
 
 Select the appropriate SchemaProperty option based on the requirements of your project. Customize the configuration to your needs and enjoy the seamless integration of Cycle ORM with Mezzio.
+
+* Note: The schema properties (e.g., SyncTables, GenerateMigrations) work only with annotated entities.
+* Ensure that your entity classes are properly annotated to leverage these features.
 
 ### Use in your project
 ```php
@@ -193,42 +217,42 @@ For more information about Cycle ORM, see the [Cycle ORM documentation](https://
 ## Migrator Commands
 The `Sirix\Cycle\Command\Migrator` namespace provides three commands for managing database migrations using Cycle ORM. These commands are intended for use with the `laminas-cli` tool.
 
-### 1. `migrator:migrate` Command
+### 1. `cycle:migrator:run` Command
 
 #### Description
-The `migrator:migrate` command performs the necessary database migration steps, applying changes specified in migration files to synchronize your database schema.
+The `cycle:migrator:run` command performs the necessary database migration steps, applying changes specified in migration files to synchronize your database schema.
 
 #### Usage
 ```bash
-php vendor/bin/laminas migrator:migrate
+php vendor/bin/laminas cycle:migrator:run
 ```
 
 #### Options
 This command has no additional options.
 
 
-### 2. `migrator:rollback` Command
+### 2. `cycle:migrator:rollback` Command
 
 #### Description
-The `migrator:rollback` command undoes the changes made by the last migration, reverting your database schema to its previous state.
+The `cycle:migrator:rollback` command undoes the changes made by the last migration, reverting your database schema to its previous state.
 
 #### Usage
 ```bash
-php vendor/bin/laminas migrator:rollback
+php vendor/bin/laminas cycle:migrator:rollback
 ```
 
 #### Options
 This command does not have any additional options.
 
 
-### 3. `migrator:create-migration` Command
+### 3. `cycle:migrator:generate` Command
 
 #### Description
-The `migrator:create-migration` command generates a new empty migration file in the migration directory.
+The `cycle:migrator:generate` command generates a new empty migration file in the migration directory.
 
 #### Usage
 ```bash
-php vendor/bin/laminas migrator:create-migration PascalCaseMigrationName
+php vendor/bin/laminas cycle:migrator:generate PascalCaseMigrationName
 ```
 
 #### Options
@@ -237,3 +261,66 @@ php vendor/bin/laminas migrator:create-migration PascalCaseMigrationName
 **Note**: Make sure that you have correctly configured the database connection and migrations settings in your project's configuration file.
 
 For more information about using migrations with Cycle ORM, see the [Cycle ORM Documentation](https://cycle-orm.dev/docs/database-migrations/current/en).
+
+
+### 4. `cycle:cache:clear` Command
+
+#### Description
+
+The `cycle:schema:cache:clear` command clears the cached Cycle ORM schema configuration, forcing the ORM to
+regenerate it on the next application run. This can be useful during development when changes to entity definitions or
+configurations have been made, and you want to ensure fresh schema generation.
+
+#### Usage
+
+```bash
+php vendor/bin/laminas cycle:cache:clear
+```
+
+#### Options
+
+This command does not have any additional options.
+
+
+### Cache Configuration Example
+
+You can create a Symfony Cache Filesystem Adapter for your application like this:
+
+```php
+<?php
+
+declare(strict_types=1);
+
+use Symfony\Component\Cache\Adapter\FilesystemAdapter;
+
+return [
+    'dependencies' => [
+        'factories' => [
+            'Cache\Symfony\Filesystem' => function () {
+                // Create a Symfony Cache File Adapter instance
+                return new FilesystemAdapter(
+                    'cycle', // Namespace prefix for cache keys
+                    0, // Default TTL of items in seconds (0 means infinite)
+                    'data/cycle/cache' // Absolute or relative directory for cache files storage
+                );
+            },
+        ],
+    ],
+];
+```
+
+This configuration creates a Filesystem Cache Adapter with the following parameters:
+- `'cycle'`: A namespace prefix for cache keys, helping to avoid key collisions
+- `0`: Default Time-To-Live (TTL) set to infinite, meaning cached items won't expire automatically
+- `'data/cycle/cache'`: Directory where cache files will be stored
+
+
+The cache configuration will look like this:
+```php
+    'cache' => [
+        'enabled' => true,
+        'key' => 'cycle_orm_cached_schema',
+        'service' => 'Cache\Symfony\Filesystem';
+        },
+    ],
+```

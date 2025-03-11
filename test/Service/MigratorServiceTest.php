@@ -13,7 +13,6 @@ use Mockery\MockInterface;
 use PHPUnit\Framework\TestCase;
 use Sirix\Cycle\Service\MigratorInterface;
 use Sirix\Cycle\Service\MigratorService;
-use Throwable;
 
 class MigratorServiceTest extends TestCase
 {
@@ -69,26 +68,9 @@ class MigratorServiceTest extends TestCase
             )
         ;
 
-        $this->expectOutputString(
-            'Migrating tests-migration' . PHP_EOL
-            . 'Migrate successful' . PHP_EOL
-        );
-        $this->migratorService->migrate();
-    }
-
-    /**
-     * @throws Throwable
-     */
-    public function testRollback(): void
-    {
-        $this->migratorMock
-            ->shouldReceive('rollback')
-            ->once()
-        ;
-
-        $this->expectOutputString(
-            'Rollback successful' . PHP_EOL
-        );
-        $this->migratorService->rollback();
+        $this->expectOutputString('Migrating tests-migration' . PHP_EOL);
+        $this->migratorService->migrate(function($message) {
+            echo $message . PHP_EOL;
+        });
     }
 }
