@@ -1,0 +1,10 @@
+/.github export-ignore
+/docs export-ignore
+/.gitignore export-ignore
+/.php-cs-fixer.dist.php export-ignore
+/phpstan.neon export-ignore
+/phpunit.xml.dist export-ignore
+/.github// export-ignore
+/docs// export-ignore
+/test// export-ignore
+/config// export-ignore
