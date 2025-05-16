@@ -359,7 +359,6 @@ The cache configuration will look like this:
     'cache' => [
         'enabled' => true,
         'key' => 'cycle_orm_cached_schema',
-        'service' => 'Cache\Symfony\Filesystem';
-        },
+        'service' => 'Cache\Symfony\Filesystem',
     ],
 ```
