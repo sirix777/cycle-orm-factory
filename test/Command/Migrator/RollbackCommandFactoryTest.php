@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Sirix\Cycle\Test\Command;
+namespace Sirix\Cycle\Test\Command\Migrator;
 
 use PHPUnit\Framework\MockObject\Exception;
 use PHPUnit\Framework\MockObject\MockObject;

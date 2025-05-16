@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Sirix\Cycle\Test\Command;
+namespace Sirix\Cycle\Test\Command\Migrator;
 
 use const DIRECTORY_SEPARATOR;
 

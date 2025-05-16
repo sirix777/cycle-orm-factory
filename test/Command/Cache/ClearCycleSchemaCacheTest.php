@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Sirix\Cycle\Test\Command\Cycle;
+namespace Sirix\Cycle\Test\Command\Cache;
 
 use PHPUnit\Framework\MockObject\Exception;
 use PHPUnit\Framework\MockObject\MockObject;

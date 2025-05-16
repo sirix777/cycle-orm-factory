@@ -3,6 +3,7 @@
     "description": "Cycle ORM Factories for Mezzio",
     "license": "MIT",
     "type": "library",
+    "version": "2.1.0",
     "authors": [
         {
             "name": "Sirix",
@@ -20,7 +21,8 @@
         "cycle/orm": "^2.9",
         "cycle/schema-migrations-generator": "^2.3",
         "laminas/laminas-cli": "^1.11.0",
-        "psr/cache": "~1.0.0 || ~2.0.0. || ~3.0.0"
+        "psr/cache": "~1.0.0 || ~2.0.0. || ~3.0.0",
+        "symfony/filesystem": "^6.3 || ^7.2"
     },
     "require-dev": {
         "ergebnis/composer-normalize": "^2.39",
@@ -30,8 +32,7 @@
         "phpstan/phpstan-mockery": "^1.1",
         "phpunit/phpunit": "^10.5 || ^11.5",
         "roave/security-advisories": "dev-master",
-        "symfony/cache": "^6.3 || ^7.2",
-        "symfony/filesystem": "^6.3 || ^7.2"
+        "symfony/cache": "^6.3 || ^7.2"
     },
     "autoload": {
         "psr-4": {

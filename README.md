@@ -51,7 +51,8 @@ return [
         ],
         'migrator' => [
             'directory' => 'db/migrations',
-            'table' => 'migrations'
+            'table' => 'migrations',
+            'seed-directory' => 'db/seeds',
         ],
         'entities' => [
             'src/App/src/Entity', // The 'entities' configuration must always be present and point to an existing directory, even when working with manual entities.
@@ -71,8 +72,9 @@ return [
 ### Migrator Configuration
 ```php
 'migrator' => [
-    'directory' => 'db/migrations',
-    'table'     => 'migrations',
+    'directory'      => 'db/migrations',
+    'table'          => 'migrations',
+    'seed-directory' => 'db/seeds',
 ],
 ```
 - `directory`: Specifies the directory where the migration files will be stored.
@@ -215,7 +217,7 @@ These factories provide the necessary components to work seamlessly with Cycle O
 For more information about Cycle ORM, see the [Cycle ORM documentation](https://cycle-orm.dev/docs).
 
 ## Migrator Commands
-The `Sirix\Cycle\Command\Migrator` namespace provides three commands for managing database migrations using Cycle ORM. These commands are intended for use with the `laminas-cli` tool.
+The `Sirix\Cycle\Command\Migrator` namespace provides some commands for managing database migrations and the cached Cycle ORM schema. These commands are intended for use with the `laminas-cli` tool.
 
 ### 1. `cycle:migrator:run` Command
 
@@ -245,14 +247,14 @@ php vendor/bin/laminas cycle:migrator:rollback
 This command does not have any additional options.
 
 
-### 3. `cycle:migrator:generate` Command
+### 3. `cycle:migrator:create` Command
 
 #### Description
-The `cycle:migrator:generate` command generates a new empty migration file in the migration directory.
+The `cycle:migrator:create` command generates a new empty migration file in the migration directory.
 
 #### Usage
 ```bash
-php vendor/bin/laminas cycle:migrator:generate PascalCaseMigrationName
+php vendor/bin/laminas cycle:migrator:create PascalCaseMigrationName
 ```
 
 #### Options
@@ -280,6 +282,43 @@ php vendor/bin/laminas cycle:cache:clear
 #### Options
 
 This command does not have any additional options.
+
+### 5. `cycle:seed:create` Command
+
+#### Description
+
+The `cycle:seed:create` command creates a new seed file in the seed directory. Seed files are used to populate your database with initial or test data.
+
+#### Usage
+
+```bash
+php vendor/bin/laminas cycle:seed:create SeedName
+```
+
+#### Arguments
+
+- `SeedName`: The name of the seed in PascalCase format (required).
+
+**Note**: The generated seed file will be placed in the configured seed directory and will implement the `SeedInterface`.
+
+
+### 6. `cycle:seed:run` Command
+
+#### Description
+
+The `cycle:seed:run` command executes a specific seed file, populating your database with the data defined in the seed.
+
+#### Usage
+
+```bash
+php vendor/bin/laminas cycle:seed:run SeedName
+```
+
+#### Arguments
+
+- `SeedName`: The name of the seed to run in PascalCase format, without the .php extension (required).
+
+**Note**: The seed class must implement the `SeedInterface` and be located in the configured seed directory.
 
 
 ### Cache Configuration Example

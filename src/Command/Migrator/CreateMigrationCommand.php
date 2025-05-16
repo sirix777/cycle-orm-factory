@@ -8,6 +8,7 @@ use const DIRECTORY_SEPARATOR;
 
 use DateTime;
 use Exception;
+use Sirix\Cycle\Command\Helper\FileNameValidator;
 use Sirix\Cycle\Enum\CommandName;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -19,7 +20,6 @@ use Symfony\Component\Filesystem\Filesystem;
 use function bin2hex;
 use function md5;
 use function microtime;
-use function preg_match;
 use function random_bytes;
 use function sprintf;
 use function ucfirst;
@@ -47,7 +47,7 @@ final class CreateMigrationCommand extends Command
 
         $migrationName = $input->getArgument('migrationName');
 
-        if (! preg_match('/^[A-Z][A-Za-z0-9]+$/', $migrationName)) {
+        if (! FileNameValidator::isPascalCase($migrationName)) {
             $io->error('Invalid migration name. Use PascalCase format.');
 
             return Command::FAILURE;
@@ -87,7 +87,7 @@ final class CreateMigrationCommand extends Command
 
         class {$className} extends Migration
         {
-            protected const string DATABASE = 'main-db';
+            protected const DATABASE = 'main-db';
 
             public function up(): void
             {

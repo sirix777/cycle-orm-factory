@@ -37,6 +37,8 @@ class ConfigProvider
                 Command\Migrator\MigrateCommand::class => Command\Migrator\MigrateCommandFactory::class,
                 Command\Migrator\RollbackCommand::class => Command\Migrator\RollbackCommandFactory::class,
                 Command\Migrator\CreateMigrationCommand::class => Command\Migrator\CreateMigrationCommandFactory::class,
+                Command\Migrator\CreateSeedCommand::class => Command\Migrator\CreateSeedCommandFactory::class,
+                Command\Migrator\SeedCommand::class => Command\Migrator\SeedCommandFactory::class,
                 Command\Cycle\ClearCycleSchemaCache::class => Command\Cycle\ClearCycleSchemaCacheFactory::class,
             ],
         ];

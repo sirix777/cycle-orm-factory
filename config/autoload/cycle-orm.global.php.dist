@@ -35,6 +35,7 @@ return [
         'migrator' => [
             'directory' => 'db/migrations',
             'table' => 'migrations',
+            'seed-directory' => 'db/seeds',
         ],
         'entities' => [
             'src/App/src/Entity',

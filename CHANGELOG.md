@@ -1,0 +1,24 @@
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [2.1.0] - 16/05/2025
+
+### Added
+- Seed functionality with two new commands:
+  - `cycle:seed:create` - Creates a new seed file in the configured seed directory
+  - `cycle:seed:run` - Executes a specific seed file to populate the database with data
+- New `SeedInterface` for implementing seed classes
+- Configuration option for seed directory in the migrator configuration (`seed-directory`)
+- File name validation for seed creation
+
+### Changed
+- Reorganized command structure by moving commands to appropriate namespaces
+- Improved test organization to match the new command structure
+- Changed command name from `cycle:migrator:generate` to `cycle:migrator:create`
+
+### Fixed
+- Various code improvements and bug fixes

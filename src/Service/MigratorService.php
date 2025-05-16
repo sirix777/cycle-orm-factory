@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Sirix\Cycle\Service;
 
-use const PHP_EOL;
-
 use Throwable;
 
 class MigratorService
@@ -22,18 +20,6 @@ class MigratorService
             $output('Migrating ' . $migration->getState()->getName());
         }
     }
-    //    public function migrate(): void
-    //    {
-    //        if (! $this->migrator->isConfigured()) {
-    //            $this->migrator->configure();
-    //        }
-    //
-    //        while (($migration = $this->migrator->run()) !== null) {
-    //            echo 'Migrating ' . $migration->getState()->getName() . PHP_EOL;
-    //        }
-    //
-    //        echo 'Migrate successful' . PHP_EOL;
-    //    }
 
     /**
      * @throws Throwable
@@ -45,5 +31,17 @@ class MigratorService
         }
 
         $this->migrator->rollback();
+    }
+
+    /**
+     * Seeds the database using the provided SeedInterface implementation.
+     *
+     * @param SeedInterface $seed The seed implementation to run
+     *
+     * @throws Throwable
+     */
+    public function seed(SeedInterface $seed): void
+    {
+        $seed->run();
     }
 }
