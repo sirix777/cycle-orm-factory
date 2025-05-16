@@ -103,7 +103,10 @@ class SeedCommandTest extends TestCase
         $outputContent = $output->fetch();
 
         $this->assertSame(Command::FAILURE, $resultCode);
-        $this->assertStringContainsString('Seed file "NonExistentSeed" not found in the seed directory', $outputContent);
+        $this->assertStringContainsString(
+            'Seed file "NonExistentSeed" not found in the seed directory',
+            $outputContent
+        );
     }
 
     /**
