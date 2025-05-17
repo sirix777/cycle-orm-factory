@@ -55,6 +55,8 @@ class ConfigProvider
                 CommandName::RollbackMigration->value => Command\Migrator\RollbackCommand::class,
                 CommandName::GenerateMigration->value => Command\Migrator\CreateMigrationCommand::class,
                 CommandName::ClearCache->value => Command\Cycle\ClearCycleSchemaCache::class,
+                CommandName::GenerateSeed->value => Command\Migrator\CreateSeedCommand::class,
+                CommandName::RunSeed->value => Command\Migrator\SeedCommand::class,
             ],
         ];
     }
