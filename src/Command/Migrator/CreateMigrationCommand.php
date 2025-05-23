@@ -28,6 +28,29 @@ final class CreateMigrationCommand extends Command
 {
     private const UNIQUE_ID_LENGTH = 18;
 
+    private const MIGRATION_TEMPLATE = <<<'PHP'
+        <?php
+
+        declare(strict_types=1);
+
+        namespace Migration;
+
+        use Cycle\Migrations\Migration;
+
+        class %s extends Migration
+        {
+            protected const DATABASE = 'main-db';
+
+            public function up(): void
+            {
+            }
+
+            public function down(): void
+            {
+            }
+        }
+        PHP;
+
     public function __construct(private readonly string $migrationDirectory, ?string $name = null)
     {
         parent::__construct($name);
@@ -35,7 +58,8 @@ final class CreateMigrationCommand extends Command
 
     protected function configure(): void
     {
-        $this->setName(CommandName::GenerateMigration->value)
+        $this
+            ->setName(CommandName::GenerateMigration->value)
             ->setDescription('Create an empty migration file')
             ->addArgument('migrationName', InputArgument::REQUIRED, 'The name of the migration in PascalCase format')
         ;
@@ -45,7 +69,7 @@ final class CreateMigrationCommand extends Command
     {
         $io = new SymfonyStyle($input, $output);
 
-        $migrationName = $input->getArgument('migrationName');
+        $migrationName = (string) $input->getArgument('migrationName');
 
         if (! FileNameValidator::isPascalCase($migrationName)) {
             $io->error('Invalid migration name. Use PascalCase format.');
@@ -76,28 +100,7 @@ final class CreateMigrationCommand extends Command
 
     private function getMigrationFileContent(string $className): string
     {
-        return <<<PHP
-        <?php
-
-        declare(strict_types=1);
-
-        namespace Migration;
-
-        use Cycle\\Migrations\\Migration;
-
-        class {$className} extends Migration
-        {
-            protected const DATABASE = 'main-db';
-
-            public function up(): void
-            {
-            }
-
-            public function down(): void
-            {
-            }
-        }
-        PHP;
+        return sprintf(self::MIGRATION_TEMPLATE, $className);
     }
 
     private function generateMigrationName(string $migrationName): string

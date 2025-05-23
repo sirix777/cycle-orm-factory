@@ -19,6 +19,8 @@ use Throwable;
 
 use function class_exists;
 use function file_exists;
+use function glob;
+use function pathinfo;
 use function sprintf;
 
 final class SeedCommand extends Command
@@ -41,10 +43,16 @@ final class SeedCommand extends Command
     {
         $this
             ->setName(CommandName::RunSeed->value)
-            ->setDescription('Run a specific seed file')
+            ->setDescription('Run seed files')
             ->addArgument(
                 'seed',
-                InputArgument::REQUIRED,
+                InputArgument::OPTIONAL,
+                'The name of the seed file to run (without .php extension)'
+            )
+            ->addOption(
+                'seed',
+                's',
+                InputArgument::OPTIONAL,
                 'The name of the seed file to run (without .php extension)'
             )
         ;
@@ -53,39 +61,34 @@ final class SeedCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
+        $seedName = $this->getSeedNameFromInput($input);
+
+        if ('' !== $seedName && '0' !== $seedName) {
+            return $this->executeSingleSeed($seedName, $io);
+        }
+
+        return $this->executeAllSeeds($io);
+    }
+
+    private function getSeedNameFromInput(InputInterface $input): string
+    {
         $seedName = (string) $input->getArgument('seed');
-
-        if (! $this->validateSeedName($seedName, $io)) {
-            return Command::FAILURE;
+        if ('' === $seedName || '0' === $seedName) {
+            return (string) $input->getOption('seed');
         }
 
-        $seedFile = $this->getSeedFilePath($seedName);
-        if (! $this->validateSeedFileExists($seedFile, $seedName, $io)) {
-            return Command::FAILURE;
-        }
+        return $seedName;
+    }
 
-        require_once $seedFile;
-
-        $seedClassName = $this->getSeedClassName($seedName);
-        if (! $this->validateSeedClassExists($seedClassName, $io)) {
-            return Command::FAILURE;
-        }
-
-        $seed = new $seedClassName();
-
-        if (! $this->injectDatabase($seed, $io)) {
-            return Command::FAILURE;
-        }
-
+    private function executeSingleSeed(string $seedName, SymfonyStyle $io): int
+    {
+        $seed = $this->loadAndValidateSeed($seedName, $io);
         if (! $seed instanceof SeedInterface) {
-            $io->error(sprintf('Seed class "%s" must implement SeedInterface.', $seedClassName));
-
             return Command::FAILURE;
         }
 
         try {
             $this->migratorService->seed($seed);
-
             $io->success(sprintf('Seed "%s" executed successfully.', $seedName));
 
             return Command::SUCCESS;
@@ -96,14 +99,85 @@ final class SeedCommand extends Command
         }
     }
 
-    private function validateSeedName(string $seedName, SymfonyStyle $io): bool
+    private function loadAndValidateSeed(string $seedName, SymfonyStyle $io): ?SeedInterface
     {
-        if ('' === $seedName || '0' === $seedName) {
-            $io->error('Seed name is required.');
-
-            return false;
+        if (! $this->validateSeedName($seedName, $io)) {
+            return null;
         }
 
+        $seedFile = $this->getSeedFilePath($seedName);
+        if (! file_exists($seedFile)) {
+            $io->error(sprintf('Seed file "%s" not found in the seed directory.', $seedName));
+
+            return null;
+        }
+
+        require_once $seedFile;
+
+        $seedClassName = $this->getSeedClassName($seedName);
+        if (! class_exists($seedClassName)) {
+            $io->error(sprintf(
+                'Seed class "%s" not found in the file. Make sure the class name matches the file name.',
+                $seedClassName
+            ));
+
+            return null;
+        }
+
+        $seed = new $seedClassName();
+
+        if (! $this->injectDatabase($seed, $io)) {
+            return null;
+        }
+
+        if (! $seed instanceof SeedInterface) {
+            $io->error(sprintf('Seed class "%s" must implement SeedInterface.', $seedClassName));
+
+            return null;
+        }
+
+        return $seed;
+    }
+
+    private function executeAllSeeds(SymfonyStyle $io): int
+    {
+        $seedFiles = glob($this->seedDirectory . DIRECTORY_SEPARATOR . '*.php');
+
+        if ([] === $seedFiles || false === $seedFiles) {
+            $io->warning('No seed files found in the seed directory.');
+
+            return Command::SUCCESS;
+        }
+
+        $successCount = 0;
+        $failureCount = 0;
+
+        foreach ($seedFiles as $seedFile) {
+            $seedName = pathinfo($seedFile, PATHINFO_FILENAME);
+            $io->section(sprintf('Running seed: %s', $seedName));
+
+            $result = $this->executeSingleSeed($seedName, $io);
+
+            Command::SUCCESS === $result ? ++$successCount : ++$failureCount;
+        }
+
+        if ($failureCount > 0) {
+            $io->error(sprintf(
+                'Seed execution completed with errors. %d succeeded, %d failed.',
+                $successCount,
+                $failureCount
+            ));
+
+            return Command::FAILURE;
+        }
+
+        $io->success(sprintf('All %d seeds executed successfully.', $successCount));
+
+        return Command::SUCCESS;
+    }
+
+    private function validateSeedName(string $seedName, SymfonyStyle $io): bool
+    {
         if (! FileNameValidator::isPascalCase($seedName)) {
             $io->error('Invalid seed name. Use PascalCase format.');
 
@@ -118,34 +192,9 @@ final class SeedCommand extends Command
         return sprintf('%s%s%s.php', $this->seedDirectory, DIRECTORY_SEPARATOR, $seedName);
     }
 
-    private function validateSeedFileExists(string $seedFile, string $seedName, SymfonyStyle $io): bool
-    {
-        if (! file_exists($seedFile)) {
-            $io->error(sprintf('Seed file "%s" not found in the seed directory.', $seedName));
-
-            return false;
-        }
-
-        return true;
-    }
-
     private function getSeedClassName(string $seedName): string
     {
         return sprintf('%s\%s', self::SEED_NAMESPACE, $seedName);
-    }
-
-    private function validateSeedClassExists(string $seedClassName, SymfonyStyle $io): bool
-    {
-        if (! class_exists($seedClassName)) {
-            $io->error(sprintf(
-                'Seed class "%s" not found in the file. Make sure the class name matches the file name.',
-                $seedClassName
-            ));
-
-            return false;
-        }
-
-        return true;
     }
 
     private function injectDatabase(object $seed, SymfonyStyle $io): bool

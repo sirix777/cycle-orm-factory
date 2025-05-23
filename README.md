@@ -111,14 +111,14 @@ return [
                 'example_entity' => [
                     // Entity class for mapping
                     SchemaInterface::ENTITY => YourEntity::class,
-    
+
                     // Database and table name for the entity
                     SchemaInterface::DATABASE => 'your-database',
                     SchemaInterface::TABLE => 'your_table_name',
-    
+
                     // Primary key column
                     SchemaInterface::PRIMARY_KEY => 'id',
-    
+
                     // Column mappings: database columns to entity properties
                     SchemaInterface::COLUMNS => [
                         'id' => 'id',
@@ -126,17 +126,17 @@ return [
                         'createdAt' => 'created_at',
                         'updatedAt' => 'updated_at',
                     ],
-    
+
                     // Typecasting for fields
                     SchemaInterface::TYPECAST => [
                         'id' => 'int',
                         'createdAt' => 'datetime',
                         'updatedAt' => 'datetime',
                     ],
-    
+
                     // Optional: Custom typecast handlers
                     SchemaInterface::TYPECAST_HANDLER => YourTypecastHandler::class,
-    
+
                     // Relationships definition
                     SchemaInterface::RELATIONS => [
                         'relatedEntities' => [
@@ -306,19 +306,30 @@ php vendor/bin/laminas cycle:seed:create SeedName
 
 #### Description
 
-The `cycle:seed:run` command executes a specific seed file, populating your database with the data defined in the seed.
+The `cycle:seed:run` command executes seed files, populating your database with the data defined in the seeds. You can run a specific seed or all seeds in the configured directory.
 
 #### Usage
 
 ```bash
+# Run a specific seed
 php vendor/bin/laminas cycle:seed:run SeedName
+
+# Alternative ways to specify the seed
+php vendor/bin/laminas cycle:seed:run --seed SeedName
+php vendor/bin/laminas cycle:seed:run -s SeedName
+
+# Run all seeds in the configured directory
+php vendor/bin/laminas cycle:seed:run
 ```
 
-#### Arguments
+#### Arguments and Options
 
-- `SeedName`: The name of the seed to run in PascalCase format, without the .php extension (required).
+- `SeedName`: The name of the seed to run in PascalCase format, without the .php extension.
+- `--seed` or `-s`: Alternative ways to specify the seed name.
 
-**Note**: The seed class must implement the `SeedInterface` and be located in the configured seed directory.
+If no seed name is provided, the command will run all seeds in the configured seed directory.
+
+**Note**: All seed classes must implement the `SeedInterface` and be located in the configured seed directory. The command will automatically inject the database connection into the seed class.
 
 
 ### Cache Configuration Example

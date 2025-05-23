@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.0] - 23/05/2025
+
+### Added
+- Enhanced seed command functionality with support for running all seeds
+- Added option to specify seed name using `-s` or `--seed` options
+- Improved error handling and validation in seed commands
+
+### Changed
+- Updated documentation with more detailed examples for seed commands
+- Improved test coverage for seed commands
+
 ## [2.1.1] - 17/05/2025
 
 ### Fixed

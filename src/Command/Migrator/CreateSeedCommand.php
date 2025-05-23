@@ -20,6 +20,28 @@ use function sprintf;
 
 final class CreateSeedCommand extends Command
 {
+    private const SEED_TEMPLATE = <<<'PHP'
+        <?php
+
+        declare(strict_types=1);
+
+        namespace Seed;
+
+        use Sirix\\Cycle\\Service\\SeedInterface;
+        use Cycle\\Database\\DatabaseInterface;
+
+        final class %s implements SeedInterface
+        {
+            private const DATABASE = 'main-db';
+            private DatabaseInterface $database;
+
+            public function run(): void
+            {
+                // Implement seed logic here
+            }
+        }
+        PHP;
+
     public function __construct(private readonly string $seedDirectory, ?string $name = null)
     {
         parent::__construct($name);
@@ -72,29 +94,7 @@ final class CreateSeedCommand extends Command
 
     private function getSeedFileContent(string $className): string
     {
-        $database = '$database';
-
-        return <<<PHP
-            <?php
-
-            declare(strict_types=1);
-
-            namespace Seed;
-
-            use Sirix\\Cycle\\Service\\SeedInterface;
-            use Cycle\\Database\\DatabaseInterface;
-
-            final class {$className} implements SeedInterface
-            {
-                private const DATABASE = 'main-db';
-                private DatabaseInterface {$database};
-
-                public function run(): void
-                {
-                    // Implement seed logic here
-                }
-            }
-            PHP;
+        return sprintf(self::SEED_TEMPLATE, $className);
     }
 
     private function generateSeedName(string $seedName): string
