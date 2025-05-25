@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace Sirix\Cycle;
 
+use Cycle\Database\DatabaseInterface;
+use Cycle\ORM\ORMInterface;
 use Sirix\Cycle\Enum\CommandName;
 use Sirix\Cycle\Factory\CycleFactory;
 use Sirix\Cycle\Factory\DbalFactory;
 use Sirix\Cycle\Factory\MigratorFactory;
+use Sirix\Cycle\Service\MigratorInterface;
 
-class ConfigProvider
+final class ConfigProvider
 {
     /**
      * @return array<string, array<string, array<string, string>|string>>
@@ -28,6 +31,11 @@ class ConfigProvider
     public function getDependencies(): array
     {
         return [
+            'aliases' => [
+                DatabaseInterface::class => 'dbal',
+                MigratorInterface::class => 'migrator',
+                ORMInterface::class => 'orm',
+            ],
             'invokables' => [],
             'factories' => [
                 'orm' => CycleFactory::class,
