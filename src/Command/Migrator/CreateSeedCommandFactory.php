@@ -9,7 +9,7 @@ use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\ContainerInterface;
 use Psr\Container\NotFoundExceptionInterface;
 
-class CreateSeedCommandFactory
+final class CreateSeedCommandFactory
 {
     /**
      * @throws ContainerExceptionInterface

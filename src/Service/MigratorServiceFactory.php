@@ -8,7 +8,7 @@ use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\ContainerInterface;
 use Psr\Container\NotFoundExceptionInterface;
 
-class MigratorServiceFactory
+final class MigratorServiceFactory
 {
     /**
      * @throws ContainerExceptionInterface

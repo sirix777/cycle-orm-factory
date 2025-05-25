@@ -11,7 +11,7 @@ use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\ContainerInterface;
 use Psr\Container\NotFoundExceptionInterface;
 
-class DbalFactory
+final class DbalFactory
 {
     /**
      * @throws ContainerExceptionInterface

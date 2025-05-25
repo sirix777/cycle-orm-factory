@@ -8,6 +8,7 @@ use const PHP_EOL;
 
 use Cycle\Migrations\MigrationInterface;
 use Cycle\Migrations\State;
+use DateTime;
 use Mockery;
 use Mockery\MockInterface;
 use PHPUnit\Framework\TestCase;
@@ -46,17 +47,16 @@ class MigratorServiceTest extends TestCase
     {
         $migrationInterfaceMock = Mockery::mock(MigrationInterface::class);
 
-        $stateMock = Mockery::mock('overload:' . State::class);
-
-        $stateMock
-            ->shouldReceive('getName')
-            ->andReturn('tests-migration')
-        ;
+        $state = new State(
+            'tests-migration',
+            new DateTime(),
+            State::STATUS_PENDING
+        );
 
         $migrationInterfaceMock
             ->shouldReceive('getState')
             ->once()
-            ->andReturn($stateMock)
+            ->andReturn($state)
         ;
 
         $this->migratorMock

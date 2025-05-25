@@ -13,6 +13,9 @@ This package provides factories for integrating Cycle ORM into the Mezzio framew
 composer require sirix/cycle-orm-factory
 ```
 
+#### Requirements
+- PHP 8.1, 8.2, 8.3, or 8.4
+
 ### Configuration
 Create a configuration file, for example, `config/autoload/cycle-orm.global.php`:
 ```php
@@ -207,12 +210,18 @@ Select the appropriate SchemaProperty option based on the requirements of your p
 
 ### Use in your project
 ```php
+// Access services using short aliases
 $container->get('orm'); // Cycle\ORM\ORM
 $container->get('dbal'); // Cycle\Database\DatabaseInterface
 $container->get('migrator'); // Cycle\Migrations\Migrator
+
+// Or access services using their interface names (aliases provided by ConfigProvider)
+$container->get(Cycle\ORM\ORMInterface::class); // Same as $container->get('orm')
+$container->get(Cycle\Database\DatabaseInterface::class); // Same as $container->get('dbal')
+$container->get(Sirix\Cycle\Service\MigratorInterface::class); // Same as $container->get('migrator')
 ```
 
-These factories provide the necessary components to work seamlessly with Cycle ORM within the Mezzio Framework. Customize the configuration to meet the needs of your project.
+These factories provide the necessary parts to work seamlessly with Cycle ORM within the Mezzio Framework. The ConfigProvider automatically sets up aliases so you can use either the short service names or the full interface names according to your preference. Customize the configuration to meet the needs of your project.
 
 For more information about Cycle ORM, see the [Cycle ORM documentation](https://cycle-orm.dev/docs).
 
@@ -226,6 +235,7 @@ The `cycle:migrator:run` command performs the necessary database migration steps
 
 #### Usage
 ```bash
+# Run all pending migrations
 php vendor/bin/laminas cycle:migrator:run
 ```
 
@@ -259,6 +269,12 @@ php vendor/bin/laminas cycle:migrator:create PascalCaseMigrationName
 
 #### Options
 - `migrationName`: The name of the migration file to be created. This should be in PascalCase format.
+
+**Important Note**: Migration filenames follow the format `YYYYMMDD.HHMMSS_0_counter_MigrationName.php` where:
+- `YYYYMMDD.HHMMSS` is the timestamp when the migration was created
+- `0` is a fixed value
+- `counter` is an incremental number (starting from 0) for migrations with the same name
+- `MigrationName` is the name you provided in PascalCase
 
 **Note**: Make sure that you have correctly configured the database connection and migrations settings in your project's configuration file.
 

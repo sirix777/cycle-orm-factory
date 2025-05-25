@@ -9,7 +9,7 @@ use Psr\Container\ContainerInterface;
 use Psr\Container\NotFoundExceptionInterface;
 use Sirix\Cycle\Service\MigratorService;
 
-class MigrateCommandFactory
+final class MigrateCommandFactory
 {
     /**
      * @throws ContainerExceptionInterface

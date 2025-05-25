@@ -18,6 +18,7 @@ use function basename;
 use function file_get_contents;
 use function glob;
 use function mkdir;
+use function preg_match;
 use function sys_get_temp_dir;
 use function uniqid;
 
@@ -50,14 +51,14 @@ class CreateMigrationCommandTest extends TestCase
         $resultCode = $command->run($input, $output);
 
         $outputContent = $output->fetch();
-        $this->assertSame(0, $resultCode);
+        $this->assertSame(Command::SUCCESS, $resultCode);
         $this->assertStringContainsString('Migration created:', $outputContent);
 
         $migrations = (array) glob($this->migrationDirectory . DIRECTORY_SEPARATOR . '*.php');
         $this->assertCount(1, $migrations);
 
         $migrationFileName = basename((string) $migrations[0]);
-        $this->assertMatchesRegularExpression('/^\d{8}\.\d{6}_0_0_ValidMigrationName\.php$/', $migrationFileName);
+        $this->assertMatchesRegularExpression('/^\d{8}\.\d{6}_0_\d+_ValidMigrationName\.php$/', $migrationFileName);
 
         $fileContent = file_get_contents((string) $migrations[0]);
         $this->assertStringContainsString('namespace Migration;', (string) $fileContent);
@@ -78,7 +79,7 @@ class CreateMigrationCommandTest extends TestCase
 
         $outputContent = $output->fetch();
 
-        $this->assertSame(1, $resultCode);
+        $this->assertSame(Command::FAILURE, $resultCode);
         $this->assertStringContainsString('Invalid migration name. Use PascalCase format.', $outputContent);
     }
 
@@ -98,5 +99,45 @@ class CreateMigrationCommandTest extends TestCase
 
         $this->assertSame(Command::FAILURE, $resultCode);
         $this->assertStringContainsString('Failed to create migration:', $outputContent);
+    }
+
+    /**
+     * @throws ExceptionInterface
+     */
+    public function testExecuteIncrementsCounterForDuplicateNames(): void
+    {
+        $command = new CreateMigrationCommand($this->migrationDirectory);
+
+        // Create first migration
+        $input = new ArrayInput(['migrationName' => 'DuplicateName']);
+        $output = new BufferedOutput();
+        $command->run($input, $output);
+
+        // Create second migration with the same name
+        $input = new ArrayInput(['migrationName' => 'DuplicateName']);
+        $output = new BufferedOutput();
+        $command->run($input, $output);
+
+        $migrations = (array) glob($this->migrationDirectory . DIRECTORY_SEPARATOR . '*DuplicateName.php');
+        $this->assertCount(2, $migrations);
+
+        // Extract timestamps and counters from filenames
+        $counters = [];
+        $timestamp = null;
+
+        foreach ($migrations as $migration) {
+            $filename = basename((string) $migration);
+            if (preg_match('/^(\d{8}\.\d{6})_0_(\d+)_DuplicateName\.php$/', $filename, $matches)) {
+                if (null === $timestamp) {
+                    $timestamp = $matches[1];
+                }
+                $counters[] = (int) $matches[2];
+            }
+        }
+
+        // Verify that the counters are 0 and 1, regardless of timestamps
+        $this->assertCount(2, $counters);
+        $this->assertContains(0, $counters);
+        $this->assertContains(1, $counters);
     }
 }

@@ -9,9 +9,8 @@ use Psr\Container\ContainerInterface;
 use Psr\Container\NotFoundExceptionInterface;
 use Sirix\Cycle\Factory\CycleFactory;
 use Sirix\Cycle\Resolver\CacheAdapterResolver;
-use Symfony\Component\Console\Command\Command;
 
-class ClearCycleSchemaCacheFactory extends Command
+final class ClearCycleSchemaCacheFactory
 {
     /**
      * @throws ContainerExceptionInterface

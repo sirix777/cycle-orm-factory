@@ -6,7 +6,7 @@ namespace Sirix\Cycle\Command\Helper;
 
 use function preg_match;
 
-class FileNameValidator
+final class FileNameValidator
 {
     /**
      * Validates that the given name follows PascalCase format

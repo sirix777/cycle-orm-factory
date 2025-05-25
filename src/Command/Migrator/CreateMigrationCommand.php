@@ -18,8 +18,10 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Filesystem\Filesystem;
 
 use function bin2hex;
+use function glob;
 use function md5;
 use function microtime;
+use function preg_match;
 use function random_bytes;
 use function sprintf;
 use function ucfirst;
@@ -106,8 +108,31 @@ final class CreateMigrationCommand extends Command
     private function generateMigrationName(string $migrationName): string
     {
         $timestamp = (new DateTime())->format('Ymd.His');
+        $counter = $this->findNextCounter($migrationName);
 
-        return sprintf('%s_0_0_%s.php', $timestamp, $migrationName);
+        return sprintf('%s_0_%d_%s.php', $timestamp, $counter, $migrationName);
+    }
+
+    private function findNextCounter(string $migrationName): int
+    {
+        $pattern = $this->migrationDirectory . DIRECTORY_SEPARATOR . '*_*_*_' . $migrationName . '.php';
+        $existingFiles = glob($pattern);
+
+        if (empty($existingFiles)) {
+            return 0;
+        }
+
+        $maxCounter = -1;
+        foreach ($existingFiles as $file) {
+            if (preg_match('/\d{8}\.\d{6}_(\d+)_(\d+)_' . $migrationName . '\.php$/', $file, $matches)) {
+                $counter = (int) $matches[1];
+                if ($counter > $maxCounter) {
+                    $maxCounter = $counter;
+                }
+            }
+        }
+
+        return $maxCounter + 1;
     }
 
     private function getUniqueId(): string

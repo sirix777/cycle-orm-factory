@@ -12,7 +12,7 @@ use Psr\Container\NotFoundExceptionInterface;
 use Sirix\Cycle\Service\MigratorInterface;
 use Sirix\Cycle\Service\MigratorWrapper;
 
-class MigratorFactory
+final class MigratorFactory
 {
     /**
      * @throws ContainerExceptionInterface

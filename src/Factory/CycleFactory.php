@@ -27,7 +27,7 @@ use Symfony\Component\Finder\Finder;
 
 use function array_merge;
 
-class CycleFactory
+final class CycleFactory
 {
     public const DEFAULT_CACHE_KEY = 'cycle_orm_schema';
 

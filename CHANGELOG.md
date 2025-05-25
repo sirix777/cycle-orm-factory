@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.3.0] - 25/05/2025
+
+### Added
+- Added interface aliases in ConfigProvider for easier service access:
+  - `Cycle\Database\DatabaseInterface` => `'dbal'`
+  - `Sirix\Cycle\Service\MigratorInterface` => `'migrator'`
+  - `Cycle\ORM\ORMInterface` => `'orm'`
+
+### Changed
+- Internal refactoring of factory classes for improved maintainability
+- Updated command factories for better dependency management
+- Enhanced migration filename generation to automatically increment counter for duplicate migration names
+
 ## [2.2.0] - 23/05/2025
 
 ### Added
