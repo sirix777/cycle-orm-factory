@@ -226,7 +226,7 @@ These factories provide the necessary parts to work seamlessly with Cycle ORM wi
 For more information about Cycle ORM, see the [Cycle ORM documentation](https://cycle-orm.dev/docs).
 
 ## Migrator Commands
-The `Sirix\Cycle\Command\Migrator` namespace provides some commands for managing database migrations and the cached Cycle ORM schema. These commands are intended for use with the `laminas-cli` tool.
+The `Sirix\Cycle\Command\Migrator` namespace provides some commands for managing database migrations and the cached Cycle ORM schema. These commands are built with symfony/console and can be used directly (note that direct usage of Symfony Console requires manual registration of commands). For Laminas/Mezzio applications, you can optionally integrate with `laminas-cli` by installing it as an additional package, which automatically registers all commands.
 
 ### 1. `cycle:migrator:run` Command
 
@@ -235,7 +235,10 @@ The `cycle:migrator:run` command performs the necessary database migration steps
 
 #### Usage
 ```bash
-# Run all pending migrations
+# With symfony/console (directly)
+php bin/console cycle:migrator:run
+
+# With laminas-cli (if installed as additional package)
 php vendor/bin/laminas cycle:migrator:run
 ```
 
@@ -250,6 +253,10 @@ The `cycle:migrator:rollback` command undoes the changes made by the last migrat
 
 #### Usage
 ```bash
+# With symfony/console (directly)
+php bin/console cycle:migrator:rollback
+
+# With laminas-cli (if installed as additional package)
 php vendor/bin/laminas cycle:migrator:rollback
 ```
 
@@ -264,6 +271,10 @@ The `cycle:migrator:create` command generates a new empty migration file in the 
 
 #### Usage
 ```bash
+# With symfony/console (directly)
+php bin/console cycle:migrator:create PascalCaseMigrationName
+
+# With laminas-cli (if installed as additional package)
 php vendor/bin/laminas cycle:migrator:create PascalCaseMigrationName
 ```
 
@@ -292,6 +303,10 @@ configurations have been made, and you want to ensure fresh schema generation.
 #### Usage
 
 ```bash
+# With symfony/console (directly)
+php bin/console cycle:cache:clear
+
+# With laminas-cli (if installed as additional package)
 php vendor/bin/laminas cycle:cache:clear
 ```
 
@@ -308,6 +323,10 @@ The `cycle:seed:create` command creates a new seed file in the seed directory. S
 #### Usage
 
 ```bash
+# With symfony/console (directly)
+php bin/console cycle:seed:create SeedName
+
+# With laminas-cli (if installed as additional package)
 php vendor/bin/laminas cycle:seed:create SeedName
 ```
 
@@ -327,6 +346,18 @@ The `cycle:seed:run` command executes seed files, populating your database with 
 #### Usage
 
 ```bash
+# With symfony/console (directly)
+# Run a specific seed
+php bin/console cycle:seed:run SeedName
+
+# Alternative ways to specify the seed
+php bin/console cycle:seed:run --seed SeedName
+php bin/console cycle:seed:run -s SeedName
+
+# Run all seeds in the configured directory
+php bin/console cycle:seed:run
+
+# With laminas-cli (if installed as additional package)
 # Run a specific seed
 php vendor/bin/laminas cycle:seed:run SeedName
 
