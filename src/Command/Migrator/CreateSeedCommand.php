@@ -27,7 +27,7 @@ final class CreateSeedCommand extends Command
 
         namespace Seed;
 
-        use Sirix\Cycle\Service\\eedInterface;
+        use Sirix\Cycle\Service\SeedInterface;
         use Cycle\Database\DatabaseInterface;
 
         final class %s implements SeedInterface
