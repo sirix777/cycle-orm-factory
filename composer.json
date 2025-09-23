@@ -11,7 +11,6 @@
     ],
     "require": {
         "php": "~8.1.0 || ~8.2.0 || ~8.3.0 || ~8.4.0",
-        "composer/package-versions-deprecated": "^1.11.99",
         "cycle/annotated": "^4.2",
         "cycle/database": "^2.11",
         "cycle/entity-behavior": "^1.3",
