@@ -15,7 +15,7 @@ use Psr\Container\NotFoundExceptionInterface;
 use Sirix\Cycle\Resolver\CacheAdapterResolver;
 use stdClass;
 
-class CacheAdapterResolverTest extends TestCase
+final class CacheAdapterResolverTest extends TestCase
 {
     private ContainerInterface|MockObject $container;
     private CacheItemPoolInterface|MockObject $cacheService;

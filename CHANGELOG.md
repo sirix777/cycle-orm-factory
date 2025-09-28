@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.5.0] - 28/09/2025
+
+### Changed
+- Migration-related console commands are now registered only when the optional `cycle/migrations` package is installed. They no longer appear in CLI help if the package is absent.
+- Non-migration commands (e.g., `cycle:cache:clear`) remain available regardless of the presence of the migrations package.
+- Schema-migrations generator commands are now exposed only when the `cycle/schema-migrations-generator` package is installed and migrations are enabled.
+
+### Added
+- Optional feature flag to disable migration command registration even when the package is installed: set environment variable `CYCLE_MIGRATIONS_DISABLED` to a truthy value (`1`, `true`, `yes`, `on`). To explicitly keep migrations enabled, set it to a falsy value (`0`, `false`, `no`, `off`) or leave it unset.
+- Unit tests covering command registration with migrations enabled and with migrations disabled by the feature flag.
+- Internal helper to toggle migrations availability at runtime based on installed packages and the env flag.
+
 ## [2.4.1] - 23/09/2025
 
 ### Fixed

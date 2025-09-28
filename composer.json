@@ -15,14 +15,14 @@
         "cycle/database": "^2.11",
         "cycle/entity-behavior": "^1.3",
         "cycle/entity-behavior-uuid": "^1.2",
-        "cycle/migrations": "^4.2.5",
         "cycle/orm": "^2.9",
-        "cycle/schema-migrations-generator": "^2.3",
         "psr/cache": "~1.0.0 || ~2.0.0. || ~3.0.0",
         "symfony/console": "^6.4 || ^7.3",
         "symfony/filesystem": "^6.3 || ^7.2"
     },
     "require-dev": {
+        "cycle/migrations": "^4.2",
+        "cycle/schema-migrations-generator": "^2.3",
         "ergebnis/composer-normalize": "^2.39",
         "mockery/mockery": "^1.6",
         "phpstan/extension-installer": "^1.3",
@@ -33,7 +33,9 @@
         "symfony/cache": "^6.3 || ^7.2"
     },
     "suggest": {
-        "laminas/laminas-cli": "Provides convenient CLI integration for Laminas/Mezzio applications"
+        "cycle/migrations": "Optional: Database migrations runtime (Migrator). Required to run migration commands",
+        "cycle/schema-migrations-generator": "Optional: Generate migration files from schema changes",
+        "laminas/laminas-cli": "Optional: Provides convenient CLI integration for Laminas/Mezzio applications"
     },
     "autoload": {
         "psr-4": {

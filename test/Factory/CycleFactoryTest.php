@@ -23,7 +23,7 @@ use Symfony\Component\Filesystem\Filesystem;
 
 use function file_exists;
 
-class CycleFactoryTest extends TestCase
+final class CycleFactoryTest extends TestCase
 {
     private const DEFAULT_CACHE_DIR = 'tests/cache';
     private ContainerInterface|MockObject $container;

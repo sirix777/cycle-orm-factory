@@ -20,6 +20,7 @@ use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\ContainerInterface;
 use Psr\Container\NotFoundExceptionInterface;
 use Sirix\Cycle\Enum\SchemaProperty;
+use Sirix\Cycle\Internal\MigrationsToggle;
 use Sirix\Cycle\Resolver\CacheAdapterResolver;
 use Sirix\Cycle\Service\MigratorInterface;
 use Spiral\Tokenizer\ClassLocator;
@@ -133,10 +134,12 @@ final class CycleFactory
         }
 
         if (SchemaProperty::GenerateMigrations === $schemaProperty) {
-            $generators[] = new GenerateMigrations(
-                $migrator->getRepository(),
-                $migrator->getConfig()
-            );
+            if (MigrationsToggle::isGenerateMigrationsAvailable() && ! MigrationsToggle::isDisabledByEnv()) {
+                $generators[] = new GenerateMigrations(
+                    $migrator->getRepository(),
+                    $migrator->getConfig()
+                );
+            }
         }
 
         return $generators;
