@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Sirix\Cycle\Command\Internal;
+namespace Sirix\Cycle\Internal;
 
 use function class_exists;
 use function getenv;

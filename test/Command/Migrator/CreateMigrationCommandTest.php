@@ -29,7 +29,7 @@ class CreateMigrationCommandTest extends TestCase
     protected function setUp(): void
     {
         $this->migrationDirectory = sys_get_temp_dir() . DIRECTORY_SEPARATOR . uniqid('migrations_', true);
-        mkdir($this->migrationDirectory, 0777, true);
+        mkdir($this->migrationDirectory, 0o777, true);
     }
 
     protected function tearDown(): void
@@ -108,12 +108,10 @@ class CreateMigrationCommandTest extends TestCase
     {
         $command = new CreateMigrationCommand($this->migrationDirectory);
 
-        // Create first migration
         $input = new ArrayInput(['migrationName' => 'DuplicateName']);
         $output = new BufferedOutput();
         $command->run($input, $output);
 
-        // Create second migration with the same name
         $input = new ArrayInput(['migrationName' => 'DuplicateName']);
         $output = new BufferedOutput();
         $command->run($input, $output);
@@ -121,7 +119,6 @@ class CreateMigrationCommandTest extends TestCase
         $migrations = (array) glob($this->migrationDirectory . DIRECTORY_SEPARATOR . '*DuplicateName.php');
         $this->assertCount(2, $migrations);
 
-        // Extract timestamps and counters from filenames
         $counters = [];
         $timestamp = null;
 
@@ -135,7 +132,6 @@ class CreateMigrationCommandTest extends TestCase
             }
         }
 
-        // Verify that the counters are 0 and 1, regardless of timestamps
         $this->assertCount(2, $counters);
         $this->assertContains(0, $counters);
         $this->assertContains(1, $counters);

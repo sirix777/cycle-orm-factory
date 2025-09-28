@@ -6,11 +6,11 @@ namespace Sirix\Cycle;
 
 use Cycle\Database\DatabaseInterface;
 use Cycle\ORM\ORMInterface;
-use Sirix\Cycle\Command\Internal\MigrationsToggle;
 use Sirix\Cycle\Enum\CommandName;
 use Sirix\Cycle\Factory\CycleFactory;
 use Sirix\Cycle\Factory\DbalFactory;
 use Sirix\Cycle\Factory\MigratorFactory;
+use Sirix\Cycle\Internal\MigrationsToggle;
 use Sirix\Cycle\Service\MigratorInterface;
 
 final class ConfigProvider

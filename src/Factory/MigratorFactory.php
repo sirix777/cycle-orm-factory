@@ -11,7 +11,7 @@ use Cycle\Migrations\Migrator;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\ContainerInterface;
 use Psr\Container\NotFoundExceptionInterface;
-use Sirix\Cycle\Command\Internal\MigrationsToggle;
+use Sirix\Cycle\Internal\MigrationsToggle;
 use Sirix\Cycle\Service\MigratorInterface;
 use Sirix\Cycle\Service\MigratorWrapper;
 use Sirix\Cycle\Service\NullMigrator;

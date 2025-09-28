@@ -10,7 +10,8 @@ use Sirix\Cycle\Service\NullMigrator;
 
 final class NullMigratorTest extends TestCase
 {
-    private const ERROR_MESSAGE = 'Cycle migrations are unavailable. Install "cycle/migrations" or remove env "CYCLE_MIGRATIONS_DISABLED" to enable.';
+    private const ERROR_MESSAGE
+        = 'Cycle migrations are unavailable. Install "cycle/migrations" or remove env "CYCLE_MIGRATIONS_DISABLED" to enable.';
     private NullMigrator $migrator;
 
     public function setUp(): void
