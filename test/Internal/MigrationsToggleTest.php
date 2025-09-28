@@ -32,8 +32,14 @@ final class MigrationsToggleTest extends TestCase
         putenv('CYCLE_MIGRATIONS_DISABLED=1');
         $this->assertTrue(MigrationsToggle::isDisabledByEnv(), '"1" should be treated as disabled');
 
+        putenv('CYCLE_MIGRATIONS_DISABLED=true');
+        $this->assertTrue(MigrationsToggle::isDisabledByEnv(), '"true" value should disable');
+
         putenv('CYCLE_MIGRATIONS_DISABLED=yes');
-        $this->assertTrue(MigrationsToggle::isDisabledByEnv(), 'Any non-empty non-"0" value should disable');
+        $this->assertTrue(MigrationsToggle::isDisabledByEnv(), '"yes" value should disable');
+
+        putenv('CYCLE_MIGRATIONS_DISABLED=on');
+        $this->assertTrue(MigrationsToggle::isDisabledByEnv(), '"on" value should disable');
     }
 
     public function testAreMigrationsEnabledDependsOnClassAndEnv(): void
