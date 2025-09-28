@@ -15,7 +15,7 @@ use PHPUnit\Framework\TestCase;
 use Sirix\Cycle\Service\MigratorInterface;
 use Sirix\Cycle\Service\MigratorService;
 
-class MigratorServiceTest extends TestCase
+final class MigratorServiceTest extends TestCase
 {
     private MigratorInterface|MockInterface $migratorMock;
     private MigratorService $migratorService;

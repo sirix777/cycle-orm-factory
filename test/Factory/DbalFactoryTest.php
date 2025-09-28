@@ -14,7 +14,7 @@ use Psr\Container\ContainerInterface;
 use Psr\Container\NotFoundExceptionInterface;
 use Sirix\Cycle\Factory\DbalFactory;
 
-class DbalFactoryTest extends TestCase
+final class DbalFactoryTest extends TestCase
 {
     private ContainerInterface|MockObject $container;
 

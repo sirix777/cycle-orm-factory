@@ -16,7 +16,7 @@ use Psr\Container\NotFoundExceptionInterface;
 use Sirix\Cycle\Factory\MigratorFactory;
 use Sirix\Cycle\Service\MigratorInterface;
 
-class MigratorFactoryTest extends TestCase
+final class MigratorFactoryTest extends TestCase
 {
     private ContainerInterface|MockObject $container;
 
@@ -29,9 +29,7 @@ class MigratorFactoryTest extends TestCase
     public function setUp(): void
     {
         parent::setUp();
-        $this->container = $this->createMock(
-            ContainerInterface::class
-        );
+        $this->container = $this->createMock(ContainerInterface::class);
         $this->config = [
             'cycle' => [
                 'migrator' => [

@@ -16,7 +16,7 @@ use Sirix\Cycle\Service\MigratorServiceFactory;
 use Sirix\Cycle\Service\MigratorWrapper;
 use TypeError;
 
-class MigratorServiceFactoryTest extends TestCase
+final class MigratorServiceFactoryTest extends TestCase
 {
     private ContainerInterface|MockObject $container;
 

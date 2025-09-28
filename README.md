@@ -203,6 +203,8 @@ The SyncTables option synchronizes the database tables based on the provided ent
 
 The GenerateMigrations option is used to automatically generate migration files based on changes detected in your entity classes. When enabled, the ORM analyzes the differences between the current database schema and the defined entities. It then generates migration files to apply these changes, making it easier to version and manage your database schema changes.
 
+Important: This works only if the optional `cycle/schema-migrations-generator` package is installed.
+
 Select the appropriate SchemaProperty option based on the requirements of your project. Customize the configuration to your needs and enjoy the seamless integration of Cycle ORM with Mezzio.
 
 * Note: The schema properties (e.g., SyncTables, GenerateMigrations) work only with annotated entities.
@@ -226,7 +228,13 @@ These factories provide the necessary parts to work seamlessly with Cycle ORM wi
 For more information about Cycle ORM, see the [Cycle ORM documentation](https://cycle-orm.dev/docs).
 
 ## Migrator Commands
-The `Sirix\Cycle\Command\Migrator` namespace provides some commands for managing database migrations and the cached Cycle ORM schema. These commands are built with symfony/console and can be used directly (note that direct usage of Symfony Console requires manual registration of commands). For Laminas/Mezzio applications, you can optionally integrate with `laminas-cli` by installing it as an additional package, which automatically registers all commands.
+This package provides console commands for managing database migrations and the cached Cycle ORM schema. These commands are built with symfony/console and can be used directly (note that direct usage of Symfony Console requires manual registration of commands). For Laminas/Mezzio applications, you can optionally integrate with `laminas-cli` by installing it as an additional package, which automatically registers all commands.
+
+Important:
+- Migration-related commands are registered only if the optional `cycle/migrations` package is installed.
+- If the migrations package is not installed, these commands will not be registered and will not appear in CLI help.
+- Non-migration commands (like `cycle:cache:clear`) are always available.
+- You can force-disable migration command registration by setting the environment variable `CYCLE_MIGRATIONS_DISABLED` to a truthy value: `1`, `true`, `yes`, or `on` (case-insensitive). To explicitly keep migrations enabled, set it to a falsy value such as `0`, `false`, `no`, or `off`, or simply omit the variable.
 
 ### 1. `cycle:migrator:run` Command
 
