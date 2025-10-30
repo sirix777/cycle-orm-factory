@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.6.0] - 30/10/2025
+
+### Added
+- Seed command can run seeds from another directory via `--directory` / `-d` option (in addition to the configured `seed_directory`).
+
+### Changed
+- Renamed migrator configuration key for seed directory from `seed-directory` to `seed_directory` (update your config accordingly).
+- Updated internal tooling: added Rector configuration and PHPStan setup; normalized composer files for tools.
+- Improved factories for migrator and seed commands to streamline dependency wiring and developer experience.
+- Polished tests for migration and seed commands.
+- Extended migrator configuration support: now recognizes `vendor_directories` and `namespace` (mapped to Cycle Migrations config keys), alongside existing options like `directory`, `table`, and `safe`.
+
+### Fixed
+- Migration class namespace is now correctly generated from migrator config (`namespace`).
+- Minor fixes in `CreateMigrationCommand` and seed command factory to align with latest tooling.
+- Documentation and metadata adjustments.
+
 ## [2.5.0] - 28/09/2025
 
 ### Changed

@@ -55,7 +55,10 @@ return [
         'migrator' => [
             'directory' => 'db/migrations',
             'table' => 'migrations',
-            'seed-directory' => 'db/seeds',
+            'seed_directory' => 'db/seeds',
+            // optional settings
+            // 'namespace' => 'App\\Migration',
+            // 'vendor_directories' => ['vendor/spiral', 'vendor/cycle'],
         ],
         'entities' => [
             'src/App/src/Entity', // The 'entities' configuration must always be present and point to an existing directory, even when working with manual entities.
@@ -75,13 +78,18 @@ return [
 ### Migrator Configuration
 ```php
 'migrator' => [
-    'directory'      => 'db/migrations',
-    'table'          => 'migrations',
-    'seed-directory' => 'db/seeds',
+    'directory'          => 'db/migrations',
+    'table'              => 'migrations',
+    'seed_directory'     => 'db/seeds',
+    'namespace'          => 'App\\Migration',            // optional: namespace for generated migration classes
+    'vendor_directories' => ['vendor/spiral', 'vendor/cycle'], // optional: extra vendor dirs for Cycle Migrations
 ],
 ```
-- `directory`: Specifies the directory where the migration files will be stored.
-- `table`: Specifies the name of the table used to store migration information.
+- `directory`: Directory where migration files are stored.
+- `table`: Name of the database table used to store migration status.
+- `seed_directory`: Directory where seed classes are stored (used by the seed commands).
+- `namespace`: PHP namespace used when generating migration classes. Migration classes will be created under this namespace.
+- `vendor_directories`: Additional vendor directories to be scanned by Cycle Migrations (maps to Cycle Migrations config).
 
 ### Entities Configuration
 ```php
@@ -295,6 +303,9 @@ php vendor/bin/laminas cycle:migrator:create PascalCaseMigrationName
 - `counter` is an incremental number (starting from 0) for migrations with the same name
 - `MigrationName` is the name you provided in PascalCase
 
+Namespace:
+- Generated migration classes will use the namespace configured at `cycle.migrator.namespace`. If omitted, Cycle Migrations' default namespace will be used.
+
 **Note**: Make sure that you have correctly configured the database connection and migrations settings in your project's configuration file.
 
 For more information about using migrations with Cycle ORM, see the [Cycle ORM Documentation](https://cycle-orm.dev/docs/database-migrations/current/en).
@@ -362,8 +373,15 @@ php bin/console cycle:seed:run SeedName
 php bin/console cycle:seed:run --seed SeedName
 php bin/console cycle:seed:run -s SeedName
 
-# Run all seeds in the configured directory
+# Run all seeds in the configured seed directory
 php bin/console cycle:seed:run
+
+# Run from a different directory (overrides configured seed_directory for this run)
+php bin/console cycle:seed:run --directory path/to/seeds
+php bin/console cycle:seed:run -d path/to/seeds
+
+# Run a specific seed from a different directory
+php bin/console cycle:seed:run --directory path/to/seeds SeedName
 
 # With laminas-cli (if installed as additional package)
 # Run a specific seed
@@ -373,18 +391,30 @@ php vendor/bin/laminas cycle:seed:run SeedName
 php vendor/bin/laminas cycle:seed:run --seed SeedName
 php vendor/bin/laminas cycle:seed:run -s SeedName
 
-# Run all seeds in the configured directory
+# Run all seeds in the configured seed directory
 php vendor/bin/laminas cycle:seed:run
+
+# Run from a different directory (overrides configured seed_directory for this run)
+php vendor/bin/laminas cycle:seed:run --directory path/to/seeds
+php vendor/bin/laminas cycle:seed:run -d path/to/seeds
+
+# Run a specific seed from a different directory
+php vendor/bin/laminas cycle:seed:run --directory path/to/seeds SeedName
 ```
 
 #### Arguments and Options
 
 - `SeedName`: The name of the seed to run in PascalCase format, without the .php extension.
 - `--seed` or `-s`: Alternative ways to specify the seed name.
+- `--directory` or `-d`: Run seeds from a different directory than the configured `seed_directory` (affects both single-seed and run-all modes for this invocation only).
 
-If no seed name is provided, the command will run all seeds in the configured seed directory.
+Behavior:
+- If `SeedName` is provided, the command runs that seed from either the configured `seed_directory` or the directory passed via `--directory`/`-d`.
+- If no `SeedName` is provided, the command runs all seeds from the configured `seed_directory` or from the directory passed via `--directory`/`-d`.
 
-**Note**: All seed classes must implement the `SeedInterface` and be located in the configured seed directory. The command will automatically inject the database connection into the seed class.
+If no seed name is provided, the command will run all seeds in the configured seed directory (unless `--directory`/`-d` is used).
+
+**Note**: All seed classes must implement the `SeedInterface` and be located in the target seed directory. The command will automatically inject the database connection into the seed class.
 
 
 ### Cache Configuration Example

@@ -34,8 +34,11 @@ return [
         ],
         'migrator' => [
             'directory' => 'db/migrations',
+            'vendor_directories' => ['vendor/path'],
             'table' => 'migrations',
-            'seed-directory' => 'db/seeds',
+            'namespace' => 'App\Migrations',
+            'safe' => false,
+            'seed_directory' => 'db/seeds',
         ],
         'entities' => [
             'src/App/src/Entity',

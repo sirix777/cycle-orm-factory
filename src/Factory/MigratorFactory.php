@@ -18,6 +18,14 @@ use Sirix\Cycle\Service\NullMigrator;
 
 final class MigratorFactory
 {
+    private const MIGRATION_CONFIG_MAP = [
+        'directory' => 'directory',
+        'vendor_directories' => 'vendorDirectories',
+        'table' => 'table',
+        'safe' => 'safe',
+        'namespace' => 'namespace',
+    ];
+
     /**
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
@@ -36,7 +44,7 @@ final class MigratorFactory
 
         $config = $config['cycle']['migrator'];
 
-        $migratorConfig = new MigrationConfig($config);
+        $migratorConfig = new MigrationConfig($this->parseConfig($config));
 
         $dbal = $container->get('dbal');
 
@@ -47,5 +55,22 @@ final class MigratorFactory
         );
 
         return new MigratorWrapper($migrator);
+    }
+
+    /**
+     * @param array<string, mixed> $config
+     *
+     * @return array<string, mixed>
+     */
+    private function parseConfig(array $config): array
+    {
+        $result = [];
+
+        foreach ($config as $key => $value) {
+            $newKey = self::MIGRATION_CONFIG_MAP[$key] ?? $key;
+            $result[$newKey] = $value;
+        }
+
+        return $result;
     }
 }

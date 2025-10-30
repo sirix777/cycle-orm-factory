@@ -15,23 +15,23 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Validate composer.json and composer.lock
-      run: composer validate --strict
+      - name: Validate composer.json and composer.lock
+        run: composer validate --strict
 
-    - name: Install dependencies
-      run: composer install --prefer-dist --no-progress
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-progress
 
-    - name: Install php-cs-fixer
-      run: composer install --working-dir=tools/php-cs-fixer
+      - name: Run cs-check
+        run: composer cs-check
 
-    - name: Run cs-check
-      run: composer cs-check
+      - name: Run rector
+        run: composer rector
 
-    - name: Run phpstan
-      run: composer phpstan
+      - name: Run phpstan
+        run: composer phpstan
 
-    - name: Run phpunit
-      run: composer test
+      - name: Run phpunit
+        run: composer test
 

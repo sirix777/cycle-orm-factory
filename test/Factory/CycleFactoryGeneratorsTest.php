@@ -65,7 +65,7 @@ final class CycleFactoryGeneratorsTest extends TestCase
 
         putenv('CYCLE_MIGRATIONS_DISABLED=0');
 
-        /** @var MigratorInterface|MockObject $migrator */
+        /** @var MigratorInterface&MockObject $migrator */
         $migrator = $this->createMock(MigratorInterface::class);
         $repo = $this->createMock(RepositoryInterface::class);
         $migrator->expects($this->once())

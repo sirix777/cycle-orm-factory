@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Sirix\Cycle\Service;
 
+use Cycle\Migrations\MigrationInterface;
 use Throwable;
 
 class MigratorService
@@ -16,7 +17,7 @@ class MigratorService
             $this->migrator->configure();
         }
 
-        while (($migration = $this->migrator->run()) !== null) {
+        while (($migration = $this->migrator->run()) instanceof MigrationInterface) {
             $output('Migrating ' . $migration->getState()->getName());
         }
     }

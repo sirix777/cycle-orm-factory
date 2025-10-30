@@ -43,7 +43,7 @@ class CreateSeedCommandFactoryTest extends TestCase
         $factory = new CreateSeedCommandFactory();
 
         $this->expectException(ConfigException::class);
-        $this->expectExceptionMessage('Expected config migrator with seed-directory');
+        $this->expectExceptionMessage('Expected config migrator with seed_directory');
 
         $factory($this->container);
     }
@@ -69,7 +69,7 @@ class CreateSeedCommandFactoryTest extends TestCase
             ->willReturn([
                 'cycle' => [
                     'migrator' => [
-                        // seed-directory is missing
+                        // seed_directory is missing
                     ],
                 ],
             ])
@@ -78,7 +78,7 @@ class CreateSeedCommandFactoryTest extends TestCase
         $factory = new CreateSeedCommandFactory();
 
         $this->expectException(ConfigException::class);
-        $this->expectExceptionMessage('Expected config migrator with seed-directory');
+        $this->expectExceptionMessage('Expected config migrator with seed_directory');
 
         $factory($this->container);
     }
@@ -104,7 +104,7 @@ class CreateSeedCommandFactoryTest extends TestCase
             ->willReturn([
                 'cycle' => [
                     'migrator' => [
-                        'seed-directory' => 'test/seeds',
+                        'seed_directory' => 'test/seeds',
                     ],
                 ],
             ])

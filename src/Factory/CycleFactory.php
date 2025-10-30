@@ -133,13 +133,15 @@ final class CycleFactory
             $generators[] = new Schema\Generator\SyncTables();
         }
 
-        if (SchemaProperty::GenerateMigrations === $schemaProperty) {
-            if (MigrationsToggle::isGenerateMigrationsAvailable() && ! MigrationsToggle::isDisabledByEnv()) {
-                $generators[] = new GenerateMigrations(
-                    $migrator->getRepository(),
-                    $migrator->getConfig()
-                );
-            }
+        if (
+            SchemaProperty::GenerateMigrations === $schemaProperty
+            && MigrationsToggle::isGenerateMigrationsAvailable()
+            && ! MigrationsToggle::isDisabledByEnv()
+        ) {
+            $generators[] = new GenerateMigrations(
+                $migrator->getRepository(),
+                $migrator->getConfig()
+            );
         }
 
         return $generators;

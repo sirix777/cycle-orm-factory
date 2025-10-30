@@ -22,11 +22,11 @@ final class SeedCommandFactory
             ? $container->get('config')
             : [];
 
-        if (! isset($config['cycle']['migrator']['seed-directory'])) {
-            throw new ConfigException('Expected config migrator with seed-directory');
+        if (! isset($config['cycle']['migrator']['seed_directory'])) {
+            throw new ConfigException('Expected config migrator with seed_directory');
         }
 
-        $seedDirectory = $config['cycle']['migrator']['seed-directory'];
+        $seedDirectory = $config['cycle']['migrator']['seed_directory'];
         $migratorService = $container->get(MigratorService::class);
         $dbal = $container->get('dbal');
 

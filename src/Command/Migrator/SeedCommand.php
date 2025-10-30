@@ -13,6 +13,7 @@ use Sirix\Cycle\Service\SeedInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Throwable;
@@ -20,7 +21,9 @@ use Throwable;
 use function class_exists;
 use function file_exists;
 use function glob;
+use function is_dir;
 use function pathinfo;
+use function rtrim;
 use function sprintf;
 
 final class SeedCommand extends Command
@@ -52,8 +55,14 @@ final class SeedCommand extends Command
             ->addOption(
                 'seed',
                 's',
-                InputArgument::OPTIONAL,
+                InputOption::VALUE_OPTIONAL,
                 'The name of the seed file to run (without .php extension)'
+            )
+            ->addOption(
+                'directory',
+                'd',
+                InputOption::VALUE_OPTIONAL,
+                'The directory from which to run seeds (optional, overrides default seed directory)'
             )
         ;
     }
@@ -61,13 +70,26 @@ final class SeedCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
+
+        $seedDirectory = $this->resolveSeedDirectory($input);
         $seedName = $this->getSeedNameFromInput($input);
 
         if ('' !== $seedName && '0' !== $seedName) {
-            return $this->executeSingleSeed($seedName, $io);
+            return $this->executeSingleSeed($seedName, $seedDirectory, $io);
         }
 
-        return $this->executeAllSeeds($io);
+        return $this->executeAllSeeds($seedDirectory, $io);
+    }
+
+    private function resolveSeedDirectory(InputInterface $input): string
+    {
+        $customDir = (string) $input->getOption('directory');
+
+        if ('' !== $customDir && is_dir($customDir)) {
+            return rtrim($customDir, DIRECTORY_SEPARATOR);
+        }
+
+        return $this->seedDirectory;
     }
 
     private function getSeedNameFromInput(InputInterface $input): string
@@ -80,9 +102,9 @@ final class SeedCommand extends Command
         return $seedName;
     }
 
-    private function executeSingleSeed(string $seedName, SymfonyStyle $io): int
+    private function executeSingleSeed(string $seedName, string $seedDirectory, SymfonyStyle $io): int
     {
-        $seed = $this->loadAndValidateSeed($seedName, $io);
+        $seed = $this->loadAndValidateSeed($seedName, $seedDirectory, $io);
         if (! $seed instanceof SeedInterface) {
             return Command::FAILURE;
         }
@@ -99,15 +121,15 @@ final class SeedCommand extends Command
         }
     }
 
-    private function loadAndValidateSeed(string $seedName, SymfonyStyle $io): ?SeedInterface
+    private function loadAndValidateSeed(string $seedName, string $seedDirectory, SymfonyStyle $io): ?SeedInterface
     {
         if (! $this->validateSeedName($seedName, $io)) {
             return null;
         }
 
-        $seedFile = $this->getSeedFilePath($seedName);
+        $seedFile = $this->getSeedFilePath($seedName, $seedDirectory);
         if (! file_exists($seedFile)) {
-            $io->error(sprintf('Seed file "%s" not found in the seed directory.', $seedName));
+            $io->error(sprintf('Seed file "%s" not found in directory "%s".', $seedName, $seedDirectory));
 
             return null;
         }
@@ -139,12 +161,12 @@ final class SeedCommand extends Command
         return $seed;
     }
 
-    private function executeAllSeeds(SymfonyStyle $io): int
+    private function executeAllSeeds(string $seedDirectory, SymfonyStyle $io): int
     {
-        $seedFiles = glob($this->seedDirectory . DIRECTORY_SEPARATOR . '*.php');
+        $seedFiles = glob($seedDirectory . DIRECTORY_SEPARATOR . '*.php');
 
         if ([] === $seedFiles || false === $seedFiles) {
-            $io->warning('No seed files found in the seed directory.');
+            $io->warning(sprintf('No seed files found in directory "%s".', $seedDirectory));
 
             return Command::SUCCESS;
         }
@@ -156,7 +178,7 @@ final class SeedCommand extends Command
             $seedName = pathinfo($seedFile, PATHINFO_FILENAME);
             $io->section(sprintf('Running seed: %s', $seedName));
 
-            $result = $this->executeSingleSeed($seedName, $io);
+            $result = $this->executeSingleSeed($seedName, $seedDirectory, $io);
 
             Command::SUCCESS === $result ? ++$successCount : ++$failureCount;
         }
@@ -187,9 +209,9 @@ final class SeedCommand extends Command
         return true;
     }
 
-    private function getSeedFilePath(string $seedName): string
+    private function getSeedFilePath(string $seedName, string $seedDirectory): string
     {
-        return sprintf('%s%s%s.php', $this->seedDirectory, DIRECTORY_SEPARATOR, $seedName);
+        return sprintf('%s%s%s.php', $seedDirectory, DIRECTORY_SEPARATOR, $seedName);
     }
 
     private function getSeedClassName(string $seedName): string

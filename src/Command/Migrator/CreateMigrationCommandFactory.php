@@ -8,6 +8,7 @@ use Cycle\Database\Exception\ConfigException;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\ContainerInterface;
 use Psr\Container\NotFoundExceptionInterface;
+use Sirix\Cycle\Service\MigratorInterface;
 
 final class CreateMigrationCommandFactory
 {
@@ -27,6 +28,8 @@ final class CreateMigrationCommandFactory
 
         $migrationDirectory = $config['cycle']['migrator']['directory'];
 
-        return new CreateMigrationCommand($migrationDirectory);
+        $migrator = $container->get(MigratorInterface::class);
+
+        return new CreateMigrationCommand($migrationDirectory, $migrator);
     }
 }

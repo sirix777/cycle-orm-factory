@@ -10,6 +10,7 @@ use DateTime;
 use Exception;
 use Sirix\Cycle\Command\Helper\FileNameValidator;
 use Sirix\Cycle\Enum\CommandName;
+use Sirix\Cycle\Service\MigratorInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -35,7 +36,7 @@ final class CreateMigrationCommand extends Command
 
         declare(strict_types=1);
 
-        namespace Migration;
+        namespace %s;
 
         use Cycle\Migrations\Migration;
 
@@ -53,8 +54,11 @@ final class CreateMigrationCommand extends Command
         }
         PHP;
 
-    public function __construct(private readonly string $migrationDirectory, ?string $name = null)
-    {
+    public function __construct(
+        private readonly string $migrationDirectory,
+        private readonly MigratorInterface $migrator,
+        ?string $name = null
+    ) {
         parent::__construct($name);
     }
 
@@ -102,7 +106,7 @@ final class CreateMigrationCommand extends Command
 
     private function getMigrationFileContent(string $className): string
     {
-        return sprintf(self::MIGRATION_TEMPLATE, $className);
+        return sprintf(self::MIGRATION_TEMPLATE, $this->migrator->getConfig()->getNamespace(), $className);
     }
 
     private function generateMigrationName(string $migrationName): string
@@ -118,7 +122,7 @@ final class CreateMigrationCommand extends Command
         $pattern = $this->migrationDirectory . DIRECTORY_SEPARATOR . '*_*_*_' . $migrationName . '.php';
         $existingFiles = glob($pattern);
 
-        if (empty($existingFiles)) {
+        if ([] === $existingFiles || false === $existingFiles) {
             return 0;
         }
 
