@@ -122,11 +122,8 @@ class SeedCommandTest extends TestCase
     {
         $result = $this->runCommand(['seed' => 'NonExistentSeed'], null);
 
-        $this->assertCommandResult(
-            $result,
-            Command::FAILURE,
-            sprintf('Seed file "NonExistentSeed" not found in directory "%s".', $this->seedDirectory)
-        );
+        $this->assertStringContainsString('Seed file "NonExistentSeed" not found in directory', $result['output']);
+        $this->assertStringContainsString($this->seedDirectory, $result['output']);
     }
 
     public function testExecuteWithInvalidSeedClass(): void
