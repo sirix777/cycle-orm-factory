@@ -14,6 +14,7 @@ use Sirix\Cycle\Service\MigratorInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Filesystem\Filesystem;
@@ -30,6 +31,7 @@ use function ucfirst;
 final class CreateMigrationCommand extends Command
 {
     private const UNIQUE_ID_LENGTH = 18;
+    private const DEFAULT_DATABASE = 'main-db';
 
     private const MIGRATION_TEMPLATE = <<<'PHP'
         <?php
@@ -42,7 +44,7 @@ final class CreateMigrationCommand extends Command
 
         class %s extends Migration
         {
-            protected const DATABASE = 'main-db';
+            protected const DATABASE = '%s';
 
             public function up(): void
             {
@@ -68,6 +70,13 @@ final class CreateMigrationCommand extends Command
             ->setName(CommandName::GenerateMigration->value)
             ->setDescription('Create an empty migration file')
             ->addArgument('migrationName', InputArgument::REQUIRED, 'The name of the migration in PascalCase format')
+            ->addOption(
+                'database',
+                'd',
+                InputOption::VALUE_OPTIONAL,
+                'Database alias to use in generated migration (constant DATABASE)',
+                self::DEFAULT_DATABASE
+            )
         ;
     }
 
@@ -88,7 +97,12 @@ final class CreateMigrationCommand extends Command
         $filePath = $this->migrationDirectory . DIRECTORY_SEPARATOR . $filename;
 
         $className = sprintf('Orm%s', ucfirst($this->getUniqueId()));
-        $fileContent = $this->getMigrationFileContent($className);
+
+        /** @var null|string $database */
+        $database = $input->getOption('database');
+        $database = null === $database || '' === $database ? self::DEFAULT_DATABASE : $database;
+
+        $fileContent = $this->getMigrationFileContent($className, $database);
 
         $filesystem = new Filesystem();
 
@@ -104,9 +118,14 @@ final class CreateMigrationCommand extends Command
         return Command::SUCCESS;
     }
 
-    private function getMigrationFileContent(string $className): string
+    private function getMigrationFileContent(string $className, string $database): string
     {
-        return sprintf(self::MIGRATION_TEMPLATE, $this->migrator->getConfig()->getNamespace(), $className);
+        return sprintf(
+            self::MIGRATION_TEMPLATE,
+            $this->migrator->getConfig()->getNamespace(),
+            $className,
+            $database,
+        );
     }
 
     private function generateMigrationName(string $migrationName): string

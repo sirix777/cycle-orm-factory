@@ -288,14 +288,31 @@ The `cycle:migrator:create` command generates a new empty migration file in the 
 #### Usage
 ```bash
 # With symfony/console (directly)
-php bin/console cycle:migrator:create PascalCaseMigrationName
+php bin/console cycle:migrator:create PascalCaseMigrationName [--database|-d DB_ALIAS]
 
 # With laminas-cli (if installed as additional package)
-php vendor/bin/laminas cycle:migrator:create PascalCaseMigrationName
+php vendor/bin/laminas cycle:migrator:create PascalCaseMigrationName [--database|-d DB_ALIAS]
 ```
 
-#### Options
+#### Arguments
 - `migrationName`: The name of the migration file to be created. This should be in PascalCase format.
+
+#### Options
+- `--database` or `-d`: Database alias to set in the generated migration class (as `protected const DATABASE`). Defaults to `main-db`.
+
+Examples:
+
+```bash
+# Default database alias ('main-db') will be used
+php bin/console cycle:migrator:create CreateUsersTable
+
+# Custom database alias
+php bin/console cycle:migrator:create CreateUsersTable --database reporting-db
+php bin/console cycle:migrator:create CreateUsersTable -d reporting-db
+
+# With laminas-cli
+php vendor/bin/laminas cycle:migrator:create CreateUsersTable --database reporting-db
+```
 
 **Important Note**: Migration filenames follow the format `YYYYMMDD.HHMMSS_0_counter_MigrationName.php` where:
 - `YYYYMMDD.HHMMSS` is the timestamp when the migration was created
@@ -343,15 +360,33 @@ The `cycle:seed:create` command creates a new seed file in the seed directory. S
 
 ```bash
 # With symfony/console (directly)
-php bin/console cycle:seed:create SeedName
+php bin/console cycle:seed:create SeedName [--database|-d DB_ALIAS]
 
 # With laminas-cli (if installed as additional package)
-php vendor/bin/laminas cycle:seed:create SeedName
+php vendor/bin/laminas cycle:seed:create SeedName [--database|-d DB_ALIAS]
 ```
 
 #### Arguments
 
 - `SeedName`: The name of the seed in PascalCase format (required).
+
+#### Options
+
+- `--database` or `-d`: Database alias to set in the generated seed class (as `private const DATABASE`). Defaults to `main-db`.
+
+Examples:
+
+```bash
+# Default database alias ('main-db') will be used
+php bin/console cycle:seed:create UserSeed
+
+# Custom database alias
+php bin/console cycle:seed:create UserSeed --database reporting-db
+php bin/console cycle:seed:create UserSeed -b reporting-db
+
+# With laminas-cli
+php vendor/bin/laminas cycle:seed:create UserSeed --database reporting-db
+```
 
 **Note**: The generated seed file will be placed in the configured seed directory and will implement the `SeedInterface`.
 

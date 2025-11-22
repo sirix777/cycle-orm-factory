@@ -78,6 +78,9 @@ final class CreateMigrationCommandTest extends TestCase
         $this->assertIsString($fileContent);
         $this->assertStringContainsString('namespace Migration;', $fileContent);
         $this->assertStringContainsString('class Orm', $fileContent);
+
+        // Should use default database alias when not provided
+        $this->assertStringContainsString("protected const DATABASE = 'main-db';", (string) $fileContent);
     }
 
     /**
@@ -112,6 +115,28 @@ final class CreateMigrationCommandTest extends TestCase
 
         $this->assertSame(Command::FAILURE, $resultCode);
         $this->assertStringContainsString('Failed to create migration:', $outputContent);
+    }
+
+    /**
+     * @throws ExceptionInterface
+     */
+    public function testExecuteWithCustomDatabaseOption(): void
+    {
+        $command = new CreateMigrationCommand($this->migrationDirectory, $this->migrator);
+
+        $input = new ArrayInput(['migrationName' => 'ValidMigrationName', '--database' => 'custom-db']);
+        $output = new BufferedOutput();
+
+        $resultCode = $command->run($input, $output);
+
+        $this->assertSame(Command::SUCCESS, $resultCode);
+
+        $migrations = (array) glob($this->migrationDirectory . DIRECTORY_SEPARATOR . '*.php');
+        $this->assertCount(1, $migrations);
+
+        $fileContent = file_get_contents((string) $migrations[0]);
+        // Should use provided database alias
+        $this->assertStringContainsString("protected const DATABASE = 'custom-db';", (string) $fileContent);
     }
 
     /**

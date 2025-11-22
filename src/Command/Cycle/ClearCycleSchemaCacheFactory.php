@@ -20,9 +20,13 @@ final class ClearCycleSchemaCacheFactory
     {
         $config = $container->has('config') ? $container->get('config') : [];
 
+        $enabled = (bool) ($config['cycle']['schema']['cache']['enabled'] ?? false);
         $cacheKey = $config['cycle']['schema']['cache']['key'] ?? CycleFactory::DEFAULT_CACHE_KEY;
 
-        $cache = (new CacheAdapterResolver())->resolve($container, $config);
+        $cache = null;
+        if ($enabled) {
+            $cache = (new CacheAdapterResolver())->resolve($container, $config);
+        }
 
         return new ClearCycleSchemaCache($cache, $cacheKey);
     }

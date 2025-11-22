@@ -5,7 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2.6.0] - 30/10/2025
+## [2.7.0] - 2025-11-22
+
+### Added
+- CLI options for generators:
+  - `cycle:migrator:create`: new option `--database` (`-d`) to set the `DATABASE` constant in generated migrations; defaults to `main-db` if omitted.
+  - `cycle:seed:create`: new option `--database` (`-d`) to set the `DATABASE` constant in generated seed templates; defaults to `main-db` if omitted.
+- Platform: added support for PHP 8.5.
+
+### Changed
+- ClearCycle schema cache command robustness improvements:
+  - Gracefully no-op with a helpful note when schema cache is disabled in config
+- Composer: minor dependency/version normalization
+
+### Removed
+- Dropped support for PHP 8.1.
+
+### Fixed
+- Minor fixes and refactoring in migrator/seed commands and related tests
+
+## [2.6.0] - 2025-10-30
 
 ### Added
 - Seed command can run seeds from another directory via `--directory` / `-d` option (in addition to the configured `seed_directory`).
@@ -22,7 +41,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Minor fixes in `CreateMigrationCommand` and seed command factory to align with latest tooling.
 - Documentation and metadata adjustments.
 
-## [2.5.0] - 28/09/2025
+## [2.5.0] - 2025-09-28
 
 ### Changed
 - Migration-related console commands are now registered only when the optional `cycle/migrations` package is installed. They no longer appear in CLI help if the package is absent.
@@ -34,7 +53,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Unit tests covering command registration with migrations enabled and with migrations disabled by the feature flag.
 - Internal helper to toggle migrations availability at runtime based on installed packages and the env flag.
 
-## [2.4.1] - 23/09/2025
+## [2.4.1] - 2025-09-23
 
 ### Fixed
 - Fixed typo in namespace for `SeedInterface` import
@@ -42,14 +61,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Removed deprecated `composer/package-versions-deprecated` dependency from `composer.json`
 
-## [2.4.0] - 22/09/2025
+## [2.4.0] - 2025-09-22
 
 ### Changed
 - Removed direct dependency on laminas-cli, moved it to suggest section
 - Added symfony/console as a direct dependency for command implementation
 - Updated README.md to show both symfony/console (direct) and laminas-cli (optional) command usage examples
 
-## [2.3.1] - 30/08/2025
+## [2.3.1] - 2025-05-30
 
 ### Fixed
 - Corrected PHP 8.1+ compatibility constraints and tooling versions in composer.json
@@ -71,7 +90,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated command factories for better dependency management
 - Enhanced migration filename generation to automatically increment counter for duplicate migration names
 
-## [2.2.0] - 23/05/2025
+## [2.2.0] - 2025-05-23
 
 ### Added
 - Enhanced seed command functionality with support for running all seeds
@@ -82,7 +101,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated documentation with more detailed examples for seed commands
 - Improved test coverage for seed commands
 
-## [2.1.1] - 17/05/2025
+## [2.1.1] - 2025-05-17
 
 ### Fixed
 - Fixed typo in cache service configuration in README
@@ -90,7 +109,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Refactored long assertion for improved readability
 - Fixed missing GenerateSeed and RunSeed commands in `ConfigProvider::getCliConfig` method
 
-## [2.1.0] - 16/05/2025
+## [2.1.0] - 2025-05-16
 
 ### Added
 - Seed functionality with two new commands:

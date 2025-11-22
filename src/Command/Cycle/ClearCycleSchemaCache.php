@@ -15,7 +15,7 @@ use Throwable;
 final class ClearCycleSchemaCache extends Command
 {
     public function __construct(
-        private readonly CacheItemPoolInterface $cache,
+        private readonly ?CacheItemPoolInterface $cache,
         private readonly string $cacheKey,
         ?string $name = null
     ) {
@@ -34,6 +34,12 @@ final class ClearCycleSchemaCache extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
+
+        if (! $this->cache instanceof CacheItemPoolInterface) {
+            $io->note('Schema cache is disabled by configuration. Nothing to clear.');
+
+            return Command::SUCCESS;
+        }
 
         try {
             $deleted = $this->cache->deleteItem($this->cacheKey);

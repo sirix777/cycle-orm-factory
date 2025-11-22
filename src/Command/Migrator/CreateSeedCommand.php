@@ -20,6 +20,8 @@ use function sprintf;
 
 final class CreateSeedCommand extends Command
 {
+    private const DEFAULT_DATABASE = 'main-db';
+
     private const SEED_TEMPLATE = <<<'PHP'
         <?php
 
@@ -32,7 +34,7 @@ final class CreateSeedCommand extends Command
 
         final class %s implements SeedInterface
         {
-            private const DATABASE = 'main-db';
+            private const DATABASE = '%s';
             private DatabaseInterface $database;
 
             public function run(): void
@@ -53,6 +55,13 @@ final class CreateSeedCommand extends Command
             ->setName(CommandName::GenerateSeed->value)
             ->setDescription('Create a seed file')
             ->addArgument('seed', InputOption::VALUE_REQUIRED, 'The name of the seed in PascalCase format')
+            ->addOption(
+                'database',
+                'd',
+                InputOption::VALUE_OPTIONAL,
+                'Database alias to use in generated seed (constant DATABASE)',
+                self::DEFAULT_DATABASE
+            )
         ;
     }
 
@@ -76,7 +85,12 @@ final class CreateSeedCommand extends Command
 
         $filename = $this->generateSeedName($seedName);
         $filePath = $this->seedDirectory . DIRECTORY_SEPARATOR . $filename;
-        $fileContent = $this->getSeedFileContent($seedName);
+
+        /** @var null|string $database */
+        $database = $input->getOption('database');
+        $database = null === $database || '' === $database ? self::DEFAULT_DATABASE : $database;
+
+        $fileContent = $this->getSeedFileContent($seedName, $database);
 
         $filesystem = new Filesystem();
 
@@ -92,9 +106,9 @@ final class CreateSeedCommand extends Command
         return Command::SUCCESS;
     }
 
-    private function getSeedFileContent(string $className): string
+    private function getSeedFileContent(string $className, string $database): string
     {
-        return sprintf(self::SEED_TEMPLATE, $className);
+        return sprintf(self::SEED_TEMPLATE, $className, $database);
     }
 
     private function generateSeedName(string $seedName): string

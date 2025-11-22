@@ -22,6 +22,7 @@ use function class_exists;
 use function file_exists;
 use function glob;
 use function is_dir;
+use function is_string;
 use function pathinfo;
 use function rtrim;
 use function sprintf;
@@ -224,7 +225,14 @@ final class SeedCommand extends Command
         try {
             $reflectionClass = new ReflectionClass($seed);
 
-            $databaseName = $reflectionClass->getConstant(self::SEED_DATABASE_CONSTANT) ?? self::DEFAULT_DATABASE;
+            $databaseName = self::DEFAULT_DATABASE;
+            if ($reflectionClass->hasConstant(self::SEED_DATABASE_CONSTANT)) {
+                $constValue = $reflectionClass->getConstant(self::SEED_DATABASE_CONSTANT);
+                if (is_string($constValue) && '' !== $constValue) {
+                    $databaseName = $constValue;
+                }
+            }
+
             $database = $this->dbal->database($databaseName);
 
             if ($reflectionClass->hasProperty(self::SEED_DATABASE_PROPERTY)) {

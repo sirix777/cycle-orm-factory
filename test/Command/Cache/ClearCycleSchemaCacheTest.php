@@ -87,4 +87,20 @@ class ClearCycleSchemaCacheTest extends TestCase
         $this->assertStringContainsString('[ERROR] Failed to clear Cycle ORM schema cache: Unexpected error', $output);
         $this->AssertSame(Command::FAILURE, $commandTester->getStatusCode());
     }
+
+    /**
+     * Ensure the command works correctly when cache is disabled via configuration.
+     */
+    public function testExecuteWithDisabledCache(): void
+    {
+        $command = new ClearCycleSchemaCache(null, 'cache_key');
+
+        $commandTester = new CommandTester($command);
+        $commandTester->execute([]);
+
+        $commandTester->assertCommandIsSuccessful();
+
+        $output = $commandTester->getDisplay();
+        $this->assertStringContainsString('[NOTE] Schema cache is disabled by configuration. Nothing to clear.', $output);
+    }
 }
