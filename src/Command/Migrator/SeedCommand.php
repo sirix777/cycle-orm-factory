@@ -74,7 +74,7 @@ final class SeedCommand extends Command
                 'database',
                 'b',
                 InputOption::VALUE_OPTIONAL,
-                'Database name to use for seed(s). Overrides DATABASE constant in seed class if provided (optional, overrides default seed database name).'
+                'Database name to use for seed(s). Overrides DATABASE constant in seed class if provided (optional)'
             )
         ;
     }
