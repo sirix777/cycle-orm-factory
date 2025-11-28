@@ -201,7 +201,7 @@ class SeedCommandTest extends TestCase
             $customDir . DIRECTORY_SEPARATOR . 'CustomDirSeed.php'
         );
 
-        $result = $this->runCommand(['--directory' => $customDir, '--seed' => 'CustomDirSeed']);
+        $result = $this->runCommand(['--path' => $customDir, '--seed' => 'CustomDirSeed']);
         $this->assertCommandResult($result, Command::SUCCESS, 'Seed "CustomDirSeed" executed successfully.');
 
         (new Filesystem())->remove($customDir);
@@ -218,10 +218,42 @@ class SeedCommandTest extends TestCase
             $customDir . DIRECTORY_SEPARATOR . 'ShortDirSeed.php'
         );
 
-        $result = $this->runCommand(['-d' => $customDir, '--seed' => 'ShortDirSeed']);
+        $result = $this->runCommand(['-p' => $customDir, '--seed' => 'ShortDirSeed']);
         $this->assertCommandResult($result, Command::SUCCESS, 'Seed "ShortDirSeed" executed successfully.');
 
         (new Filesystem())->remove($customDir);
+    }
+
+    public function testExecuteWithDatabaseOptionOverridesSeedConstant(): void
+    {
+        $this->createSeedFile('DbOptionSeed'); // has DATABASE='main-db' in template
+
+        $expectedDb = $this->createMock(DatabaseInterface::class);
+        $this->dbal
+            ->expects($this->once())
+            ->method('database')
+            ->with('reporting-db')
+            ->willReturn($expectedDb)
+        ;
+
+        $result = $this->runCommand(['seed' => 'DbOptionSeed', '--database' => 'reporting-db']);
+        $this->assertCommandResult($result, Command::SUCCESS, 'Seed "DbOptionSeed" executed successfully.');
+    }
+
+    public function testExecuteWithDbAliasOptionOverridesSeedConstant(): void
+    {
+        $this->createSeedFile('DbAliasSeed'); // has DATABASE='main-db' in template
+
+        $expectedDb = $this->createMock(DatabaseInterface::class);
+        $this->dbal
+            ->expects($this->once())
+            ->method('database')
+            ->with('analytics-db')
+            ->willReturn($expectedDb)
+        ;
+
+        $result = $this->runCommand(['seed' => 'DbAliasSeed', '-b' => 'analytics-db']);
+        $this->assertCommandResult($result, Command::SUCCESS, 'Seed "DbAliasSeed" executed successfully.');
     }
 
     /**

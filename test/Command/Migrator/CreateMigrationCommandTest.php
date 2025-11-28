@@ -124,7 +124,7 @@ final class CreateMigrationCommandTest extends TestCase
     {
         $command = new CreateMigrationCommand($this->migrationDirectory, $this->migrator);
 
-        $input = new ArrayInput(['migrationName' => 'ValidMigrationName', '--database' => 'custom-db']);
+        $input = new ArrayInput(['migrationName' => 'ValidMigrationName', '-b' => 'custom-db']);
         $output = new BufferedOutput();
 
         $resultCode = $command->run($input, $output);
@@ -137,6 +137,28 @@ final class CreateMigrationCommandTest extends TestCase
         $fileContent = file_get_contents((string) $migrations[0]);
         // Should use provided database alias
         $this->assertStringContainsString("protected const DATABASE = 'custom-db';", (string) $fileContent);
+    }
+
+    /**
+     * @throws ExceptionInterface
+     */
+    public function testExecuteWithCustomDatabaseOptionLong(): void
+    {
+        $command = new CreateMigrationCommand($this->migrationDirectory, $this->migrator);
+
+        $input = new ArrayInput(['migrationName' => 'ValidMigrationName', '--database' => 'long-db']);
+        $output = new BufferedOutput();
+
+        $resultCode = $command->run($input, $output);
+
+        $this->assertSame(Command::SUCCESS, $resultCode);
+
+        $migrations = (array) glob($this->migrationDirectory . DIRECTORY_SEPARATOR . '*.php');
+        $this->assertCount(1, $migrations);
+
+        $fileContent = file_get_contents((string) $migrations[0]);
+        // Should use provided database alias via long option
+        $this->assertStringContainsString("protected const DATABASE = 'long-db';", (string) $fileContent);
     }
 
     /**

@@ -72,7 +72,7 @@ final class CreateMigrationCommand extends Command
             ->addArgument('migrationName', InputArgument::REQUIRED, 'The name of the migration in PascalCase format')
             ->addOption(
                 'database',
-                'd',
+                'b',
                 InputOption::VALUE_OPTIONAL,
                 'Database alias to use in generated migration (constant DATABASE)',
                 self::DEFAULT_DATABASE

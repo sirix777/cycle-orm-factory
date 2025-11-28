@@ -34,6 +34,11 @@ final class SeedCommand extends Command
     private const SEED_DATABASE_CONSTANT = 'DATABASE';
     private const SEED_DATABASE_PROPERTY = 'database';
 
+    /**
+     * If provided via the --database (alias: --b) option, overrides the DATABASE constant in seeds.
+     */
+    private ?string $databaseOverride = null;
+
     public function __construct(
         private readonly MigratorService $migratorService,
         private readonly string $seedDirectory,
@@ -60,10 +65,16 @@ final class SeedCommand extends Command
                 'The name of the seed file to run (without .php extension)'
             )
             ->addOption(
-                'directory',
-                'd',
+                'path',
+                'p',
                 InputOption::VALUE_OPTIONAL,
-                'The directory from which to run seeds (optional, overrides default seed directory)'
+                'The path from which to run seed(s) (optional, overrides default seed directory)'
+            )
+            ->addOption(
+                'database',
+                'b',
+                InputOption::VALUE_OPTIONAL,
+                'Database name to use for seed(s). Overrides DATABASE constant in seed class if provided (optional, overrides default seed database name).'
             )
         ;
     }
@@ -71,6 +82,9 @@ final class SeedCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
+
+        $databaseOption = (string) $input->getOption('database');
+        $this->databaseOverride = '' !== $databaseOption ? $databaseOption : null;
 
         $seedDirectory = $this->resolveSeedDirectory($input);
         $seedName = $this->getSeedNameFromInput($input);
@@ -84,7 +98,8 @@ final class SeedCommand extends Command
 
     private function resolveSeedDirectory(InputInterface $input): string
     {
-        $customDir = (string) $input->getOption('directory');
+        // Read new option name --path (short -p)
+        $customDir = (string) $input->getOption('path');
 
         if ('' !== $customDir && is_dir($customDir)) {
             return rtrim($customDir, DIRECTORY_SEPARATOR);
@@ -225,8 +240,9 @@ final class SeedCommand extends Command
         try {
             $reflectionClass = new ReflectionClass($seed);
 
-            $databaseName = self::DEFAULT_DATABASE;
-            if ($reflectionClass->hasConstant(self::SEED_DATABASE_CONSTANT)) {
+            // Priority: CLI option --database/-b > seed's DATABASE constant > default
+            $databaseName = $this->databaseOverride ?? self::DEFAULT_DATABASE;
+            if (null === $this->databaseOverride && $reflectionClass->hasConstant(self::SEED_DATABASE_CONSTANT)) {
                 $constValue = $reflectionClass->getConstant(self::SEED_DATABASE_CONSTANT);
                 if (is_string($constValue) && '' !== $constValue) {
                     $databaseName = $constValue;

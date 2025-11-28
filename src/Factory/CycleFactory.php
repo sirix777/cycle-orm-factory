@@ -27,6 +27,8 @@ use Spiral\Tokenizer\ClassLocator;
 use Symfony\Component\Finder\Finder;
 
 use function array_merge;
+use function class_exists;
+use function is_string;
 
 final class CycleFactory
 {
@@ -52,6 +54,7 @@ final class CycleFactory
         $isCacheEnabled = $config['cycle']['schema']['cache']['enabled'] ?? false;
         $manualMappingSchemaDefinitions = $config['cycle']['schema']['manual_mapping_schema_definitions'] ?? [];
         $cacheKey = $config['cycle']['schema']['cache']['key'] ?? self::DEFAULT_CACHE_KEY;
+        $additionalGenerators = $config['cycle']['generators'] ?? [];
 
         if ($isCacheEnabled) {
             $cache = (new CacheAdapterResolver())->resolve($container, $config);
@@ -62,7 +65,14 @@ final class CycleFactory
             }
         }
 
-        $schema = $this->compileSchema($container, $entities, $dbal, $manualMappingSchemaDefinitions, $schemaProperty);
+        $schema = $this->compileSchema(
+            $container,
+            $entities,
+            $dbal,
+            $manualMappingSchemaDefinitions,
+            $additionalGenerators,
+            $schemaProperty,
+        );
 
         if ($isCacheEnabled) {
             $cachedSchema->set($schema);
@@ -75,6 +85,7 @@ final class CycleFactory
     /**
      * @param array<string>        $entities
      * @param array<string, mixed> $manualMappingSchemaDefinitions
+     * @param array<int, mixed>    $additionalGenerators
      *
      * @return array<string, mixed>
      *
@@ -86,14 +97,15 @@ final class CycleFactory
         array $entities,
         DatabaseManager $dbal,
         array $manualMappingSchemaDefinitions,
-        ?SchemaProperty $schemaProperty,
+        array $additionalGenerators = [],
+        ?SchemaProperty $schemaProperty = null,
     ): array {
         $migrator = $container->get('migrator');
 
         $finder = (new Finder())->files()->in($entities);
         $classLocator = new ClassLocator($finder);
 
-        $generators = $this->getSchemaGenerators($classLocator, $migrator, $schemaProperty);
+        $generators = $this->getSchemaGenerators($container, $classLocator, $migrator, $additionalGenerators, $schemaProperty);
 
         $schemaCompiler = new Schema\Compiler();
         $schema = $schemaCompiler->compile(new Schema\Registry($dbal), $generators);
@@ -102,12 +114,19 @@ final class CycleFactory
     }
 
     /**
+     * @param array<int, mixed> $additionalGenerators
+     *
      * @return array<Schema\GeneratorInterface>
+     *
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
      */
     private function getSchemaGenerators(
+        ContainerInterface $container,
         ClassLocator $classLocator,
         MigratorInterface $migrator,
-        ?SchemaProperty $schemaProperty
+        array $additionalGenerators = [],
+        ?SchemaProperty $schemaProperty = null,
     ): array {
         $embeddingLocator = new TokenizerEmbeddingLocator($classLocator);
         $entityLocator = new TokenizerEntityLocator($classLocator);
@@ -144,7 +163,37 @@ final class CycleFactory
             );
         }
 
+        foreach ($this->resolveAdditionalGenerators($container, $additionalGenerators) as $additionalGenerator) {
+            $generators[] = $additionalGenerator;
+        }
+
         return $generators;
+    }
+
+    /**
+     * @param array<int, mixed> $additionalGenerators
+     *
+     * @return array<Schema\GeneratorInterface>
+     *
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     */
+    private function resolveAdditionalGenerators(ContainerInterface $container, array $additionalGenerators): array
+    {
+        $resolved = [];
+
+        foreach ($additionalGenerators as $generator) {
+            $instance = match (true) {
+                $generator instanceof Schema\GeneratorInterface => $generator,
+                is_string($generator) && $container->has($generator) => $container->get($generator),
+                is_string($generator) && class_exists($generator) => new $generator(),
+                default => throw new ConfigException('Invalid schema generator provided in config.cycle.generators')
+            };
+
+            $resolved[] = $instance;
+        }
+
+        return $resolved;
     }
 
     /**

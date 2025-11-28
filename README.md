@@ -14,7 +14,7 @@ composer require sirix/cycle-orm-factory
 ```
 
 #### Requirements
-- PHP 8.1, 8.2, 8.3, or 8.4
+- PHP 8.2-8.5
 
 ### Configuration
 Create a configuration file, for example, `config/autoload/cycle-orm.global.php`:
@@ -71,6 +71,17 @@ return [
                 'service' => CacheItemPoolInterface::class, // optional parameter if psr container have 'cache' CacheItemPoolInterface service
             ]
         ],
+        // Optional: append additional Cycle Schema generators
+        // Each entry can be:
+        //  - a service ID resolvable by your container,
+        //  - a fully-qualified class name (must have a no-arg constructor), or
+        //  - an instance of Cycle\Schema\GeneratorInterface.
+        // Generators are appended after the built-in ones, preserving default behavior.
+        'generators' => [
+            // 'my.custom.generator.service',
+            // \App\Cycle\Schema\Generator\MyCustomGenerator::class,
+            // new \App\Cycle\Schema\Generator\InlineGenerator(),
+        ],
     ],
 ];
 ```
@@ -98,6 +109,31 @@ return [
 ],
 ```
 - Specifies the directory in which your entity classes are located.
+
+### Additional Schema Generators
+
+You can extend the Cycle schema compilation pipeline by appending your own generators via the `cycle.generators` config key. Items are appended to the end of the internal generator list (after SyncTables/GenerateMigrations where applicable), so the default behavior remains unchanged.
+
+Accepted entry types in `cycle.generators`:
+- Service ID string: the container must return an instance implementing `Cycle\Schema\GeneratorInterface`.
+- Fully-qualified class name string: the class must exist and have a no-argument constructor; it will be instantiated and validated.
+- Direct instance: any object implementing `Cycle\Schema\GeneratorInterface`.
+
+If an entry cannot be resolved to an instance of `GeneratorInterface`, a `Cycle\ORM\Exception\ConfigException` will be thrown with the message: `Invalid schema generator provided in config.cycle.generators`.
+
+Example:
+```php
+'generators' => [
+    // By container service ID
+    'my.generator.service',
+
+    // By FQCN (no-arg constructor)
+    \App\Cycle\Schema\Generator\AddSoftDeleteFlag::class,
+
+    // Direct instance 
+    new \App\Cycle\Schema\Generator\InlineIndexesGenerator(),
+],
+```
 
 ### Manual mapping schema definitions
 
@@ -288,17 +324,17 @@ The `cycle:migrator:create` command generates a new empty migration file in the 
 #### Usage
 ```bash
 # With symfony/console (directly)
-php bin/console cycle:migrator:create PascalCaseMigrationName [--database|-d DB_ALIAS]
+php bin/console cycle:migrator:create PascalCaseMigrationName [--database|-b DB_ALIAS]
 
 # With laminas-cli (if installed as additional package)
-php vendor/bin/laminas cycle:migrator:create PascalCaseMigrationName [--database|-d DB_ALIAS]
+php vendor/bin/laminas cycle:migrator:create PascalCaseMigrationName [--database|-b DB_ALIAS]
 ```
 
 #### Arguments
 - `migrationName`: The name of the migration file to be created. This should be in PascalCase format.
 
 #### Options
-- `--database` or `-d`: Database alias to set in the generated migration class (as `protected const DATABASE`). Defaults to `main-db`.
+- `--database` or `-b`: Database alias to set in the generated migration class (as `protected const DATABASE`). Defaults to `main-db`.
 
 Examples:
 
@@ -308,7 +344,7 @@ php bin/console cycle:migrator:create CreateUsersTable
 
 # Custom database alias
 php bin/console cycle:migrator:create CreateUsersTable --database reporting-db
-php bin/console cycle:migrator:create CreateUsersTable -d reporting-db
+php bin/console cycle:migrator:create CreateUsersTable -b reporting-db
 
 # With laminas-cli
 php vendor/bin/laminas cycle:migrator:create CreateUsersTable --database reporting-db
@@ -360,10 +396,10 @@ The `cycle:seed:create` command creates a new seed file in the seed directory. S
 
 ```bash
 # With symfony/console (directly)
-php bin/console cycle:seed:create SeedName [--database|-d DB_ALIAS]
+php bin/console cycle:seed:create SeedName [--database|-b DB_ALIAS]
 
 # With laminas-cli (if installed as additional package)
-php vendor/bin/laminas cycle:seed:create SeedName [--database|-d DB_ALIAS]
+php vendor/bin/laminas cycle:seed:create SeedName [--database|-b DB_ALIAS]
 ```
 
 #### Arguments
@@ -372,7 +408,7 @@ php vendor/bin/laminas cycle:seed:create SeedName [--database|-d DB_ALIAS]
 
 #### Options
 
-- `--database` or `-d`: Database alias to set in the generated seed class (as `private const DATABASE`). Defaults to `main-db`.
+- `--database` or `-b`: Database alias to set in the generated seed class (as `private const DATABASE`). Defaults to `main-db`.
 
 Examples:
 
@@ -411,12 +447,16 @@ php bin/console cycle:seed:run -s SeedName
 # Run all seeds in the configured seed directory
 php bin/console cycle:seed:run
 
-# Run from a different directory (overrides configured seed_directory for this run)
-php bin/console cycle:seed:run --directory path/to/seeds
-php bin/console cycle:seed:run -d path/to/seeds
+# Run from a different path (overrides configured seed_directory for this run)
+php bin/console cycle:seed:run --path path/to/seeds
+php bin/console cycle:seed:run -p path/to/seeds
 
-# Run a specific seed from a different directory
-php bin/console cycle:seed:run --directory path/to/seeds SeedName
+# Run a specific seed from a different path
+php bin/console cycle:seed:run --path path/to/seeds SeedName
+
+# Override database for this run (takes precedence over DATABASE constant in seed)
+php bin/console cycle:seed:run --database reporting-db SeedName
+php bin/console cycle:seed:run -b reporting-db SeedName
 
 # With laminas-cli (if installed as additional package)
 # Run a specific seed
@@ -429,27 +469,37 @@ php vendor/bin/laminas cycle:seed:run -s SeedName
 # Run all seeds in the configured seed directory
 php vendor/bin/laminas cycle:seed:run
 
-# Run from a different directory (overrides configured seed_directory for this run)
-php vendor/bin/laminas cycle:seed:run --directory path/to/seeds
-php vendor/bin/laminas cycle:seed:run -d path/to/seeds
+# Run from a different path (overrides configured seed_directory for this run)
+php vendor/bin/laminas cycle:seed:run --path path/to/seeds
+php vendor/bin/laminas cycle:seed:run -p path/to/seeds
 
-# Run a specific seed from a different directory
-php vendor/bin/laminas cycle:seed:run --directory path/to/seeds SeedName
+# Run a specific seed from a different path
+php vendor/bin/laminas cycle:seed:run --path path/to/seeds SeedName
+
+# Override database for this run (takes precedence over DATABASE constant in seed)
+php vendor/bin/laminas cycle:seed:run --database reporting-db SeedName
+php vendor/bin/laminas cycle:seed:run -b reporting-db SeedName
 ```
 
 #### Arguments and Options
 
 - `SeedName`: The name of the seed to run in PascalCase format, without the .php extension.
 - `--seed` or `-s`: Alternative ways to specify the seed name.
-- `--directory` or `-d`: Run seeds from a different directory than the configured `seed_directory` (affects both single-seed and run-all modes for this invocation only).
+- `--path` or `-p`: Run seeds from a different path than the configured `seed_directory` (affects both single-seed and run-all modes for this invocation only).
+- `--database` or `-b`: Database name to use for seed execution. When provided, it overrides the `DATABASE` constant defined in a seed class. If neither option nor constant is set, the default `main-db` is used.
 
 Behavior:
-- If `SeedName` is provided, the command runs that seed from either the configured `seed_directory` or the directory passed via `--directory`/`-d`.
-- If no `SeedName` is provided, the command runs all seeds from the configured `seed_directory` or from the directory passed via `--directory`/`-d`.
+- If `SeedName` is provided, the command runs that seed from either the configured `seed_directory` or the path passed via `--path`/`-p`.
+- If no `SeedName` is provided, the command runs all seeds from the configured `seed_directory` or from the path passed via `--path`/`-p`.
 
-If no seed name is provided, the command will run all seeds in the configured seed directory (unless `--directory`/`-d` is used).
+If no seed name is provided, the command will run all seeds in the configured seed directory (unless `--path`/`-p` is used).
 
 **Note**: All seed classes must implement the `SeedInterface` and be located in the target seed directory. The command will automatically inject the database connection into the seed class.
+
+Database resolution priority when running seeds:
+- Command-line option `--database` (or alias `-b`), if provided
+- Seed class `protected const DATABASE = '...'`
+- Default database alias `main-db`
 
 
 ### Cache Configuration Example

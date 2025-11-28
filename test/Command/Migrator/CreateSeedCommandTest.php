@@ -143,6 +143,29 @@ class CreateSeedCommandTest extends TestCase
         $this->assertStringContainsString("private const DATABASE = 'custom-db';", (string) $fileContent);
     }
 
+    /**
+     * Ensure the short alias -b works for selecting database alias when creating a seed.
+     *
+     * @throws ExceptionInterface
+     */
+    public function testExecuteWithCustomDatabaseOptionAlias(): void
+    {
+        $command = $this->getCreateSeedCommand();
+
+        $input = new ArrayInput(['seed' => 'ValidSeedName', '-b' => 'alias-db']);
+        $output = new BufferedOutput();
+
+        $resultCode = $command->run($input, $output);
+
+        $this->assertSame(Command::SUCCESS, $resultCode);
+
+        $seeds = (array) glob($this->seedDirectory . DIRECTORY_SEPARATOR . '*.php');
+        $this->assertCount(1, $seeds);
+
+        $fileContent = file_get_contents((string) $seeds[0]);
+        $this->assertStringContainsString("private const DATABASE = 'alias-db';", (string) $fileContent);
+    }
+
     private function getCreateSeedCommand(?string $dir = null): CreateSeedCommand
     {
         return new CreateSeedCommand(

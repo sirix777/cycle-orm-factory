@@ -43,10 +43,18 @@ return [
         'entities' => [
             'src/App/src/Entity',
         ],
+        'generators' => [
+            // 'my.custom.generator.service',
+            // \App\Cycle\Schema\Generator\MyCustomGenerator::class,
+            // new \App\Cycle\Schema\Generator\InlineGenerator(),
+        ],
         'schema' => [
             'property' => SchemaProperty::GenerateMigrations,
-            'cache' => true,
-            'directory' => 'data/cache',
+            'cache' => [
+                'enabled' => true,
+                'key' => 'cycle_cached_schema', // optional parameter
+                'service' => CacheItemPoolInterface::class, // optional parameter if psr container have 'cache' CacheItemPoolInterface service
+            ],
             'manual_entity_schema_definition' => [
                 'user' => [
                     SchemaInterface::ENTITY => User::class,

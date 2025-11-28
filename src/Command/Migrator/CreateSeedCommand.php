@@ -57,7 +57,7 @@ final class CreateSeedCommand extends Command
             ->addArgument('seed', InputOption::VALUE_REQUIRED, 'The name of the seed in PascalCase format')
             ->addOption(
                 'database',
-                'd',
+                'b',
                 InputOption::VALUE_OPTIONAL,
                 'Database alias to use in generated seed (constant DATABASE)',
                 self::DEFAULT_DATABASE

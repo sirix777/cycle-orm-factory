@@ -8,6 +8,7 @@ use Cycle\Migrations\Config\MigrationConfig;
 use Cycle\Migrations\RepositoryInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Psr\Container\ContainerInterface;
 use ReflectionException;
 use ReflectionMethod;
 use Sirix\Cycle\Enum\SchemaProperty;
@@ -31,17 +32,22 @@ final class CycleFactoryGeneratorsTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+
         $this->tmpDir = sys_get_temp_dir() . '/cycle_factory_generators_' . bin2hex(random_bytes(4));
         mkdir($this->tmpDir);
     }
 
     protected function tearDown(): void
     {
+        parent::tearDown();
+
         putenv('CYCLE_MIGRATIONS_DISABLED');
         @rmdir($this->tmpDir);
-        parent::tearDown();
     }
 
+    /**
+     * @throws ReflectionException
+     */
     public function testGenerateMigrationsNotIncludedWhenDisabledFlag(): void
     {
         putenv('CYCLE_MIGRATIONS_DISABLED=1');
@@ -57,6 +63,9 @@ final class CycleFactoryGeneratorsTest extends TestCase
         }
     }
 
+    /**
+     * @throws ReflectionException
+     */
     public function testGenerateMigrationsIncludedWhenEnabledAndClassExists(): void
     {
         if (! class_exists('Cycle\Schema\Generator\Migrations\GenerateMigrations')) {
@@ -101,7 +110,17 @@ final class CycleFactoryGeneratorsTest extends TestCase
         $factory = new CycleFactory();
         $method = new ReflectionMethod(CycleFactory::class, 'getSchemaGenerators');
 
-        return $method->invoke($factory, $classLocator, $migrator, SchemaProperty::GenerateMigrations);
+        $container = $this->createMock(ContainerInterface::class);
+        $container->method('has')->willReturn(false);
+
+        return $method->invoke(
+            $factory,
+            $container,
+            $classLocator,
+            $migrator,
+            [],
+            SchemaProperty::GenerateMigrations,
+        );
     }
 
     /**

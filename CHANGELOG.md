@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.8.0] - 2025-11-28
+
+### Added
+- Seed command: new option `--database` (`-b`) to override the `DATABASE` constant in seed classes when running seeds.
+- Configuration: ability to append additional Cycle Schema generators via `cycle.generators` configuration. You can provide
+  - container service IDs,
+  - fully-qualified class names, or
+  - pre‑instantiated `Cycle\Schema\GeneratorInterface` instances.
+  Generators are appended after the built-ins.
+
+### Changed
+- Seed command: renamed option `--directory` (`-d`) to `--path` (`-p`) for specifying a custom directory to load seeds from.
+- Create seed command: renamed option `--database` (`-d`) to `--database` (`-b`) to set the `DATABASE` constant in generated migrations.
+- Create migration command: renamed option `--database` (`-d`) to `--database` (`-b`) to set the `DATABASE` constant in generated migrations.
+
+### Notes
+- See README “Additional Schema Generators” section for configuration examples.
+
 ## [2.7.0] - 2025-11-22
 
 ### Added
@@ -15,7 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - ClearCycle schema cache command robustness improvements:
-  - Gracefully no-op with a helpful note when schema cache is disabled in config
+- Gracefully no-op with a helpful note when schema cache is disabled in config
 - Composer: minor dependency/version normalization
 
 ### Removed
@@ -77,7 +95,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Minor improvements to seed creation messaging and validation
 
-## [2.3.0] - 25/05/2025
+## [2.3.0] - 2025-05-25
 
 ### Added
 - Added interface aliases in ConfigProvider for easier service access:
