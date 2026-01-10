@@ -1,9 +1,10 @@
 # Mezzio Cycle ORM Factory
 
-![GitHub license](https://img.shields.io/github/license/sirix777/cycle-orm-factory?style=flat-square)
-<a href="https://packagist.org/packages/sirix/cycle-orm-factory">
-  <img src="https://img.shields.io/packagist/dt/sirix/cycle-orm-factory?style=flat-square" alt="Total Installs">
-</a>
+[![Latest Stable Version](http://poser.pugx.org/sirix/cycle-orm-factory/v)](https://packagist.org/packages/sirix/cycle-orm-factory) 
+[![Total Downloads](http://poser.pugx.org/sirix/cycle-orm-factory/downloads)](https://packagist.org/packages/sirix/cycle-orm-factory) 
+[![Latest Unstable Version](http://poser.pugx.org/sirix/cycle-orm-factory/v/unstable)](https://packagist.org/packages/sirix/cycle-orm-factory) 
+[![License](http://poser.pugx.org/sirix/cycle-orm-factory/license)](https://packagist.org/packages/sirix/cycle-orm-factory) 
+[![PHP Version Require](http://poser.pugx.org/sirix/cycle-orm-factory/require/php)](https://packagist.org/packages/sirix/cycle-orm-factory)
 
 [Migration Guide: Cycle ORM Factory v1 to v2](docs/v1-to-v2.md)
 
