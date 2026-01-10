@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Sirix\Cycle\Internal;
 
+use Cycle\Migrations\Migrator;
+use Cycle\Schema\Generator\Migrations\GenerateMigrations;
+
 use function class_exists;
 use function getenv;
 use function in_array;
@@ -12,8 +15,8 @@ use function trim;
 
 final class MigrationsToggle
 {
-    private const MIGRATOR_CLASS = 'Cycle\Migrations\Migrator';
-    private const GENERATE_MIGRATION_CLASS = 'Cycle\Schema\Generator\Migrations\GenerateMigrations';
+    private const MIGRATOR_CLASS = Migrator::class;
+    private const GENERATE_MIGRATION_CLASS = GenerateMigrations::class;
 
     public static function isDisabledByEnv(): bool
     {

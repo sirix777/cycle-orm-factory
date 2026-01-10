@@ -15,7 +15,7 @@
         "cycle/database": "^2.15",
         "cycle/entity-behavior": "^1.7",
         "cycle/entity-behavior-uuid": "^1.2",
-        "cycle/orm": "^2.11",
+        "cycle/orm": "^v2.12.3",
         "psr/cache": "~1.0.0 || ~2.0.0. || ~3.0.0",
         "symfony/console": "^7.3",
         "symfony/filesystem": "^7.2"
