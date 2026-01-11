@@ -1,4 +1,6 @@
-/.idea/
+/.idea
+/.zed
+/.phpunit.cache
 /tests
 /.phpcs-cache
 /.phpunit.result.cache
@@ -8,3 +10,4 @@
 /phpunit.xml
 /vendor/
 composer.lock
+.phpactor.json
