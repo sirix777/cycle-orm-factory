@@ -13,7 +13,8 @@
         "php": "~8.2.0 || ~8.3.0 || ~8.4.0 || ~8.5.0",
         "cycle/annotated": "^4.4",
         "cycle/database": "^2.15",
-        "cycle/orm": "^v2.12.3"
+        "cycle/orm": "^v2.12.3",
+        "spiral/tokenizer": "^2.14 || ^3.0"
     },
     "require-dev": {
         "bamarni/composer-bin-plugin": "^1.8",
