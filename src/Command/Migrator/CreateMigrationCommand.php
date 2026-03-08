@@ -10,6 +10,7 @@ use DateTime;
 use Exception;
 use Sirix\Cycle\Command\Helper\FileNameValidator;
 use Sirix\Cycle\Enum\CommandName;
+use Sirix\Cycle\Internal\FileSystem;
 use Sirix\Cycle\Service\MigratorInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -17,21 +18,22 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
-use Symfony\Component\Filesystem\Filesystem;
 
 use function bin2hex;
 use function glob;
 use function md5;
 use function microtime;
 use function preg_match;
+use function preg_replace;
 use function random_bytes;
 use function sprintf;
+use function trim;
 use function ucfirst;
 
 final class CreateMigrationCommand extends Command
 {
     private const UNIQUE_ID_LENGTH = 18;
-    private const DEFAULT_DATABASE = 'main-db';
+    private const DEFAULT_DATABASE = 'default';
 
     private const MIGRATION_TEMPLATE = <<<'PHP'
         <?php
@@ -92,22 +94,19 @@ final class CreateMigrationCommand extends Command
             return Command::FAILURE;
         }
 
-        $filename = $this->generateMigrationName($migrationName);
-
-        $filePath = $this->migrationDirectory . DIRECTORY_SEPARATOR . $filename;
-
-        $className = sprintf('Orm%s', ucfirst($this->getUniqueId()));
-
         /** @var null|string $database */
         $database = $input->getOption('database');
         $database = null === $database || '' === $database ? self::DEFAULT_DATABASE : $database;
 
+        $filename = $this->generateMigrationName($migrationName, $database);
+        $filePath = $this->migrationDirectory . DIRECTORY_SEPARATOR . $filename;
+        $className = sprintf('Orm%s', ucfirst($this->getUniqueId()));
         $fileContent = $this->getMigrationFileContent($className, $database);
 
-        $filesystem = new Filesystem();
+        $filesystem = new FileSystem();
 
         try {
-            $filesystem->dumpFile($filePath, $fileContent);
+            $filesystem->writeFile($filePath, $fileContent);
             $io->success("Migration created: {$filePath}");
         } catch (Exception $e) {
             $io->error("Failed to create migration: {$e->getMessage()}");
@@ -128,17 +127,24 @@ final class CreateMigrationCommand extends Command
         );
     }
 
-    private function generateMigrationName(string $migrationName): string
+    private function generateMigrationName(string $migrationName, string $database): string
     {
         $timestamp = (new DateTime())->format('Ymd.His');
-        $counter = $this->findNextCounter($migrationName);
+        $databaseAlias = $this->normalizeDatabaseAliasForFilename($database);
+        $counter = $this->findNextCounter($migrationName, $databaseAlias);
 
-        return sprintf('%s_0_%d_%s.php', $timestamp, $counter, $migrationName);
+        return sprintf('%s_0_%d_%s_%s.php', $timestamp, $counter, $databaseAlias, $migrationName);
     }
 
-    private function findNextCounter(string $migrationName): int
+    private function findNextCounter(string $migrationName, string $databaseAlias): int
     {
-        $pattern = $this->migrationDirectory . DIRECTORY_SEPARATOR . '*_*_*_' . $migrationName . '.php';
+        $pattern = sprintf(
+            '%s%s*_*_*_%s_%s.php',
+            $this->migrationDirectory,
+            DIRECTORY_SEPARATOR,
+            $databaseAlias,
+            $migrationName,
+        );
         $existingFiles = glob($pattern);
 
         if ([] === $existingFiles || false === $existingFiles) {
@@ -147,7 +153,13 @@ final class CreateMigrationCommand extends Command
 
         $maxCounter = -1;
         foreach ($existingFiles as $file) {
-            if (preg_match('/\d{8}\.\d{6}_(\d+)_(\d+)_' . $migrationName . '\.php$/', $file, $matches)) {
+            if (
+                preg_match(
+                    '/\d{8}\.\d{6}_(\d+)_(\d+)_' . $databaseAlias . '_' . $migrationName . '\.php$/',
+                    $file,
+                    $matches,
+                )
+            ) {
                 $counter = (int) $matches[1];
                 if ($counter > $maxCounter) {
                     $maxCounter = $counter;
@@ -156,6 +168,14 @@ final class CreateMigrationCommand extends Command
         }
 
         return $maxCounter + 1;
+    }
+
+    private function normalizeDatabaseAliasForFilename(string $database): string
+    {
+        $alias = preg_replace('/[^a-zA-Z0-9_-]+/', '_', $database);
+        $alias = trim((string) $alias, '_');
+
+        return '' === $alias ? self::DEFAULT_DATABASE : $alias;
     }
 
     private function getUniqueId(): string

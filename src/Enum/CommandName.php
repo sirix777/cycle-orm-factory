@@ -12,4 +12,7 @@ enum CommandName: string
     case ClearCache = 'cycle:cache:clear';
     case GenerateSeed = 'cycle:seed:create';
     case RunSeed = 'cycle:seed:run';
+    case SchemaCompile = 'cycle:schema:compile';
+    case SchemaSync = 'cycle:schema:sync';
+    case SchemaMigrationsGenerate = 'cycle:schema:migrations:generate';
 }

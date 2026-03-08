@@ -4,196 +4,112 @@ declare(strict_types=1);
 
 namespace Sirix\Cycle\Factory;
 
-use Cycle\Annotated;
-use Cycle\Annotated\Locator\TokenizerEmbeddingLocator;
-use Cycle\Annotated\Locator\TokenizerEntityLocator;
 use Cycle\Database\DatabaseManager;
 use Cycle\ORM;
-use Cycle\ORM\Entity\Behavior\EventDrivenCommandGenerator;
 use Cycle\ORM\Exception\ConfigException;
 use Cycle\ORM\ORMInterface;
 use Cycle\ORM\Schema as ORMSchema;
-use Cycle\Schema;
-use Cycle\Schema\Generator\Migrations\GenerateMigrations;
-use Psr\Cache\InvalidArgumentException;
+use Cycle\ORM\Transaction\CommandGeneratorInterface;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\ContainerInterface;
 use Psr\Container\NotFoundExceptionInterface;
-use Sirix\Cycle\Enum\SchemaProperty;
-use Sirix\Cycle\Internal\MigrationsToggle;
-use Sirix\Cycle\Resolver\CacheAdapterResolver;
-use Sirix\Cycle\Service\MigratorInterface;
-use Spiral\Tokenizer\ClassLocator;
-use Symfony\Component\Finder\Finder;
+use Sirix\Cycle\Service\CompiledSchemaStorage;
+use Sirix\Cycle\Service\SchemaCompilerInterface;
+use Sirix\Cycle\Service\SchemaCompilerService;
 
-use function array_merge;
 use function class_exists;
+use function is_array;
 use function is_string;
 
 final class CycleFactory
 {
-    public const DEFAULT_CACHE_KEY = 'cycle_orm_schema';
+    public const DEFAULT_COMPILED_SCHEMA_PATH = 'data/cache/cycle/schema.php';
 
     /**
      * @throws ConfigException
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
-     * @throws InvalidArgumentException
      */
     public function __invoke(ContainerInterface $container): ORMInterface
     {
         $config = $container->has('config') ? $container->get('config') : [];
 
-        if (! isset($config['cycle']['entities'])) {
-            throw new ConfigException('Expected config entities');
-        }
-
         $dbal = $container->get('dbal');
-        $entities = $config['cycle']['entities'];
-        $schemaProperty = $config['cycle']['schema']['property'] ?? null;
-        $isCacheEnabled = $config['cycle']['schema']['cache']['enabled'] ?? false;
-        $manualMappingSchemaDefinitions = $config['cycle']['schema']['manual_mapping_schema_definitions'] ?? [];
-        $cacheKey = $config['cycle']['schema']['cache']['key'] ?? self::DEFAULT_CACHE_KEY;
+        if (! $dbal instanceof DatabaseManager) {
+            throw new ConfigException('Expected dbal service');
+        }
+        $entities = $this->normalizeEntityDirectories($config['cycle']['entities'] ?? []);
+        $schemaConfig = $config['cycle']['schema'] ?? [];
+        $manualMappingSchemaDefinitions = $this->resolveManualMappingSchemaDefinitions($schemaConfig);
         $additionalGenerators = $config['cycle']['generators'] ?? [];
+        $isCacheEnabled = (bool) ($schemaConfig['cache']['enabled'] ?? true);
+        $compiledSchemaPath = $schemaConfig['compiled']['path'] ?? self::DEFAULT_COMPILED_SCHEMA_PATH;
 
-        if ($isCacheEnabled) {
-            $cache = (new CacheAdapterResolver())->resolve($container, $config);
-            $cachedSchema = $cache->getItem($cacheKey);
+        $compiledSchemaStorage = $container->has(CompiledSchemaStorage::class)
+            ? $container->get(CompiledSchemaStorage::class)
+            : new CompiledSchemaStorage();
 
-            if ($cachedSchema->isHit()) {
-                return $this->createOrmInstance($container, $dbal, $cachedSchema->get());
-            }
+        if (! $compiledSchemaStorage instanceof CompiledSchemaStorage) {
+            throw new ConfigException('CompiledSchemaStorage service must be an instance of ' . CompiledSchemaStorage::class);
         }
 
-        $schema = $this->compileSchema(
-            $container,
-            $entities,
+        if ($isCacheEnabled && $compiledSchemaStorage->has($compiledSchemaPath)) {
+            return $this->createOrmInstance($container, $dbal, $compiledSchemaStorage->load($compiledSchemaPath));
+        }
+
+        $schemaCompiler = $container->has(SchemaCompilerInterface::class)
+            ? $container->get(SchemaCompilerInterface::class)
+            : new SchemaCompilerService($container);
+
+        if (! $schemaCompiler instanceof SchemaCompilerInterface) {
+            throw new ConfigException('Schema compiler service must implement ' . SchemaCompilerInterface::class);
+        }
+
+        $schema = $schemaCompiler->compile(
             $dbal,
+            $entities,
             $manualMappingSchemaDefinitions,
             $additionalGenerators,
-            $schemaProperty,
         );
 
         if ($isCacheEnabled) {
-            $cachedSchema->set($schema);
-            $cache->save($cachedSchema);
+            $compiledSchemaStorage->save($compiledSchemaPath, $schema);
         }
 
         return $this->createOrmInstance($container, $dbal, $schema);
     }
 
     /**
-     * @param array<string>        $entities
-     * @param array<string, mixed> $manualMappingSchemaDefinitions
-     * @param array<int, mixed>    $additionalGenerators
+     * @param array<string, mixed> $schemaConfig
      *
      * @return array<string, mixed>
-     *
-     * @throws ContainerExceptionInterface
-     * @throws NotFoundExceptionInterface
      */
-    private function compileSchema(
-        ContainerInterface $container,
-        array $entities,
-        DatabaseManager $dbal,
-        array $manualMappingSchemaDefinitions,
-        array $additionalGenerators = [],
-        ?SchemaProperty $schemaProperty = null,
-    ): array {
-        $migrator = $container->get('migrator');
-
-        $finder = (new Finder())->files()->in($entities);
-        $classLocator = new ClassLocator($finder);
-
-        $generators = $this->getSchemaGenerators($container, $classLocator, $migrator, $additionalGenerators, $schemaProperty);
-
-        $schemaCompiler = new Schema\Compiler();
-        $schema = $schemaCompiler->compile(new Schema\Registry($dbal), $generators);
-
-        return array_merge($schema, $manualMappingSchemaDefinitions);
-    }
-
-    /**
-     * @param array<int, mixed> $additionalGenerators
-     *
-     * @return array<Schema\GeneratorInterface>
-     *
-     * @throws ContainerExceptionInterface
-     * @throws NotFoundExceptionInterface
-     */
-    private function getSchemaGenerators(
-        ContainerInterface $container,
-        ClassLocator $classLocator,
-        MigratorInterface $migrator,
-        array $additionalGenerators = [],
-        ?SchemaProperty $schemaProperty = null,
-    ): array {
-        $embeddingLocator = new TokenizerEmbeddingLocator($classLocator);
-        $entityLocator = new TokenizerEntityLocator($classLocator);
-
-        $generators = [
-            new Schema\Generator\ResetTables(),
-            new Annotated\Embeddings($embeddingLocator),
-            new Annotated\Entities($entityLocator),
-            new Annotated\TableInheritance(),
-            new Annotated\MergeColumns(),
-            new Schema\Generator\GenerateRelations(),
-            new Schema\Generator\GenerateModifiers(),
-            new Schema\Generator\ValidateEntities(),
-            new Schema\Generator\RenderTables(),
-            new Schema\Generator\RenderRelations(),
-            new Schema\Generator\RenderModifiers(),
-            new Schema\Generator\ForeignKeys(),
-            new Annotated\MergeIndexes(),
-            new Schema\Generator\GenerateTypecast(),
-        ];
-
-        if (SchemaProperty::SyncTables === $schemaProperty) {
-            $generators[] = new Schema\Generator\SyncTables();
-        }
-
-        if (
-            SchemaProperty::GenerateMigrations === $schemaProperty
-            && MigrationsToggle::isGenerateMigrationsAvailable()
-            && ! MigrationsToggle::isDisabledByEnv()
-        ) {
-            $generators[] = new GenerateMigrations(
-                $migrator->getRepository(),
-                $migrator->getConfig()
-            );
-        }
-
-        foreach ($this->resolveAdditionalGenerators($container, $additionalGenerators) as $additionalGenerator) {
-            $generators[] = $additionalGenerator;
-        }
-
-        return $generators;
-    }
-
-    /**
-     * @param array<int, mixed> $additionalGenerators
-     *
-     * @return array<Schema\GeneratorInterface>
-     *
-     * @throws ContainerExceptionInterface
-     * @throws NotFoundExceptionInterface
-     */
-    private function resolveAdditionalGenerators(ContainerInterface $container, array $additionalGenerators): array
+    private function resolveManualMappingSchemaDefinitions(array $schemaConfig): array
     {
-        $resolved = [];
+        $definitions = $schemaConfig['manual_mapping_schema_definitions']
+            ?? $schemaConfig['manual_entity_schema_definition']
+            ?? [];
 
-        foreach ($additionalGenerators as $generator) {
-            $instance = match (true) {
-                $generator instanceof Schema\GeneratorInterface => $generator,
-                is_string($generator) && $container->has($generator) => $container->get($generator),
-                is_string($generator) && class_exists($generator) => new $generator(),
-                default => throw new ConfigException('Invalid schema generator provided in config.cycle.generators')
-            };
+        return is_array($definitions) ? $definitions : [];
+    }
 
-            $resolved[] = $instance;
+    /**
+     * @return array<int, string>
+     */
+    private function normalizeEntityDirectories(mixed $entities): array
+    {
+        if (! is_array($entities)) {
+            return [];
         }
 
-        return $resolved;
+        $result = [];
+        foreach ($entities as $entityDir) {
+            if (is_string($entityDir) && '' !== $entityDir) {
+                $result[] = $entityDir;
+            }
+        }
+
+        return $result;
     }
 
     /**
@@ -205,12 +121,26 @@ final class CycleFactory
         array $schema
     ): ORMInterface {
         $schemaInstance = new ORMSchema($schema);
-        $commandGenerator = new EventDrivenCommandGenerator($schemaInstance, $container);
+        $commandGenerator = $this->createCommandGenerator($schemaInstance, $container);
 
         return new ORM\ORM(
             factory: new ORM\Factory($dbal),
             schema: $schemaInstance,
             commandGenerator: $commandGenerator,
         );
+    }
+
+    private function createCommandGenerator(
+        ORMSchema $schema,
+        ContainerInterface $container
+    ): ?CommandGeneratorInterface {
+        $commandGeneratorClass = 'Cycle\ORM\Entity\Behavior\EventDrivenCommandGenerator';
+        if (! class_exists($commandGeneratorClass)) {
+            return null;
+        }
+
+        $commandGenerator = new $commandGeneratorClass($schema, $container);
+
+        return $commandGenerator instanceof CommandGeneratorInterface ? $commandGenerator : null;
     }
 }

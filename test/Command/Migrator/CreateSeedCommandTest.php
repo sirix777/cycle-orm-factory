@@ -12,14 +12,17 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Exception\ExceptionInterface;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
-use Symfony\Component\Filesystem\Filesystem;
 
 use function basename;
 use function file_get_contents;
 use function glob;
+use function is_dir;
+use function is_file;
 use function mkdir;
+use function rmdir;
 use function sys_get_temp_dir;
 use function uniqid;
+use function unlink;
 
 class CreateSeedCommandTest extends TestCase
 {
@@ -33,8 +36,15 @@ class CreateSeedCommandTest extends TestCase
 
     protected function tearDown(): void
     {
-        $filesystem = new Filesystem();
-        $filesystem->remove($this->seedDirectory);
+        foreach ((array) glob($this->seedDirectory . DIRECTORY_SEPARATOR . '*') as $file) {
+            if (is_file((string) $file)) {
+                unlink((string) $file);
+            }
+        }
+
+        if (is_dir($this->seedDirectory)) {
+            rmdir($this->seedDirectory);
+        }
     }
 
     /**
@@ -63,8 +73,7 @@ class CreateSeedCommandTest extends TestCase
         $this->assertStringContainsString('namespace Seed;', (string) $fileContent);
         $this->assertStringContainsString('class ValidSeedName implements SeedInterface', (string) $fileContent);
         $this->assertStringContainsString('public function run(): void', (string) $fileContent);
-        // Should use default database alias when not provided
-        $this->assertStringContainsString("private const DATABASE = 'main-db';", (string) $fileContent);
+        $this->assertStringContainsString("private const DATABASE = 'default';", (string) $fileContent);
     }
 
     /**
@@ -139,13 +148,10 @@ class CreateSeedCommandTest extends TestCase
         $this->assertCount(1, $seeds);
 
         $fileContent = file_get_contents((string) $seeds[0]);
-        // Should use provided database alias
         $this->assertStringContainsString("private const DATABASE = 'custom-db';", (string) $fileContent);
     }
 
     /**
-     * Ensure the short alias -b works for selecting database alias when creating a seed.
-     *
      * @throws ExceptionInterface
      */
     public function testExecuteWithCustomDatabaseOptionAlias(): void

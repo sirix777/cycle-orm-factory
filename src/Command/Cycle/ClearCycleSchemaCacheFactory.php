@@ -8,7 +8,7 @@ use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\ContainerInterface;
 use Psr\Container\NotFoundExceptionInterface;
 use Sirix\Cycle\Factory\CycleFactory;
-use Sirix\Cycle\Resolver\CacheAdapterResolver;
+use Sirix\Cycle\Service\CompiledSchemaStorage;
 
 final class ClearCycleSchemaCacheFactory
 {
@@ -20,14 +20,14 @@ final class ClearCycleSchemaCacheFactory
     {
         $config = $container->has('config') ? $container->get('config') : [];
 
-        $enabled = (bool) ($config['cycle']['schema']['cache']['enabled'] ?? false);
-        $cacheKey = $config['cycle']['schema']['cache']['key'] ?? CycleFactory::DEFAULT_CACHE_KEY;
+        $schemaConfig = $config['cycle']['schema'] ?? [];
+        $enabled = (bool) ($schemaConfig['cache']['enabled'] ?? true);
+        $compiledSchemaPath = $schemaConfig['compiled']['path'] ?? CycleFactory::DEFAULT_COMPILED_SCHEMA_PATH;
 
-        $cache = null;
-        if ($enabled) {
-            $cache = (new CacheAdapterResolver())->resolve($container, $config);
-        }
-
-        return new ClearCycleSchemaCache($cache, $cacheKey);
+        return new ClearCycleSchemaCache(
+            $container->get(CompiledSchemaStorage::class),
+            $compiledSchemaPath,
+            $enabled,
+        );
     }
 }

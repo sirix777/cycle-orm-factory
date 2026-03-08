@@ -4,103 +4,99 @@ declare(strict_types=1);
 
 namespace Sirix\Cycle\Test\Command\Cache;
 
-use PHPUnit\Framework\MockObject\Exception;
-use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
-use Psr\Cache\CacheItemPoolInterface;
-use RuntimeException;
 use Sirix\Cycle\Command\Cycle\ClearCycleSchemaCache;
-use Symfony\Component\Console\Command\Command;
+use Sirix\Cycle\Service\CompiledSchemaStorage;
 use Symfony\Component\Console\Exception\ExceptionInterface;
 use Symfony\Component\Console\Tester\CommandTester;
 
-class ClearCycleSchemaCacheTest extends TestCase
-{
-    private CacheItemPoolInterface|MockObject $cache;
-    private ClearCycleSchemaCache $command;
+use function bin2hex;
+use function file_exists;
+use function mkdir;
+use function random_bytes;
+use function rmdir;
+use function sprintf;
+use function sys_get_temp_dir;
+use function unlink;
 
-    public function setUp(): void
+final class ClearCycleSchemaCacheTest extends TestCase
+{
+    private string $tmpDir;
+    private string $schemaPath;
+    private CompiledSchemaStorage $storage;
+
+    protected function setUp(): void
     {
         parent::setUp();
-        $this->cache = $this->createMock(CacheItemPoolInterface::class);
-        $this->command = new ClearCycleSchemaCache($this->cache, 'cache_key');
+
+        $this->tmpDir = sprintf('%s/cycle_clear_schema_%s', sys_get_temp_dir(), bin2hex(random_bytes(6)));
+        mkdir($this->tmpDir, 0o777, true);
+
+        $this->schemaPath = $this->tmpDir . '/schema.php';
+        $this->storage = new CompiledSchemaStorage();
+    }
+
+    protected function tearDown(): void
+    {
+        if (file_exists($this->schemaPath)) {
+            unlink($this->schemaPath);
+        }
+
+        @rmdir($this->tmpDir);
+
+        parent::tearDown();
     }
 
     /**
-     * @throws Exception
      * @throws ExceptionInterface
      */
     public function testExecuteCacheClearedSuccessfully(): void
     {
-        $this->cache->expects($this->once())
-            ->method('deleteItem')
-            ->with('cache_key')
-            ->willReturn(true)
-        ;
+        $this->storage->save($this->schemaPath, ['foo' => 'bar']);
 
-        $commandTester = new CommandTester($this->command);
+        $command = new ClearCycleSchemaCache($this->storage, $this->schemaPath, true);
+        $commandTester = new CommandTester($command);
         $commandTester->execute([]);
 
         $commandTester->assertCommandIsSuccessful();
-
-        $output = $commandTester->getDisplay();
-        $this->assertStringContainsString('[OK] Cycle ORM schema cache has been cleared successfully.', $output);
+        $this->assertStringContainsString(
+            '[OK] Cycle ORM schema cache file has been cleared successfully.',
+            $commandTester->getDisplay()
+        );
+        $this->assertFalse(file_exists($this->schemaPath));
     }
 
     /**
      * @throws ExceptionInterface
-     * @throws Exception
      */
-    public function testExecuteCacheEntryNotFound(): void
+    public function testExecuteCacheFileNotFound(): void
     {
-        $this->cache->expects($this->once())
-            ->method('deleteItem')
-            ->with('cache_key')
-            ->willReturn(false)
-        ;
-
-        $commandTester = new CommandTester($this->command);
-        $commandTester->execute([]);
-
-        $commandTester->assertCommandIsSuccessful();
-
-        $output = $commandTester->getDisplay();
-        $this->assertStringContainsString('[NOTE] No cache entry was found to clear.', $output);
-    }
-
-    /**
-     * @throws Exception
-     * @throws ExceptionInterface
-     */
-    public function testExecuteCacheClearingFails(): void
-    {
-        $this->cache->expects($this->once())
-            ->method('deleteItem')
-            ->with('cache_key')
-            ->willThrowException(new RuntimeException('Unexpected error'))
-        ;
-
-        $commandTester = new CommandTester($this->command);
-        $commandTester->execute([]);
-
-        $output = $commandTester->getDisplay();
-        $this->assertStringContainsString('[ERROR] Failed to clear Cycle ORM schema cache: Unexpected error', $output);
-        $this->AssertSame(Command::FAILURE, $commandTester->getStatusCode());
-    }
-
-    /**
-     * Ensure the command works correctly when cache is disabled via configuration.
-     */
-    public function testExecuteWithDisabledCache(): void
-    {
-        $command = new ClearCycleSchemaCache(null, 'cache_key');
+        $command = new ClearCycleSchemaCache($this->storage, $this->schemaPath, true);
 
         $commandTester = new CommandTester($command);
         $commandTester->execute([]);
 
         $commandTester->assertCommandIsSuccessful();
+        $this->assertStringContainsString(
+            '[NOTE] No compiled schema file was found to clear.',
+            $commandTester->getDisplay()
+        );
+    }
 
-        $output = $commandTester->getDisplay();
-        $this->assertStringContainsString('[NOTE] Schema cache is disabled by configuration. Nothing to clear.', $output);
+    /**
+     * @throws ExceptionInterface
+     */
+    public function testExecuteWithDisabledCache(): void
+    {
+        $command = new ClearCycleSchemaCache($this->storage, $this->schemaPath, false);
+
+        $commandTester = new CommandTester($command);
+        $commandTester->execute([]);
+
+        $commandTester->assertCommandIsSuccessful();
+        $this->assertStringContainsString(
+            '[NOTE] Schema cache is disabled by configuration. Nothing to clear.',
+            $commandTester->getDisplay()
+        );
     }
 }

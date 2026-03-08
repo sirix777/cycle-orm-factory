@@ -1,33 +1,43 @@
 # Mezzio Cycle ORM Factory
 
-[![Latest Stable Version](http://poser.pugx.org/sirix/cycle-orm-factory/v)](https://packagist.org/packages/sirix/cycle-orm-factory) 
-[![Total Downloads](http://poser.pugx.org/sirix/cycle-orm-factory/downloads)](https://packagist.org/packages/sirix/cycle-orm-factory) 
-[![Latest Unstable Version](http://poser.pugx.org/sirix/cycle-orm-factory/v/unstable)](https://packagist.org/packages/sirix/cycle-orm-factory) 
-[![License](http://poser.pugx.org/sirix/cycle-orm-factory/license)](https://packagist.org/packages/sirix/cycle-orm-factory) 
+[![Latest Stable Version](http://poser.pugx.org/sirix/cycle-orm-factory/v)](https://packagist.org/packages/sirix/cycle-orm-factory)
+[![Total Downloads](http://poser.pugx.org/sirix/cycle-orm-factory/downloads)](https://packagist.org/packages/sirix/cycle-orm-factory)
+[![Latest Unstable Version](http://poser.pugx.org/sirix/cycle-orm-factory/v/unstable)](https://packagist.org/packages/sirix/cycle-orm-factory)
+[![License](http://poser.pugx.org/sirix/cycle-orm-factory/license)](https://packagist.org/packages/sirix/cycle-orm-factory)
 [![PHP Version Require](http://poser.pugx.org/sirix/cycle-orm-factory/require/php)](https://packagist.org/packages/sirix/cycle-orm-factory)
 
-[Migration Guide: Cycle ORM Factory v1 to v2](docs/v1-to-v2.md)
+Migration guides:
+- [v1 to v2](docs/v1-to-v2.md)
+- [v2 to v3](docs/v2-to-v3.md)
 
-This package provides factories for integrating Cycle ORM into the Mezzio framework, providing seamless setup and configuration.
-### Installation
+Factories for integrating Cycle ORM into Mezzio with a runtime-focused schema pipeline.
+
+## Installation
+
 ```bash
 composer require sirix/cycle-orm-factory
 ```
 
-#### Requirements
-- PHP 8.2-8.5
+Optional packages:
+- `symfony/console`: required for built-in CLI commands.
+- `laminas/laminas-cli`: optional CLI integration for Mezzio/Laminas.
+- `cycle/migrations`: required for migration runtime commands.
+- `cycle/schema-migrations-generator`: required for `cycle:schema:migrations:generate`.
+- `cycle/entity-behavior` and `cycle/entity-behavior-uuid`: optional behavior events; runtime falls back to default Cycle command generator if not installed.
 
-### Configuration
-Create a configuration file, for example, `config/autoload/cycle-orm.global.php`:
+## Configuration
+
+Create `config/autoload/cycle-orm.global.php`:
+
 ```php
 <?php
 
 declare(strict_types=1);
 
 use Cycle\Database\Config;
-use Psr\Cache\CacheItemPoolInterface;
-use Sirix\Cycle\Enum\SchemaProperty;
-
+use Cycle\ORM\Mapper\Mapper;
+use Cycle\ORM\Relation;
+use Cycle\ORM\SchemaInterface;
 
 return [
     'cycle' => [
@@ -36,7 +46,7 @@ return [
             'databases' => [
                 'default' => [
                     'connection' => 'mysql',
-                ]
+                ],
             ],
             'connections' => [
                 'mysql' => new Config\MySQLDriverConfig(
@@ -45,167 +55,63 @@ return [
                         host: '127.0.0.1',
                         port: 3306,
                         user: 'cycle',
-                        password: 'password'
+                        password: 'password',
                     ),
                     reconnect: true,
                     timezone: 'UTC',
                     queryCache: true,
                 ),
-            ]
+            ],
         ],
+
         'migrator' => [
             'directory' => 'db/migrations',
             'table' => 'migrations',
             'seed_directory' => 'db/seeds',
-            // optional settings
-            // 'namespace' => 'App\\Migration',
-            // 'vendor_directories' => ['vendor/spiral', 'vendor/cycle'],
+            'namespace' => 'App\\Migrations', // optional
+            'vendor_directories' => ['vendor/path'], // optional
+            'safe' => false, // optional
         ],
+
         'entities' => [
-            'src/App/src/Entity', // The 'entities' configuration must always be present and point to an existing directory, even when working with manual entities.
+            'src/App/src/Entity',
         ],
-        'schema' => [
-            'property' => SchemaProperty::GenerateMigrations,
-            'cache' => [
-                'enabled' => true,
-                'key' => 'cycle_cached_schema', // optional parameter
-                'service' => CacheItemPoolInterface::class, // optional parameter if psr container have 'cache' CacheItemPoolInterface service
-            ]
-        ],
-        // Optional: append additional Cycle Schema generators
-        // Each entry can be:
-        //  - a service ID resolvable by your container,
-        //  - a fully-qualified class name (must have a no-arg constructor), or
-        //  - an instance of Cycle\Schema\GeneratorInterface.
-        // Generators are appended after the built-in ones, preserving default behavior.
+
         'generators' => [
             // 'my.custom.generator.service',
             // \App\Cycle\Schema\Generator\MyCustomGenerator::class,
             // new \App\Cycle\Schema\Generator\InlineGenerator(),
         ],
-    ],
-];
-```
 
-### Migrator Configuration
-```php
-'migrator' => [
-    'directory'          => 'db/migrations',
-    'table'              => 'migrations',
-    'seed_directory'     => 'db/seeds',
-    'namespace'          => 'App\\Migration',            // optional: namespace for generated migration classes
-    'vendor_directories' => ['vendor/spiral', 'vendor/cycle'], // optional: extra vendor dirs for Cycle Migrations
-],
-```
-- `directory`: Directory where migration files are stored.
-- `table`: Name of the database table used to store migration status.
-- `seed_directory`: Directory where seed classes are stored (used by the seed commands).
-- `namespace`: PHP namespace used when generating migration classes. Migration classes will be created under this namespace.
-- `vendor_directories`: Additional vendor directories to be scanned by Cycle Migrations (maps to Cycle Migrations config).
-
-### Entities Configuration
-```php
-'entities' => [
-    'src/App/src/Entity',
-],
-```
-- Specifies the directory in which your entity classes are located.
-
-### Additional Schema Generators
-
-You can extend the Cycle schema compilation pipeline by appending your own generators via the `cycle.generators` config key. Items are appended to the end of the internal generator list (after SyncTables/GenerateMigrations where applicable), so the default behavior remains unchanged.
-
-Accepted entry types in `cycle.generators`:
-- Service ID string: the container must return an instance implementing `Cycle\Schema\GeneratorInterface`.
-- Fully-qualified class name string: the class must exist and have a no-argument constructor; it will be instantiated and validated.
-- Direct instance: any object implementing `Cycle\Schema\GeneratorInterface`.
-
-If an entry cannot be resolved to an instance of `GeneratorInterface`, a `Cycle\ORM\Exception\ConfigException` will be thrown with the message: `Invalid schema generator provided in config.cycle.generators`.
-
-Example:
-```php
-'generators' => [
-    // By container service ID
-    'my.generator.service',
-
-    // By FQCN (no-arg constructor)
-    \App\Cycle\Schema\Generator\AddSoftDeleteFlag::class,
-
-    // Direct instance 
-    new \App\Cycle\Schema\Generator\InlineIndexesGenerator(),
-],
-```
-
-### Manual mapping schema definitions
-
-You can define manual mapping schema definitions for your entities. This is useful when you need to customize the schema for a specific entity. For example, you can define the table name, primary key, columns, typecast handlers, typecasts, and relations for an entity.
-
-```php
-<?php
-
-/**
- * Example of a Cycle ORM schema configuration.
- * Use this template to define your entities, relationships, and database mappings.
- * Note: This configuration must be placed within the 'schema' => ['manual_mapping_schema_definitions'] array.
- */
-
-use Cycle\ORM\Relation;
-use Cycle\ORM\SchemaInterface;
-
-return [
-    'cycle' => [
         'schema' => [
+            'cache' => [
+                'enabled' => true,
+            ],
+            'compiled' => [
+                'path' => 'data/cache/cycle/schema.php',
+            ],
             'manual_mapping_schema_definitions' => [
-                'example_entity' => [
-                    // Entity class for mapping
-                    SchemaInterface::ENTITY => YourEntity::class,
-
-                    // Database and table name for the entity
-                    SchemaInterface::DATABASE => 'your-database',
-                    SchemaInterface::TABLE => 'your_table_name',
-
-                    // Primary key column
+                'user' => [
+                    SchemaInterface::ENTITY => User::class,
+                    SchemaInterface::MAPPER => Mapper::class,
+                    SchemaInterface::DATABASE => 'default',
+                    SchemaInterface::TABLE => 'user',
                     SchemaInterface::PRIMARY_KEY => 'id',
-
-                    // Column mappings: database columns to entity properties
                     SchemaInterface::COLUMNS => [
                         'id' => 'id',
-                        'name' => 'name',
-                        'createdAt' => 'created_at',
-                        'updatedAt' => 'updated_at',
+                        'email' => 'email',
                     ],
-
-                    // Typecasting for fields
                     SchemaInterface::TYPECAST => [
                         'id' => 'int',
-                        'createdAt' => 'datetime',
-                        'updatedAt' => 'datetime',
                     ],
-
-                    // Optional: Custom typecast handlers
-                    SchemaInterface::TYPECAST_HANDLER => YourTypecastHandler::class,
-
-                    // Relationships definition
                     SchemaInterface::RELATIONS => [
-                        'relatedEntities' => [
-                            Relation::TYPE => Relation::HAS_MANY, // Relation type
-                            Relation::TARGET => RelatedEntity::class, // Target entity class
-                            Relation::SCHEMA => [
-                                Relation::CASCADE => true, // Cascade updates/deletes
-                                Relation::INNER_KEY => 'id', // Local key in this entity
-                                Relation::OUTER_KEY => 'related_entity_id', // Foreign key in the related entity
-                                Relation::WHERE => [
-                                    'status' => 'active', // Optional filter for the relation
-                                ],
-                            ],
-                        ],
-                        'anotherEntity' => [
-                            Relation::TYPE => Relation::BELONGS_TO,
-                            Relation::TARGET => AnotherEntity::class,
+                        'profile' => [
+                            Relation::TYPE => Relation::HAS_ONE,
+                            Relation::TARGET => 'profile',
                             Relation::SCHEMA => [
                                 Relation::CASCADE => true,
-                                Relation::INNER_KEY => 'another_entity_id',
-                                Relation::OUTER_KEY => 'id',
+                                Relation::INNER_KEY => 'id',
+                                Relation::OUTER_KEY => 'user_id',
                             ],
                         ],
                     ],
@@ -215,332 +121,96 @@ return [
     ],
 ];
 ```
-See the [Cycle ORM documentation](https://cycle-orm.dev/docs/schema-manual/current/en) for more information on manual mapping schema definitions.
 
+## Runtime schema contract (v3)
 
+Runtime behavior is controlled by `cycle.schema.cache.enabled`.
 
-### Schema Configuration
-```php
-    'schema'   => [
-        'property' => SchemaProperty::GenerateMigrations,
-        'cache'    => [
-            'enabled' => true,
-            'key' => 'cycle_orm_cached_schema',
-            'service' => CacheItemPoolInterface::class, 
-        ],
-    ],
-```
-- `property`: Configures the schema property, options include `null`, `SchemaProperty::SyncTables`, or `SchemaProperty::GenerateMigrations`.
-- `cache.enabled`: Enables or disables caching of the generated schema.
-- `cache.key`: Specifies the key used for storing the schema cache. This is optional and can be left empty if not
-  needed.
-- `cache.service`: Defines the PSR-6 `CacheItemPoolInterface` service to be used for schema caching. This allows
-  integration with various caching mechanisms supported in your application. If left out, the default service (with name 'cache') from the
-  container will be utilized if configured.
+When `true`:
+- ORM tries to load compiled schema from `cycle.schema.compiled.path`.
+- If file exists: schema is loaded via `require` and ORM is created.
+- If file is missing: schema is compiled on first start, persisted to file, then reused.
 
-### Schema Property Options
+When `false`:
+- Schema is compiled on every start in memory.
+- No compiled schema file is read or written by runtime.
 
-`SchemaProperty::SyncTables`
+Recommended production setup:
+- keep `cache.enabled=true`
+- run `cycle:schema:compile` during build/release.
 
-The SyncTables option synchronizes the database tables based on the provided entity classes. It ensures that the tables match the structure defined in the entity classes. This can be useful during development when the database schema evolves along with your application.
+## Additional schema generators
 
-`SchemaProperty::GenerateMigrations`
+`cycle.generators` supports:
+- service ID from container,
+- generator FQCN with zero-arg constructor,
+- direct instance implementing `Cycle\Schema\GeneratorInterface`.
 
-The GenerateMigrations option is used to automatically generate migration files based on changes detected in your entity classes. When enabled, the ORM analyzes the differences between the current database schema and the defined entities. It then generates migration files to apply these changes, making it easier to version and manage your database schema changes.
+Invalid entries throw `Cycle\ORM\Exception\ConfigException`.
 
-Important: This works only if the optional `cycle/schema-migrations-generator` package is installed.
+## Manual mapping key compatibility
 
-Select the appropriate SchemaProperty option based on the requirements of your project. Customize the configuration to your needs and enjoy the seamless integration of Cycle ORM with Mezzio.
+Primary key is `cycle.schema.manual_mapping_schema_definitions`.
 
-* Note: The schema properties (e.g., SyncTables, GenerateMigrations) work only with annotated entities.
-* Ensure that your entity classes are properly annotated to leverage these features.
+For migration compatibility, the package also reads legacy key:
+- `cycle.schema.manual_entity_schema_definition`
 
-### Use in your project
-```php
-// Access services using short aliases
-$container->get('orm'); // Cycle\ORM\ORM
-$container->get('dbal'); // Cycle\Database\DatabaseInterface
-$container->get('migrator'); // Cycle\Migrations\Migrator
+Use the new key for all new configs.
 
-// Or access services using their interface names (aliases provided by ConfigProvider)
-$container->get(Cycle\ORM\ORMInterface::class); // Same as $container->get('orm')
-$container->get(Cycle\Database\DatabaseInterface::class); // Same as $container->get('dbal')
-$container->get(Sirix\Cycle\Service\MigratorInterface::class); // Same as $container->get('migrator')
-```
+## Services
 
-These factories provide the necessary parts to work seamlessly with Cycle ORM within the Mezzio Framework. The ConfigProvider automatically sets up aliases so you can use either the short service names or the full interface names according to your preference. Customize the configuration to meet the needs of your project.
+Aliases provided by `ConfigProvider`:
+- `orm` -> `Cycle\ORM\ORMInterface`
+- `dbal` -> `Cycle\Database\DatabaseInterface`
+- `migrator` -> `Sirix\Cycle\Service\MigratorInterface`
 
-For more information about Cycle ORM, see the [Cycle ORM documentation](https://cycle-orm.dev/docs).
+## CLI commands
 
-## Migrator Commands
-This package provides console commands for managing database migrations and the cached Cycle ORM schema. These commands are built with symfony/console and can be used directly (note that direct usage of Symfony Console requires manual registration of commands). For Laminas/Mezzio applications, you can optionally integrate with `laminas-cli` by installing it as an additional package, which automatically registers all commands.
+Commands are registered only when `symfony/console` is installed.
 
-Important:
-- Migration-related commands are registered only if the optional `cycle/migrations` package is installed.
-- If the migrations package is not installed, these commands will not be registered and will not appear in CLI help.
-- Non-migration commands (like `cycle:cache:clear`) are always available.
-- You can force-disable migration command registration by setting the environment variable `CYCLE_MIGRATIONS_DISABLED` to a truthy value: `1`, `true`, `yes`, or `on` (case-insensitive). To explicitly keep migrations enabled, set it to a falsy value such as `0`, `false`, `no`, or `off`, or simply omit the variable.
+`cycle:schema:*` commands:
+- `cycle:schema:compile`: compile schema and store compiled file.
+- `cycle:schema:sync`: run sync pipeline; refresh compiled file only when cache is enabled.
+- `cycle:schema:migrations:generate`: generate migrations via schema pipeline; available only with `cycle/migrations` and `cycle/schema-migrations-generator`, and when migrations are not disabled by env.
 
-### 1. `cycle:migrator:run` Command
+Other commands:
+- `cycle:cache:clear`: remove compiled schema file.
+- `cycle:migrator:run`
+- `cycle:migrator:rollback`
+- `cycle:migrator:create`
+- `cycle:seed:create`
+- `cycle:seed:run`
 
-#### Description
-The `cycle:migrator:run` command performs the necessary database migration steps, applying changes specified in migration files to synchronize your database schema.
+Migration/seed command availability:
+- registered only when `cycle/migrations` is installed,
+- can be force-disabled by `CYCLE_MIGRATIONS_DISABLED=1|true|yes|on`.
 
-#### Usage
-```bash
-# With symfony/console (directly)
-php bin/console cycle:migrator:run
+### Create migration notes
 
-# With laminas-cli (if installed as additional package)
-php vendor/bin/laminas cycle:migrator:run
-```
+`cycle:migrator:create` supports `--database` (`-b`).
+Generated filename includes database alias:
+- `<timestamp>_0_<counter>_<database-alias>_<MigrationName>.php`
 
-#### Options
-This command has no additional options.
+### CLI usage examples
 
-
-### 2. `cycle:migrator:rollback` Command
-
-#### Description
-The `cycle:migrator:rollback` command undoes the changes made by the last migration, reverting your database schema to its previous state.
-
-#### Usage
-```bash
-# With symfony/console (directly)
-php bin/console cycle:migrator:rollback
-
-# With laminas-cli (if installed as additional package)
-php vendor/bin/laminas cycle:migrator:rollback
-```
-
-#### Options
-This command does not have any additional options.
-
-
-### 3. `cycle:migrator:create` Command
-
-#### Description
-The `cycle:migrator:create` command generates a new empty migration file in the migration directory.
-
-#### Usage
-```bash
-# With symfony/console (directly)
-php bin/console cycle:migrator:create PascalCaseMigrationName [--database|-b DB_ALIAS]
-
-# With laminas-cli (if installed as additional package)
-php vendor/bin/laminas cycle:migrator:create PascalCaseMigrationName [--database|-b DB_ALIAS]
-```
-
-#### Arguments
-- `migrationName`: The name of the migration file to be created. This should be in PascalCase format.
-
-#### Options
-- `--database` or `-b`: Database alias to set in the generated migration class (as `protected const DATABASE`). Defaults to `main-db`.
-
-Examples:
+With laminas-cli:
 
 ```bash
-# Default database alias ('main-db') will be used
-php bin/console cycle:migrator:create CreateUsersTable
-
-# Custom database alias
-php bin/console cycle:migrator:create CreateUsersTable --database reporting-db
-php bin/console cycle:migrator:create CreateUsersTable -b reporting-db
-
-# With laminas-cli
-php vendor/bin/laminas cycle:migrator:create CreateUsersTable --database reporting-db
+php vendor/bin/laminas cycle:schema:compile
+php vendor/bin/laminas cycle:schema:sync
+php vendor/bin/laminas cycle:migrator:create CreateUsers --database default
 ```
 
-**Important Note**: Migration filenames follow the format `YYYYMMDD.HHMMSS_0_counter_MigrationName.php` where:
-- `YYYYMMDD.HHMMSS` is the timestamp when the migration was created
-- `0` is a fixed value
-- `counter` is an incremental number (starting from 0) for migrations with the same name
-- `MigrationName` is the name you provided in PascalCase
-
-Namespace:
-- Generated migration classes will use the namespace configured at `cycle.migrator.namespace`. If omitted, Cycle Migrations' default namespace will be used.
-
-**Note**: Make sure that you have correctly configured the database connection and migrations settings in your project's configuration file.
-
-For more information about using migrations with Cycle ORM, see the [Cycle ORM Documentation](https://cycle-orm.dev/docs/database-migrations/current/en).
-
-
-### 4. `cycle:cache:clear` Command
-
-#### Description
-
-The `cycle:schema:cache:clear` command clears the cached Cycle ORM schema configuration, forcing the ORM to
-regenerate it on the next application run. This can be useful during development when changes to entity definitions or
-configurations have been made, and you want to ensure fresh schema generation.
-
-#### Usage
+With standalone Symfony Console (manual command wiring in your app):
 
 ```bash
-# With symfony/console (directly)
-php bin/console cycle:cache:clear
-
-# With laminas-cli (if installed as additional package)
-php vendor/bin/laminas cycle:cache:clear
+php bin/console cycle:schema:compile
 ```
 
-#### Options
+## Performance note
 
-This command does not have any additional options.
+Compiled schema is stored as plain PHP and loaded by `require`, which works well with OPcache and avoids PSR-6 serialization overhead in runtime hot paths.
 
-### 5. `cycle:seed:create` Command
+## More
 
-#### Description
-
-The `cycle:seed:create` command creates a new seed file in the seed directory. Seed files are used to populate your database with initial or test data.
-
-#### Usage
-
-```bash
-# With symfony/console (directly)
-php bin/console cycle:seed:create SeedName [--database|-b DB_ALIAS]
-
-# With laminas-cli (if installed as additional package)
-php vendor/bin/laminas cycle:seed:create SeedName [--database|-b DB_ALIAS]
-```
-
-#### Arguments
-
-- `SeedName`: The name of the seed in PascalCase format (required).
-
-#### Options
-
-- `--database` or `-b`: Database alias to set in the generated seed class (as `private const DATABASE`). Defaults to `main-db`.
-
-Examples:
-
-```bash
-# Default database alias ('main-db') will be used
-php bin/console cycle:seed:create UserSeed
-
-# Custom database alias
-php bin/console cycle:seed:create UserSeed --database reporting-db
-php bin/console cycle:seed:create UserSeed -b reporting-db
-
-# With laminas-cli
-php vendor/bin/laminas cycle:seed:create UserSeed --database reporting-db
-```
-
-**Note**: The generated seed file will be placed in the configured seed directory and will implement the `SeedInterface`.
-
-
-### 6. `cycle:seed:run` Command
-
-#### Description
-
-The `cycle:seed:run` command executes seed files, populating your database with the data defined in the seeds. You can run a specific seed or all seeds in the configured directory.
-
-#### Usage
-
-```bash
-# With symfony/console (directly)
-# Run a specific seed
-php bin/console cycle:seed:run SeedName
-
-# Alternative ways to specify the seed
-php bin/console cycle:seed:run --seed SeedName
-php bin/console cycle:seed:run -s SeedName
-
-# Run all seeds in the configured seed directory
-php bin/console cycle:seed:run
-
-# Run from a different path (overrides configured seed_directory for this run)
-php bin/console cycle:seed:run --path path/to/seeds
-php bin/console cycle:seed:run -p path/to/seeds
-
-# Run a specific seed from a different path
-php bin/console cycle:seed:run --path path/to/seeds SeedName
-
-# Override database for this run (takes precedence over DATABASE constant in seed)
-php bin/console cycle:seed:run --database reporting-db SeedName
-php bin/console cycle:seed:run -b reporting-db SeedName
-
-# With laminas-cli (if installed as additional package)
-# Run a specific seed
-php vendor/bin/laminas cycle:seed:run SeedName
-
-# Alternative ways to specify the seed
-php vendor/bin/laminas cycle:seed:run --seed SeedName
-php vendor/bin/laminas cycle:seed:run -s SeedName
-
-# Run all seeds in the configured seed directory
-php vendor/bin/laminas cycle:seed:run
-
-# Run from a different path (overrides configured seed_directory for this run)
-php vendor/bin/laminas cycle:seed:run --path path/to/seeds
-php vendor/bin/laminas cycle:seed:run -p path/to/seeds
-
-# Run a specific seed from a different path
-php vendor/bin/laminas cycle:seed:run --path path/to/seeds SeedName
-
-# Override database for this run (takes precedence over DATABASE constant in seed)
-php vendor/bin/laminas cycle:seed:run --database reporting-db SeedName
-php vendor/bin/laminas cycle:seed:run -b reporting-db SeedName
-```
-
-#### Arguments and Options
-
-- `SeedName`: The name of the seed to run in PascalCase format, without the .php extension.
-- `--seed` or `-s`: Alternative ways to specify the seed name.
-- `--path` or `-p`: Run seeds from a different path than the configured `seed_directory` (affects both single-seed and run-all modes for this invocation only).
-- `--database` or `-b`: Database name to use for seed execution. When provided, it overrides the `DATABASE` constant defined in a seed class. If neither option nor constant is set, the default `main-db` is used.
-
-Behavior:
-- If `SeedName` is provided, the command runs that seed from either the configured `seed_directory` or the path passed via `--path`/`-p`.
-- If no `SeedName` is provided, the command runs all seeds from the configured `seed_directory` or from the path passed via `--path`/`-p`.
-
-If no seed name is provided, the command will run all seeds in the configured seed directory (unless `--path`/`-p` is used).
-
-**Note**: All seed classes must implement the `SeedInterface` and be located in the target seed directory. The command will automatically inject the database connection into the seed class.
-
-Database resolution priority when running seeds:
-- Command-line option `--database` (or alias `-b`), if provided
-- Seed class `protected const DATABASE = '...'`
-- Default database alias `main-db`
-
-
-### Cache Configuration Example
-
-You can create a Symfony Cache Filesystem Adapter for your application like this:
-
-```php
-<?php
-
-declare(strict_types=1);
-
-use Symfony\Component\Cache\Adapter\FilesystemAdapter;
-
-return [
-    'dependencies' => [
-        'factories' => [
-            'Cache\Symfony\Filesystem' => function () {
-                // Create a Symfony Cache File Adapter instance
-                return new FilesystemAdapter(
-                    'cycle', // Namespace prefix for cache keys
-                    0, // Default TTL of items in seconds (0 means infinite)
-                    'data/cycle/cache' // Absolute or relative directory for cache files storage
-                );
-            },
-        ],
-    ],
-];
-```
-
-This configuration creates a Filesystem Cache Adapter with the following parameters:
-- `'cycle'`: A namespace prefix for cache keys, helping to avoid key collisions
-- `0`: Default Time-To-Live (TTL) set to infinite, meaning cached items won't expire automatically
-- `'data/cycle/cache'`: Directory where cache files will be stored
-
-
-The cache configuration will look like this:
-```php
-    'cache' => [
-        'enabled' => true,
-        'key' => 'cycle_orm_cached_schema',
-        'service' => 'Cache\Symfony\Filesystem',
-    ],
-```
+- [Cycle ORM documentation](https://cycle-orm.dev/docs)

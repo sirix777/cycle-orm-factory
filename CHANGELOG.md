@@ -5,6 +5,50 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- New schema commands:
+  - `cycle:schema:compile`
+  - `cycle:schema:sync`
+  - `cycle:schema:migrations:generate` (available only when `cycle/migrations` and `cycle/schema-migrations-generator` are installed and migrations are enabled).
+- New schema compilation mode enum: `SchemaCompileMode` (`Runtime`, `SyncTables`, `GenerateMigrations`).
+- New reusable schema compiler service contract:
+  - `Sirix\Cycle\Service\SchemaCompilerInterface`
+  - `Sirix\Cycle\Service\SchemaCompilerService`
+- New file-based compiled schema storage service:
+  - `Sirix\Cycle\Service\CompiledSchemaStorage`.
+- New migration guide:
+  - `docs/v2-to-v3.md`.
+
+### Changed
+- Runtime schema flow migrated to file-based compiled schema (`require`) with configurable path `cycle.schema.compiled.path`.
+- `CycleFactory` now:
+  - loads compiled schema file when `cycle.schema.cache.enabled=true`,
+  - compiles and persists schema on first run when file is missing,
+  - compiles in-memory on each run when `cycle.schema.cache.enabled=false`.
+- Schema compilation API simplified to a single method with compile mode:
+  - `compile(..., SchemaCompileMode $mode = SchemaCompileMode::Runtime)`.
+- Schema compilation logic extracted from factory into dedicated service and reused by runtime and commands.
+- Command/factory registration updated:
+  - built-in commands are registered only when `symfony/console` is available,
+  - migration commands are still guarded by migration package availability and `CYCLE_MIGRATIONS_DISABLED`.
+- `cycle:migrator:create` migration filenames now include normalized database alias.
+- `CreateSeedCommand` template/default database behavior aligned with current migrator config and tests.
+- Documentation fully updated for v3 runtime/config/commands model.
+
+### Removed
+- Removed schema runtime mode config via `SchemaProperty` (no runtime `SyncTables`/`GenerateMigrations` config toggle).
+- Removed PSR-6 schema cache integration and resolver:
+  - `Psr\Cache\CacheItemPoolInterface` usage for schema cache,
+  - `src/Resolver/CacheAdapterResolver.php`.
+- Removed obsolete schema config keys:
+  - `cycle.schema.property`
+  - `cycle.schema.cache.key`
+  - `cycle.schema.cache.service`.
+- Removed direct dependency on `symfony/console` from `require` (it is now optional).
+- Removed direct dependency on `cycle/entity-behavior` and `cycle/entity-behavior-uuid` from `require` (now optional/suggested).
+
 ## [2.8.1] - 2026-01-10
 
 ### Changed
