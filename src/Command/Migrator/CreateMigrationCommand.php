@@ -72,7 +72,7 @@ final class CreateMigrationCommand extends Command
         $this
             ->setName(CommandName::MigrationCreate->value)
             ->setDescription('Create an empty migration file')
-            ->addArgument('migrationName', InputArgument::REQUIRED, 'The name of the migration in PascalCase format')
+            ->addArgument('migrationName', InputArgument::OPTIONAL, 'The name of the migration in PascalCase format')
             ->addOption(
                 'database',
                 'b',
@@ -88,6 +88,11 @@ final class CreateMigrationCommand extends Command
         $io = new SymfonyStyle($input, $output);
 
         $migrationName = (string) $input->getArgument('migrationName');
+        if ('' === $migrationName || '0' === $migrationName) {
+            $io->error('Migration name is required. Use PascalCase, for example: cycle:migration:create CreateUsers');
+
+            return Command::INVALID;
+        }
 
         if (! FileNameValidator::isPascalCase($migrationName)) {
             $io->error('Invalid migration name. Use PascalCase format.');

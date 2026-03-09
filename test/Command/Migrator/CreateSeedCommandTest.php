@@ -90,7 +90,7 @@ class CreateSeedCommandTest extends TestCase
 
         $outputContent = $output->fetch();
 
-        $this->assertSame(Command::FAILURE, $resultCode);
+        $this->assertSame(Command::INVALID, $resultCode);
         $this->assertStringContainsString('Seed name is required.', $outputContent);
     }
 

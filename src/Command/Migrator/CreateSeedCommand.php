@@ -11,6 +11,7 @@ use Sirix\Cycle\Command\Helper\FileNameValidator;
 use Sirix\Cycle\Enum\CommandName;
 use Sirix\Cycle\Internal\FileSystem;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -54,7 +55,7 @@ final class CreateSeedCommand extends Command
         $this
             ->setName(CommandName::SeedCreate->value)
             ->setDescription('Create a seed file')
-            ->addArgument('seed', InputOption::VALUE_REQUIRED, 'The name of the seed in PascalCase format')
+            ->addArgument('seed', InputArgument::OPTIONAL, 'The name of the seed in PascalCase format')
             ->addOption(
                 'database',
                 'b',
@@ -72,9 +73,9 @@ final class CreateSeedCommand extends Command
         $seedName = (string) $input->getArgument('seed');
 
         if ('' === $seedName || '0' === $seedName) {
-            $io->error('Seed name is required.');
+            $io->error('Seed name is required. Use PascalCase, for example: cycle:seed:create CreateUsersSeed');
 
-            return Command::FAILURE;
+            return Command::INVALID;
         }
 
         if (! FileNameValidator::isPascalCase($seedName)) {

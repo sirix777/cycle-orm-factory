@@ -87,6 +87,23 @@ final class CreateMigrationCommandTest extends TestCase
     /**
      * @throws ExceptionInterface
      */
+    public function testExecuteWithMissingMigrationName(): void
+    {
+        $command = new CreateMigrationCommand($this->migrationDirectory, $this->migrator);
+
+        $input = new ArrayInput([]);
+        $output = new BufferedOutput();
+
+        $resultCode = $command->run($input, $output);
+        $outputContent = $output->fetch();
+
+        $this->assertSame(Command::INVALID, $resultCode);
+        $this->assertStringContainsString('Migration name is required.', $outputContent);
+    }
+
+    /**
+     * @throws ExceptionInterface
+     */
     public function testExecuteWithInvalidMigrationName(): void
     {
         $command = new CreateMigrationCommand($this->migrationDirectory, $this->migrator);
