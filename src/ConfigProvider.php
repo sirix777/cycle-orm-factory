@@ -70,7 +70,7 @@ final class ConfigProvider
             $factories[Command\Migrator\CreateSeedCommand::class] = Command\Migrator\CreateSeedCommandFactory::class;
             $factories[Command\Migrator\SeedCommand::class] = Command\Migrator\SeedCommandFactory::class;
 
-            if (PackageChecker::isGenerateMigrationsAvailable()) {
+            if (PackageChecker::isGenerateMigrationsAvailable() && PackageChecker::isEntityBehaviorAvailable()) {
                 $factories[Command\Cycle\SchemaMigrationsGenerateCommand::class]
                     = Command\Cycle\SchemaMigrationsGenerateCommandFactory::class;
             }
@@ -115,7 +115,7 @@ final class ConfigProvider
             $commands[CommandName::GenerateSeed->value] = Command\Migrator\CreateSeedCommand::class;
             $commands[CommandName::RunSeed->value] = Command\Migrator\SeedCommand::class;
 
-            if (PackageChecker::isGenerateMigrationsAvailable()) {
+            if (PackageChecker::isGenerateMigrationsAvailable() && PackageChecker::isEntityBehaviorAvailable()) {
                 $commands[CommandName::SchemaMigrationsGenerate->value] = Command\Cycle\SchemaMigrationsGenerateCommand::class;
             }
         }
