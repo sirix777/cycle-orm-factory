@@ -6,7 +6,6 @@ namespace Sirix\Cycle\Command\Cycle;
 
 use Cycle\Database\DatabaseManager;
 use Sirix\Cycle\Enum\CommandName;
-use Sirix\Cycle\Enum\SchemaCompileMode;
 use Sirix\Cycle\Service\CompiledSchemaStorage;
 use Sirix\Cycle\Service\SchemaCompilerInterface;
 use Symfony\Component\Console\Command\Command;
@@ -54,7 +53,6 @@ final class SchemaCompileCommand extends Command
                 $this->entities,
                 $this->manualMappingSchemaDefinitions,
                 $this->additionalGenerators,
-                SchemaCompileMode::Runtime,
             );
 
             $this->compiledSchemaStorage->save($this->compiledSchemaPath, $schema);

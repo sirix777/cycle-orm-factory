@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Sirix\Cycle\Internal;
 
 use Cycle\Migrations\Migrator;
-use Cycle\ORM\Entity\Behavior\EventDrivenCommandGenerator;
+use Cycle\ORM\Entity\Behavior\EventListener;
 use Cycle\Schema\Generator\Migrations\GenerateMigrations;
 use Symfony\Component\Console\Command\Command;
 
@@ -23,7 +23,7 @@ final class PackageChecker
 
     public static function isEntityBehaviorAvailable(): bool
     {
-        return class_exists(EventDrivenCommandGenerator::class);
+        return class_exists(EventListener::class);
     }
 
     public static function isMigratorAvailable(): bool
