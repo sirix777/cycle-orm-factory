@@ -52,7 +52,7 @@ final class CreateSeedCommand extends Command
     protected function configure(): void
     {
         $this
-            ->setName(CommandName::GenerateSeed->value)
+            ->setName(CommandName::SeedCreate->value)
             ->setDescription('Create a seed file')
             ->addArgument('seed', InputOption::VALUE_REQUIRED, 'The name of the seed in PascalCase format')
             ->addOption(

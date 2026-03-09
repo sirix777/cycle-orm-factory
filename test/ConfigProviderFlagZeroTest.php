@@ -31,11 +31,11 @@ final class ConfigProviderFlagZeroTest extends TestCase
         $config = $provider->__invoke();
 
         $commands = $config['laminas-cli']['commands'];
-        $this->assertArrayHasKey(CommandName::RunMigration->value, $commands);
-        $this->assertArrayHasKey(CommandName::RollbackMigration->value, $commands);
-        $this->assertArrayHasKey(CommandName::GenerateMigration->value, $commands);
-        $this->assertArrayHasKey(CommandName::GenerateSeed->value, $commands);
-        $this->assertArrayHasKey(CommandName::RunSeed->value, $commands);
+        $this->assertArrayHasKey(CommandName::MigrationRun->value, $commands);
+        $this->assertArrayHasKey(CommandName::MigrationRollback->value, $commands);
+        $this->assertArrayHasKey(CommandName::MigrationCreate->value, $commands);
+        $this->assertArrayHasKey(CommandName::SeedCreate->value, $commands);
+        $this->assertArrayHasKey(CommandName::SeedRun->value, $commands);
         $this->assertArrayHasKey(CommandName::SchemaCompile->value, $commands);
         $this->assertArrayHasKey(CommandName::SchemaSync->value, $commands);
     }

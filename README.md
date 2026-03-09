@@ -22,7 +22,7 @@ Optional packages:
 - `symfony/console`: required for built-in CLI commands.
 - `laminas/laminas-cli`: optional CLI integration for Mezzio/Laminas.
 - `cycle/migrations`: required for migration runtime commands.
-- `cycle/schema-migrations-generator`: required for `cycle:schema:migrations:generate`.
+- `cycle/schema-migrations-generator`: required for `cycle:schema:migration:generate`.
 - `cycle/entity-behavior` and `cycle/entity-behavior-uuid`: optional behavior events; runtime falls back to default Cycle command generator if not installed.
 
 ## Configuration
@@ -171,13 +171,13 @@ Commands are registered only when `symfony/console` is installed.
 `cycle:schema:*` commands:
 - `cycle:schema:compile`: compile schema and store compiled file.
 - `cycle:schema:sync`: run sync pipeline; refresh compiled file only when cache is enabled.
-- `cycle:schema:migrations:generate`: generate migrations via schema pipeline; available only with `cycle/migrations` and `cycle/schema-migrations-generator`, and when migrations are not disabled by env.
+- `cycle:schema:migration:generate`: generate migrations via schema pipeline; available only with `cycle/migrations` and `cycle/schema-migrations-generator`, and when migrations are not disabled by env.
 
 Other commands:
 - `cycle:cache:clear`: remove compiled schema file.
-- `cycle:migrator:run`
-- `cycle:migrator:rollback`
-- `cycle:migrator:create`
+- `cycle:migration:run`
+- `cycle:migration:rollback`
+- `cycle:migration:create`
 - `cycle:seed:create`
 - `cycle:seed:run`
 
@@ -187,7 +187,7 @@ Migration/seed command availability:
 
 ### Create migration notes
 
-`cycle:migrator:create` supports `--database` (`-b`).
+`cycle:migration:create` supports `--database` (`-b`).
 Generated filename includes database alias:
 - `<timestamp>_0_<counter>_<database-alias>_<MigrationName>.php`
 
@@ -198,7 +198,7 @@ With laminas-cli:
 ```bash
 php vendor/bin/laminas cycle:schema:compile
 php vendor/bin/laminas cycle:schema:sync
-php vendor/bin/laminas cycle:migrator:create CreateUsers --database default
+php vendor/bin/laminas cycle:migration:create CreateUsers --database default
 ```
 
 With standalone Symfony Console (manual command wiring in your app):

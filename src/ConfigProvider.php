@@ -100,7 +100,7 @@ final class ConfigProvider
         }
 
         $commands = [
-            CommandName::ClearCache->value => Command\Cycle\ClearCycleSchemaCache::class,
+            CommandName::CacheClear->value => Command\Cycle\ClearCycleSchemaCache::class,
         ];
 
         if (PackageChecker::isEntityBehaviorAvailable()) {
@@ -109,14 +109,14 @@ final class ConfigProvider
         }
 
         if (MigrationsToggle::areMigrationsEnabled()) {
-            $commands[CommandName::RunMigration->value] = Command\Migrator\MigrateCommand::class;
-            $commands[CommandName::RollbackMigration->value] = Command\Migrator\RollbackCommand::class;
-            $commands[CommandName::GenerateMigration->value] = Command\Migrator\CreateMigrationCommand::class;
-            $commands[CommandName::GenerateSeed->value] = Command\Migrator\CreateSeedCommand::class;
-            $commands[CommandName::RunSeed->value] = Command\Migrator\SeedCommand::class;
+            $commands[CommandName::MigrationRun->value] = Command\Migrator\MigrateCommand::class;
+            $commands[CommandName::MigrationRollback->value] = Command\Migrator\RollbackCommand::class;
+            $commands[CommandName::MigrationCreate->value] = Command\Migrator\CreateMigrationCommand::class;
+            $commands[CommandName::SeedCreate->value] = Command\Migrator\CreateSeedCommand::class;
+            $commands[CommandName::SeedRun->value] = Command\Migrator\SeedCommand::class;
 
             if (PackageChecker::isGenerateMigrationsAvailable() && PackageChecker::isEntityBehaviorAvailable()) {
-                $commands[CommandName::SchemaMigrationsGenerate->value] = Command\Cycle\SchemaMigrationsGenerateCommand::class;
+                $commands[CommandName::SchemaMigrationGenerate->value] = Command\Cycle\SchemaMigrationsGenerateCommand::class;
             }
         }
 

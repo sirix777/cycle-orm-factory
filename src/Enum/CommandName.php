@@ -6,13 +6,13 @@ namespace Sirix\Cycle\Enum;
 
 enum CommandName: string
 {
-    case GenerateMigration = 'cycle:migrator:create';
-    case RollbackMigration = 'cycle:migrator:rollback';
-    case RunMigration = 'cycle:migrator:run';
-    case ClearCache = 'cycle:cache:clear';
-    case GenerateSeed = 'cycle:seed:create';
-    case RunSeed = 'cycle:seed:run';
+    case MigrationCreate = 'cycle:migration:create';
+    case MigrationRollback = 'cycle:migration:rollback';
+    case MigrationRun = 'cycle:migration:run';
+    case CacheClear = 'cycle:cache:clear';
+    case SeedCreate = 'cycle:seed:create';
+    case SeedRun = 'cycle:seed:run';
     case SchemaCompile = 'cycle:schema:compile';
     case SchemaSync = 'cycle:schema:sync';
-    case SchemaMigrationsGenerate = 'cycle:schema:migrations:generate';
+    case SchemaMigrationGenerate = 'cycle:schema:migration:generate';
 }

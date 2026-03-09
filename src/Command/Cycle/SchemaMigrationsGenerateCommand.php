@@ -39,7 +39,7 @@ final class SchemaMigrationsGenerateCommand extends Command
     protected function configure(): void
     {
         $this
-            ->setName(CommandName::SchemaMigrationsGenerate->value)
+            ->setName(CommandName::SchemaMigrationGenerate->value)
             ->setDescription('Generates schema migrations and optionally refreshes compiled schema cache')
         ;
     }

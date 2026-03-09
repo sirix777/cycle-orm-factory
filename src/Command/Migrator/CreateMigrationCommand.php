@@ -69,7 +69,7 @@ final class CreateMigrationCommand extends Command
     protected function configure(): void
     {
         $this
-            ->setName(CommandName::GenerateMigration->value)
+            ->setName(CommandName::MigrationCreate->value)
             ->setDescription('Create an empty migration file')
             ->addArgument('migrationName', InputArgument::REQUIRED, 'The name of the migration in PascalCase format')
             ->addOption(

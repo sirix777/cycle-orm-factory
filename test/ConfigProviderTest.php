@@ -39,12 +39,12 @@ final class ConfigProviderTest extends TestCase
 
         $this->assertArrayHasKey(CommandName::SchemaCompile->value, $commands);
         $this->assertArrayHasKey(CommandName::SchemaSync->value, $commands);
-        $this->assertArrayHasKey(CommandName::RunMigration->value, $commands);
-        $this->assertArrayHasKey(CommandName::RollbackMigration->value, $commands);
-        $this->assertArrayHasKey(CommandName::GenerateMigration->value, $commands);
-        $this->assertArrayHasKey(CommandName::GenerateSeed->value, $commands);
-        $this->assertArrayHasKey(CommandName::RunSeed->value, $commands);
-        $this->assertArrayHasKey(CommandName::ClearCache->value, $commands);
+        $this->assertArrayHasKey(CommandName::MigrationRun->value, $commands);
+        $this->assertArrayHasKey(CommandName::MigrationRollback->value, $commands);
+        $this->assertArrayHasKey(CommandName::MigrationCreate->value, $commands);
+        $this->assertArrayHasKey(CommandName::SeedCreate->value, $commands);
+        $this->assertArrayHasKey(CommandName::SeedRun->value, $commands);
+        $this->assertArrayHasKey(CommandName::CacheClear->value, $commands);
 
         $deps = $provider->getDependencies();
         $factories = $deps['factories'];
@@ -74,12 +74,12 @@ final class ConfigProviderTest extends TestCase
 
         $this->assertArrayHasKey(CommandName::SchemaCompile->value, $commands);
         $this->assertArrayHasKey(CommandName::SchemaSync->value, $commands);
-        $this->assertArrayNotHasKey(CommandName::RunMigration->value, $commands);
-        $this->assertArrayNotHasKey(CommandName::RollbackMigration->value, $commands);
-        $this->assertArrayNotHasKey(CommandName::GenerateMigration->value, $commands);
-        $this->assertArrayNotHasKey(CommandName::GenerateSeed->value, $commands);
-        $this->assertArrayNotHasKey(CommandName::RunSeed->value, $commands);
-        $this->assertArrayNotHasKey(CommandName::SchemaMigrationsGenerate->value, $commands);
+        $this->assertArrayNotHasKey(CommandName::MigrationRun->value, $commands);
+        $this->assertArrayNotHasKey(CommandName::MigrationRollback->value, $commands);
+        $this->assertArrayNotHasKey(CommandName::MigrationCreate->value, $commands);
+        $this->assertArrayNotHasKey(CommandName::SeedCreate->value, $commands);
+        $this->assertArrayNotHasKey(CommandName::SeedRun->value, $commands);
+        $this->assertArrayNotHasKey(CommandName::SchemaMigrationGenerate->value, $commands);
 
         $deps = $provider->getDependencies();
         $factories = $deps['factories'];

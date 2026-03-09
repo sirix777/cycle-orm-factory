@@ -10,7 +10,7 @@ This guide describes breaking changes and migration steps for upgrading to v3.
 | Runtime schema mode | `SchemaProperty` (`SyncTables` / `GenerateMigrations`) in config | Removed; mode moved to explicit CLI commands |
 | Schema config keys | `schema.cache.key`, `schema.cache.service`, `schema.property` | Removed |
 | Runtime behavior | PSR-6 cache lookup + compile pipeline | File load/compile depending on `schema.cache.enabled` |
-| Commands | no `cycle:schema:*` flow | `cycle:schema:compile`, `cycle:schema:sync`, `cycle:schema:migrations:generate` |
+| Commands | no `cycle:schema:*` flow | `cycle:schema:compile`, `cycle:schema:sync`, `cycle:schema:migration:generate` |
 | Console dependency | direct dependency | optional dependency (`symfony/console`) |
 
 ## Configuration migration
@@ -79,7 +79,7 @@ When `cycle.schema.cache.enabled=false`:
   - compile runtime schema and save compiled file.
 - `cycle:schema:sync`
   - run schema sync pipeline (`SyncTables`).
-- `cycle:schema:migrations:generate`
+- `cycle:schema:migration:generate`
   - run migration generation pipeline.
   - available only if `cycle/migrations` and `cycle/schema-migrations-generator` are installed and migrations are not disabled by `CYCLE_MIGRATIONS_DISABLED`.
 

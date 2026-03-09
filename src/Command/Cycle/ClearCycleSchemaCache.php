@@ -26,7 +26,7 @@ final class ClearCycleSchemaCache extends Command
     protected function configure(): void
     {
         $this
-            ->setName(CommandName::ClearCache->value)
+            ->setName(CommandName::CacheClear->value)
             ->setDescription('Clears the Cycle ORM schema cache file')
             ->setHelp('This command clears the compiled schema file used by Cycle ORM')
         ;
