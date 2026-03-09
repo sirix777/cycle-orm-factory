@@ -115,7 +115,7 @@ final class ConfigProvider
             $commands[CommandName::GenerateSeed->value] = Command\Migrator\CreateSeedCommand::class;
             $commands[CommandName::RunSeed->value] = Command\Migrator\SeedCommand::class;
 
-            if (PackageChecker::isGenerateMigrationsAvailable() && PackageChecker::isEntityBehaviorAvailable()) {
+            if (PackageChecker::isGenerateMigrationsAvailable()) {
                 $commands[CommandName::SchemaMigrationsGenerate->value] = Command\Cycle\SchemaMigrationsGenerateCommand::class;
             }
         }
