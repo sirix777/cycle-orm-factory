@@ -27,6 +27,7 @@ use function preg_match;
 use function preg_replace;
 use function random_bytes;
 use function sprintf;
+use function strtolower;
 use function trim;
 use function ucfirst;
 
@@ -131,19 +132,20 @@ final class CreateMigrationCommand extends Command
     {
         $timestamp = (new DateTime())->format('Ymd.His');
         $databaseAlias = $this->normalizeDatabaseAliasForFilename($database);
-        $counter = $this->findNextCounter($migrationName, $databaseAlias);
+        $migrationAlias = $this->normalizeMigrationNameForFilename($migrationName);
+        $counter = $this->findNextCounter($migrationAlias, $databaseAlias);
 
-        return sprintf('%s_0_%d_%s_%s.php', $timestamp, $counter, $databaseAlias, $migrationName);
+        return sprintf('%s_0_%d_%s_%s.php', $timestamp, $counter, $databaseAlias, $migrationAlias);
     }
 
-    private function findNextCounter(string $migrationName, string $databaseAlias): int
+    private function findNextCounter(string $migrationAlias, string $databaseAlias): int
     {
         $pattern = sprintf(
             '%s%s*_*_*_%s_%s.php',
             $this->migrationDirectory,
             DIRECTORY_SEPARATOR,
             $databaseAlias,
-            $migrationName,
+            $migrationAlias,
         );
         $existingFiles = glob($pattern);
 
@@ -155,7 +157,7 @@ final class CreateMigrationCommand extends Command
         foreach ($existingFiles as $file) {
             if (
                 preg_match(
-                    '/\d{8}\.\d{6}_(\d+)_(\d+)_' . $databaseAlias . '_' . $migrationName . '\.php$/',
+                    '/\d{8}\.\d{6}_(\d+)_(\d+)_' . $databaseAlias . '_' . $migrationAlias . '\.php$/',
                     $file,
                     $matches,
                 )
@@ -168,6 +170,14 @@ final class CreateMigrationCommand extends Command
         }
 
         return $maxCounter + 1;
+    }
+
+    private function normalizeMigrationNameForFilename(string $migrationName): string
+    {
+        $alias = preg_replace('/([A-Z]+)([A-Z][a-z])/', '$1_$2', $migrationName);
+        $alias = preg_replace('/([a-z\d])([A-Z])/', '$1_$2', (string) $alias);
+
+        return strtolower((string) $alias);
     }
 
     private function normalizeDatabaseAliasForFilename(string $database): string

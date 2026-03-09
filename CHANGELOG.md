@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New schema commands:
   - `cycle:schema:compile`
   - `cycle:schema:sync`
-  - `cycle:schema:migrations:generate` (available only when `cycle/migrations` and `cycle/schema-migrations-generator` are installed and migrations are enabled).
+  - `cycle:schema:migration:generate` (available only when `cycle/migrations` and `cycle/schema-migrations-generator` are installed and migrations are enabled).
 - New schema compilation mode enum: `SchemaCompileMode` (`Runtime`, `SyncTables`, `GenerateMigrations`).
 - New reusable schema compiler service contract:
   - `Sirix\Cycle\Service\SchemaCompilerInterface`
@@ -33,7 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Command/factory registration updated:
   - built-in commands are registered only when `symfony/console` is available,
   - migration commands are still guarded by migration package availability and `CYCLE_MIGRATIONS_DISABLED`.
-- `cycle:migrator:create` migration filenames now include normalized database alias.
+- `cycle:migration:create` migration filenames now include normalized database alias and store migration names in `snake_case` (while CLI input remains `PascalCase`).
 - `CreateSeedCommand` template/default database behavior aligned with current migrator config and tests.
 - Documentation fully updated for v3 runtime/config/commands model.
 
@@ -80,7 +80,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - CLI options for generators:
-  - `cycle:migrator:create`: new option `--database` (`-d`) to set the `DATABASE` constant in generated migrations; defaults to `main-db` if omitted.
+  - `cycle:migration:create`: new option `--database` (`-d`) to set the `DATABASE` constant in generated migrations; defaults to `main-db` if omitted.
   - `cycle:seed:create`: new option `--database` (`-d`) to set the `DATABASE` constant in generated seed templates; defaults to `main-db` if omitted.
 - Platform: added support for PHP 8.5.
 
@@ -193,7 +193,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Reorganized command structure by moving commands to appropriate namespaces
 - Improved test organization to match the new command structure
-- Changed command name from `cycle:migrator:generate` to `cycle:migrator:create`
+- Changed command name from `cycle:migrator:generate` to `cycle:migration:create`
 
 ### Fixed
 - Various code improvements and bug fixes

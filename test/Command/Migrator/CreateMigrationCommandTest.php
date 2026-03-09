@@ -75,7 +75,7 @@ final class CreateMigrationCommandTest extends TestCase
 
         /** @var non-empty-list<string> $migrations */
         $migrationFileName = basename($migrations[0]);
-        $this->assertMatchesRegularExpression('/^\d{8}\.\d{6}_0_\d+_default_ValidMigrationName\.php$/', $migrationFileName);
+        $this->assertMatchesRegularExpression('/^\d{8}\.\d{6}_0_\d+_default_valid_migration_name\.php$/', $migrationFileName);
 
         $fileContent = file_get_contents($migrations[0]);
         $this->assertIsString($fileContent);
@@ -136,7 +136,7 @@ final class CreateMigrationCommandTest extends TestCase
         $this->assertCount(1, $migrations);
 
         $migrationFileName = basename((string) $migrations[0]);
-        $this->assertMatchesRegularExpression('/^\d{8}\.\d{6}_0_\d+_custom-db_ValidMigrationName\.php$/', $migrationFileName);
+        $this->assertMatchesRegularExpression('/^\d{8}\.\d{6}_0_\d+_custom-db_valid_migration_name\.php$/', $migrationFileName);
 
         $fileContent = file_get_contents((string) $migrations[0]);
         $this->assertStringContainsString("protected const DATABASE = 'custom-db';", (string) $fileContent);
@@ -160,7 +160,7 @@ final class CreateMigrationCommandTest extends TestCase
         $this->assertCount(1, $migrations);
 
         $migrationFileName = basename((string) $migrations[0]);
-        $this->assertMatchesRegularExpression('/^\d{8}\.\d{6}_0_\d+_long-db_ValidMigrationName\.php$/', $migrationFileName);
+        $this->assertMatchesRegularExpression('/^\d{8}\.\d{6}_0_\d+_long-db_valid_migration_name\.php$/', $migrationFileName);
 
         $fileContent = file_get_contents((string) $migrations[0]);
         $this->assertStringContainsString("protected const DATABASE = 'long-db';", (string) $fileContent);
@@ -183,13 +183,13 @@ final class CreateMigrationCommandTest extends TestCase
         $output = new BufferedOutput();
         $command->run($input, $output);
 
-        $migrations = glob($this->migrationDirectory . DIRECTORY_SEPARATOR . '*DuplicateName.php') ?: [];
+        $migrations = glob($this->migrationDirectory . DIRECTORY_SEPARATOR . '*duplicate_name.php') ?: [];
         $this->assertCount(2, $migrations);
 
         $counters = [];
         foreach ($migrations as $migration) {
             $filename = basename($migration);
-            if (preg_match('/^\d{8}\.\d{6}_0_(\d+)_default_DuplicateName\.php$/', $filename, $matches)) {
+            if (preg_match('/^\d{8}\.\d{6}_0_(\d+)_default_duplicate_name\.php$/', $filename, $matches)) {
                 $counters[] = (int) $matches[1];
             }
         }
@@ -224,8 +224,8 @@ final class CreateMigrationCommandTest extends TestCase
         $this->assertCount(1, $files1);
         $this->assertCount(1, $files2);
 
-        $this->assertMatchesRegularExpression('/^\d{8}\.\d{6}_0_\d+_default_CrossDirTest\.php$/', basename($files1[0]));
-        $this->assertMatchesRegularExpression('/^\d{8}\.\d{6}_0_\d+_default_CrossDirTest\.php$/', basename($files2[0]));
+        $this->assertMatchesRegularExpression('/^\d{8}\.\d{6}_0_\d+_default_cross_dir_test\.php$/', basename($files1[0]));
+        $this->assertMatchesRegularExpression('/^\d{8}\.\d{6}_0_\d+_default_cross_dir_test\.php$/', basename($files2[0]));
 
         $this->removePath($dir1);
         $this->removePath($dir2);
@@ -249,12 +249,31 @@ final class CreateMigrationCommandTest extends TestCase
         $hasDbB = false;
 
         foreach ($filenames as $filename) {
-            $hasDbA = $hasDbA || 1 === preg_match('/^\d{8}\.\d{6}_0_0_db-a_PerDbCounter\.php$/', (string) $filename);
-            $hasDbB = $hasDbB || 1 === preg_match('/^\d{8}\.\d{6}_0_0_db-b_PerDbCounter\.php$/', (string) $filename);
+            $hasDbA = $hasDbA || 1 === preg_match('/^\d{8}\.\d{6}_0_0_db-a_per_db_counter\.php$/', (string) $filename);
+            $hasDbB = $hasDbB || 1 === preg_match('/^\d{8}\.\d{6}_0_0_db-b_per_db_counter\.php$/', (string) $filename);
         }
 
         $this->assertTrue($hasDbA);
         $this->assertTrue($hasDbB);
+    }
+
+    /**
+     * @throws ExceptionInterface
+     */
+    public function testExecuteConvertsComplexPascalCaseToSnakeCaseInFilename(): void
+    {
+        $command = new CreateMigrationCommand($this->migrationDirectory, $this->migrator);
+
+        $resultCode = $command->run(new ArrayInput(['migrationName' => 'CreateUserAPIKey']), new BufferedOutput());
+        $this->assertSame(Command::SUCCESS, $resultCode);
+
+        $migrations = glob($this->migrationDirectory . DIRECTORY_SEPARATOR . '*.php') ?: [];
+        $this->assertCount(1, $migrations);
+
+        $this->assertMatchesRegularExpression(
+            '/^\d{8}\.\d{6}_0_\d+_default_create_user_api_key\.php$/',
+            basename($migrations[0]),
+        );
     }
 
     private function removePath(string $path): void

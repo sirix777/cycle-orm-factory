@@ -189,7 +189,7 @@ Migration/seed command availability:
 
 `cycle:migration:create` supports `--database` (`-b`).
 Generated filename includes database alias:
-- `<timestamp>_0_<counter>_<database-alias>_<MigrationName>.php`
+- `<timestamp>_0_<counter>_<database-alias>_<migration_name_in_snake_case>.php`
 
 ### CLI usage examples
 
