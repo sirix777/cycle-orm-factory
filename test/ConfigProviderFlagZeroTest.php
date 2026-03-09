@@ -5,11 +5,6 @@ declare(strict_types=1);
 namespace Sirix\Cycle\Test;
 
 use PHPUnit\Framework\TestCase;
-use Sirix\Cycle\Command\Migrator\CreateMigrationCommand;
-use Sirix\Cycle\Command\Migrator\CreateSeedCommand;
-use Sirix\Cycle\Command\Migrator\MigrateCommand;
-use Sirix\Cycle\Command\Migrator\RollbackCommand;
-use Sirix\Cycle\Command\Migrator\SeedCommand;
 use Sirix\Cycle\ConfigProvider;
 use Sirix\Cycle\Enum\CommandName;
 
@@ -36,18 +31,12 @@ final class ConfigProviderFlagZeroTest extends TestCase
         $config = $provider->__invoke();
 
         $commands = $config['laminas-cli']['commands'];
-        $this->assertArrayHasKey(CommandName::RunMigration->value, $commands);
-        $this->assertArrayHasKey(CommandName::RollbackMigration->value, $commands);
-        $this->assertArrayHasKey(CommandName::GenerateMigration->value, $commands);
-        $this->assertArrayHasKey(CommandName::GenerateSeed->value, $commands);
-        $this->assertArrayHasKey(CommandName::RunSeed->value, $commands);
-
-        $deps = $provider->getDependencies();
-        $factories = $deps['factories'];
-        $this->assertArrayHasKey(MigrateCommand::class, $factories);
-        $this->assertArrayHasKey(RollbackCommand::class, $factories);
-        $this->assertArrayHasKey(CreateMigrationCommand::class, $factories);
-        $this->assertArrayHasKey(CreateSeedCommand::class, $factories);
-        $this->assertArrayHasKey(SeedCommand::class, $factories);
+        $this->assertArrayHasKey(CommandName::MigrationRun->value, $commands);
+        $this->assertArrayHasKey(CommandName::MigrationRollback->value, $commands);
+        $this->assertArrayHasKey(CommandName::MigrationCreate->value, $commands);
+        $this->assertArrayHasKey(CommandName::SeedCreate->value, $commands);
+        $this->assertArrayHasKey(CommandName::SeedRun->value, $commands);
+        $this->assertArrayHasKey(CommandName::SchemaCompile->value, $commands);
+        $this->assertArrayHasKey(CommandName::SchemaSync->value, $commands);
     }
 }

@@ -9,18 +9,19 @@ use const DIRECTORY_SEPARATOR;
 use Exception;
 use Sirix\Cycle\Command\Helper\FileNameValidator;
 use Sirix\Cycle\Enum\CommandName;
+use Sirix\Cycle\Internal\FileSystem;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
-use Symfony\Component\Filesystem\Filesystem;
 
 use function sprintf;
 
 final class CreateSeedCommand extends Command
 {
-    private const DEFAULT_DATABASE = 'main-db';
+    private const DEFAULT_DATABASE = 'default';
 
     private const SEED_TEMPLATE = <<<'PHP'
         <?php
@@ -52,9 +53,9 @@ final class CreateSeedCommand extends Command
     protected function configure(): void
     {
         $this
-            ->setName(CommandName::GenerateSeed->value)
+            ->setName(CommandName::SeedCreate->value)
             ->setDescription('Create a seed file')
-            ->addArgument('seed', InputOption::VALUE_REQUIRED, 'The name of the seed in PascalCase format')
+            ->addArgument('seed', InputArgument::OPTIONAL, 'The name of the seed in PascalCase format')
             ->addOption(
                 'database',
                 'b',
@@ -72,9 +73,9 @@ final class CreateSeedCommand extends Command
         $seedName = (string) $input->getArgument('seed');
 
         if ('' === $seedName || '0' === $seedName) {
-            $io->error('Seed name is required.');
+            $io->error('Seed name is required. Use PascalCase, for example: cycle:seed:create CreateUsersSeed');
 
-            return Command::FAILURE;
+            return Command::INVALID;
         }
 
         if (! FileNameValidator::isPascalCase($seedName)) {
@@ -92,10 +93,10 @@ final class CreateSeedCommand extends Command
 
         $fileContent = $this->getSeedFileContent($seedName, $database);
 
-        $filesystem = new Filesystem();
+        $filesystem = new FileSystem();
 
         try {
-            $filesystem->dumpFile($filePath, $fileContent);
+            $filesystem->writeFile($filePath, $fileContent);
             $io->success("Seed created: {$filePath}");
         } catch (Exception $e) {
             $io->error("Failed to create seed: {$e->getMessage()}");

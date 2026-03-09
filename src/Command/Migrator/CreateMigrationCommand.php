@@ -10,6 +10,7 @@ use DateTime;
 use Exception;
 use Sirix\Cycle\Command\Helper\FileNameValidator;
 use Sirix\Cycle\Enum\CommandName;
+use Sirix\Cycle\Internal\FileSystem;
 use Sirix\Cycle\Service\MigratorInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -17,21 +18,23 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
-use Symfony\Component\Filesystem\Filesystem;
 
 use function bin2hex;
 use function glob;
 use function md5;
 use function microtime;
 use function preg_match;
+use function preg_replace;
 use function random_bytes;
 use function sprintf;
+use function strtolower;
+use function trim;
 use function ucfirst;
 
 final class CreateMigrationCommand extends Command
 {
     private const UNIQUE_ID_LENGTH = 18;
-    private const DEFAULT_DATABASE = 'main-db';
+    private const DEFAULT_DATABASE = 'default';
 
     private const MIGRATION_TEMPLATE = <<<'PHP'
         <?php
@@ -67,9 +70,9 @@ final class CreateMigrationCommand extends Command
     protected function configure(): void
     {
         $this
-            ->setName(CommandName::GenerateMigration->value)
+            ->setName(CommandName::MigrationCreate->value)
             ->setDescription('Create an empty migration file')
-            ->addArgument('migrationName', InputArgument::REQUIRED, 'The name of the migration in PascalCase format')
+            ->addArgument('migrationName', InputArgument::OPTIONAL, 'The name of the migration in PascalCase format')
             ->addOption(
                 'database',
                 'b',
@@ -85,6 +88,11 @@ final class CreateMigrationCommand extends Command
         $io = new SymfonyStyle($input, $output);
 
         $migrationName = (string) $input->getArgument('migrationName');
+        if ('' === $migrationName || '0' === $migrationName) {
+            $io->error('Migration name is required. Use PascalCase, for example: cycle:migration:create CreateUsers');
+
+            return Command::INVALID;
+        }
 
         if (! FileNameValidator::isPascalCase($migrationName)) {
             $io->error('Invalid migration name. Use PascalCase format.');
@@ -92,22 +100,19 @@ final class CreateMigrationCommand extends Command
             return Command::FAILURE;
         }
 
-        $filename = $this->generateMigrationName($migrationName);
-
-        $filePath = $this->migrationDirectory . DIRECTORY_SEPARATOR . $filename;
-
-        $className = sprintf('Orm%s', ucfirst($this->getUniqueId()));
-
         /** @var null|string $database */
         $database = $input->getOption('database');
         $database = null === $database || '' === $database ? self::DEFAULT_DATABASE : $database;
 
+        $filename = $this->generateMigrationName($migrationName, $database);
+        $filePath = $this->migrationDirectory . DIRECTORY_SEPARATOR . $filename;
+        $className = sprintf('Orm%s', ucfirst($this->getUniqueId()));
         $fileContent = $this->getMigrationFileContent($className, $database);
 
-        $filesystem = new Filesystem();
+        $filesystem = new FileSystem();
 
         try {
-            $filesystem->dumpFile($filePath, $fileContent);
+            $filesystem->writeFile($filePath, $fileContent);
             $io->success("Migration created: {$filePath}");
         } catch (Exception $e) {
             $io->error("Failed to create migration: {$e->getMessage()}");
@@ -128,17 +133,25 @@ final class CreateMigrationCommand extends Command
         );
     }
 
-    private function generateMigrationName(string $migrationName): string
+    private function generateMigrationName(string $migrationName, string $database): string
     {
         $timestamp = (new DateTime())->format('Ymd.His');
-        $counter = $this->findNextCounter($migrationName);
+        $databaseAlias = $this->normalizeDatabaseAliasForFilename($database);
+        $migrationAlias = $this->normalizeMigrationNameForFilename($migrationName);
+        $counter = $this->findNextCounter($migrationAlias, $databaseAlias);
 
-        return sprintf('%s_0_%d_%s.php', $timestamp, $counter, $migrationName);
+        return sprintf('%s_0_%d_%s_%s.php', $timestamp, $counter, $databaseAlias, $migrationAlias);
     }
 
-    private function findNextCounter(string $migrationName): int
+    private function findNextCounter(string $migrationAlias, string $databaseAlias): int
     {
-        $pattern = $this->migrationDirectory . DIRECTORY_SEPARATOR . '*_*_*_' . $migrationName . '.php';
+        $pattern = sprintf(
+            '%s%s*_*_*_%s_%s.php',
+            $this->migrationDirectory,
+            DIRECTORY_SEPARATOR,
+            $databaseAlias,
+            $migrationAlias,
+        );
         $existingFiles = glob($pattern);
 
         if ([] === $existingFiles || false === $existingFiles) {
@@ -147,7 +160,13 @@ final class CreateMigrationCommand extends Command
 
         $maxCounter = -1;
         foreach ($existingFiles as $file) {
-            if (preg_match('/\d{8}\.\d{6}_(\d+)_(\d+)_' . $migrationName . '\.php$/', $file, $matches)) {
+            if (
+                preg_match(
+                    '/\d{8}\.\d{6}_(\d+)_(\d+)_' . $databaseAlias . '_' . $migrationAlias . '\.php$/',
+                    $file,
+                    $matches,
+                )
+            ) {
                 $counter = (int) $matches[1];
                 if ($counter > $maxCounter) {
                     $maxCounter = $counter;
@@ -156,6 +175,22 @@ final class CreateMigrationCommand extends Command
         }
 
         return $maxCounter + 1;
+    }
+
+    private function normalizeMigrationNameForFilename(string $migrationName): string
+    {
+        $alias = preg_replace('/([A-Z]+)([A-Z][a-z])/', '$1_$2', $migrationName);
+        $alias = preg_replace('/([a-z\d])([A-Z])/', '$1_$2', (string) $alias);
+
+        return strtolower((string) $alias);
+    }
+
+    private function normalizeDatabaseAliasForFilename(string $database): string
+    {
+        $alias = preg_replace('/[^a-zA-Z0-9_-]+/', '_', $database);
+        $alias = trim((string) $alias, '_');
+
+        return '' === $alias ? self::DEFAULT_DATABASE : $alias;
     }
 
     private function getUniqueId(): string

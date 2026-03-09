@@ -6,7 +6,6 @@ use Cycle\Database\Config;
 use Cycle\ORM\Mapper\Mapper;
 use Cycle\ORM\Relation;
 use Cycle\ORM\SchemaInterface;
-use Sirix\Cycle\Enum\SchemaProperty;
 
 return [
     'cycle' => [
@@ -36,7 +35,7 @@ return [
             'directory' => 'db/migrations',
             'vendor_directories' => ['vendor/path'],
             'table' => 'migrations',
-            'namespace' => 'App\Migrations',
+            'namespace' => 'App\\Migrations',
             'safe' => false,
             'seed_directory' => 'db/seeds',
         ],
@@ -49,13 +48,13 @@ return [
             // new \App\Cycle\Schema\Generator\InlineGenerator(),
         ],
         'schema' => [
-            'property' => SchemaProperty::GenerateMigrations,
             'cache' => [
                 'enabled' => true,
-                'key' => 'cycle_cached_schema', // optional parameter
-                'service' => CacheItemPoolInterface::class, // optional parameter if psr container have 'cache' CacheItemPoolInterface service
             ],
-            'manual_entity_schema_definition' => [
+            'compiled' => [
+                'path' => 'data/cache/cycle/schema.php',
+            ],
+            'manual_mapping_schema_definitions' => [
                 'user' => [
                     SchemaInterface::ENTITY => User::class,
                     SchemaInterface::MAPPER => Mapper::class,

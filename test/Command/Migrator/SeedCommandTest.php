@@ -16,16 +16,19 @@ use Sirix\Cycle\Service\SeedInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
-use Symfony\Component\Filesystem\Filesystem;
 
 use function file_exists;
 use function file_put_contents;
 use function glob;
+use function is_dir;
+use function is_file;
 use function mkdir;
 use function rename;
+use function rmdir;
 use function sprintf;
 use function sys_get_temp_dir;
 use function uniqid;
+use function unlink;
 
 class SeedCommandTest extends TestCase
 {
@@ -75,9 +78,8 @@ class SeedCommandTest extends TestCase
 
     protected function tearDown(): void
     {
-        $filesystem = new Filesystem();
         if (file_exists($this->seedDirectory)) {
-            $filesystem->remove($this->seedDirectory);
+            $this->removePath($this->seedDirectory);
         }
     }
 
@@ -99,8 +101,7 @@ class SeedCommandTest extends TestCase
 
     public function testExecuteWithNoSeedFiles(): void
     {
-        $filesystem = new Filesystem();
-        $filesystem->remove($this->seedDirectory);
+        $this->removePath($this->seedDirectory);
         mkdir($this->seedDirectory, 0o777, true);
 
         $result = $this->runCommand([], 0);
@@ -204,7 +205,7 @@ class SeedCommandTest extends TestCase
         $result = $this->runCommand(['--path' => $customDir, '--seed' => 'CustomDirSeed']);
         $this->assertCommandResult($result, Command::SUCCESS, 'Seed "CustomDirSeed" executed successfully.');
 
-        (new Filesystem())->remove($customDir);
+        $this->removePath($customDir);
     }
 
     public function testExecuteWithShortDirectoryOption(): void
@@ -221,7 +222,7 @@ class SeedCommandTest extends TestCase
         $result = $this->runCommand(['-p' => $customDir, '--seed' => 'ShortDirSeed']);
         $this->assertCommandResult($result, Command::SUCCESS, 'Seed "ShortDirSeed" executed successfully.');
 
-        (new Filesystem())->remove($customDir);
+        $this->removePath($customDir);
     }
 
     public function testExecuteWithDatabaseOptionOverridesSeedConstant(): void
@@ -311,6 +312,25 @@ class SeedCommandTest extends TestCase
     {
         $this->assertSame($expectedCode, $result['code']);
         $this->assertStringContainsString($expectedOutputContains, $result['output']);
+    }
+
+    private function removePath(string $path): void
+    {
+        if (is_file($path)) {
+            unlink($path);
+
+            return;
+        }
+
+        if (! is_dir($path)) {
+            return;
+        }
+
+        foreach ((array) glob($path . DIRECTORY_SEPARATOR . '*') as $item) {
+            $this->removePath((string) $item);
+        }
+
+        rmdir($path);
     }
 
     private function getSeedCommand(): SeedCommand

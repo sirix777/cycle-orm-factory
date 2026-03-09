@@ -51,7 +51,7 @@ final class SeedCommand extends Command
     protected function configure(): void
     {
         $this
-            ->setName(CommandName::RunSeed->value)
+            ->setName(CommandName::SeedRun->value)
             ->setDescription('Run seed files')
             ->addArgument(
                 'seed',

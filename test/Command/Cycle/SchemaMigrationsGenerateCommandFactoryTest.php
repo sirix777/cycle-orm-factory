@@ -1,0 +1,67 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Sirix\Cycle\Test\Command\Cycle;
+
+use Cycle\Database\Config\DatabaseConfig;
+use Cycle\Database\DatabaseManager;
+use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\TestCase;
+use Psr\Container\ContainerInterface;
+use Sirix\Cycle\Command\Cycle\SchemaMigrationsGenerateCommand;
+use Sirix\Cycle\Command\Cycle\SchemaMigrationsGenerateCommandFactory;
+use Sirix\Cycle\Service\CompiledSchemaStorage;
+use Sirix\Cycle\Service\SchemaCompilerInterface;
+
+final class SchemaMigrationsGenerateCommandFactoryTest extends TestCase
+{
+    private ContainerInterface|MockObject $container;
+    private MockObject|SchemaCompilerInterface $schemaCompiler;
+    private CompiledSchemaStorage $storage;
+    private DatabaseManager $dbal;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->container = $this->createMock(ContainerInterface::class);
+        $this->schemaCompiler = $this->createMock(SchemaCompilerInterface::class);
+        $this->storage = new CompiledSchemaStorage();
+        $this->dbal = new DatabaseManager(new DatabaseConfig([]));
+    }
+
+    public function testFactoryBuildsCommand(): void
+    {
+        $this->container
+            ->method('has')
+            ->with('config')
+            ->willReturn(true)
+        ;
+
+        $this->container
+            ->method('get')
+            ->willReturnMap([
+                ['config', [
+                    'cycle' => [
+                        'entities' => ['src/Entity'],
+                        'generators' => ['my.generator'],
+                        'schema' => [
+                            'cache' => ['enabled' => true],
+                            'compiled' => ['path' => '/tmp/schema.php'],
+                            'manual_mapping_schema_definitions' => ['foo' => ['bar' => 'baz']],
+                        ],
+                    ],
+                ]],
+                [SchemaCompilerInterface::class, $this->schemaCompiler],
+                [CompiledSchemaStorage::class, $this->storage],
+                ['dbal', $this->dbal],
+            ])
+        ;
+
+        $factory = new SchemaMigrationsGenerateCommandFactory();
+        $command = $factory($this->container);
+
+        $this->assertInstanceOf(SchemaMigrationsGenerateCommand::class, $command);
+    }
+}

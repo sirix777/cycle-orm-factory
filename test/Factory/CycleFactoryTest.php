@@ -8,223 +8,196 @@ use Cycle\Database\Config\DatabaseConfig;
 use Cycle\Database\DatabaseManager;
 use Cycle\ORM\Exception\ConfigException;
 use Cycle\ORM\ORM;
-use PHPUnit\Framework\MockObject\Exception;
-use PHPUnit\Framework\MockObject\MockObject;
+use Cycle\ORM\SchemaInterface;
 use PHPUnit\Framework\TestCase;
-use Psr\Cache\CacheItemPoolInterface;
-use Psr\Cache\InvalidArgumentException;
-use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\ContainerInterface;
 use Psr\Container\NotFoundExceptionInterface;
+use RuntimeException;
 use Sirix\Cycle\Factory\CycleFactory;
-use Sirix\Cycle\Service\MigratorInterface;
-use Symfony\Component\Cache\Adapter\FilesystemAdapter;
-use Symfony\Component\Filesystem\Filesystem;
+use stdClass;
 
+use function bin2hex;
 use function file_exists;
+use function is_file;
+use function mkdir;
+use function random_bytes;
+use function rmdir;
+use function sprintf;
+use function sys_get_temp_dir;
+use function unlink;
 
 final class CycleFactoryTest extends TestCase
 {
-    private const DEFAULT_CACHE_DIR = 'tests/cache';
-    private ContainerInterface|MockObject $container;
-    private CacheItemPoolInterface $cache;
+    private string $tmpDir;
 
-    /** @var array<string, array<int|string, mixed>> */
-    private array $config;
-
-    /**
-     * @throws Exception
-     */
-    public function setUp(): void
+    protected function setUp(): void
     {
         parent::setUp();
-        $this->container = $this->createMock(
-            ContainerInterface::class
-        );
-        $this->config = [
-            'cycle' => [
-                'entities' => [
-                    'src',
-                ],
-                'schema' => [
-                    'property' => null,
-                ],
-            ],
-        ];
 
-        $this->cache = new FilesystemAdapter(
-            'cycle_orm_test',
-            0,
-            self::DEFAULT_CACHE_DIR
-        );
+        $this->tmpDir = sprintf('%s/cycle_factory_test_%s', sys_get_temp_dir(), bin2hex(random_bytes(8)));
+        mkdir($this->tmpDir, 0o777, true);
     }
 
-    public function tearDown(): void
+    protected function tearDown(): void
     {
         parent::tearDown();
-        if (file_exists(self::DEFAULT_CACHE_DIR)) {
-            $this->removeCacheDir();
+
+        if (is_file($this->tmpDir . '/schema.php')) {
+            unlink($this->tmpDir . '/schema.php');
         }
+
+        @rmdir($this->tmpDir);
     }
 
-    /**
-     * @throws ContainerExceptionInterface
-     * @throws InvalidArgumentException|NotFoundExceptionInterface
-     */
-    public function testFactoryWithoutConfig(): void
+    public function testFactoryWithoutConfigThrowsException(): void
     {
-        $this->container
-            ->expects($this->once())
-            ->method('has')
-            ->with('config')
-            ->willReturn(false)
-        ;
+        $container = new class implements ContainerInterface {
+            public function get(string $id)
+            {
+                return null;
+            }
+
+            public function has(string $id): bool
+            {
+                return false;
+            }
+        };
 
         $factory = new CycleFactory();
+
         $this->expectException(ConfigException::class);
-        $this->expectExceptionMessage('Expected config entities');
-        $factory($this->container);
+        $this->expectExceptionMessage('Expected dbal service');
+        $factory($container);
     }
 
-    /**
-     * @throws ContainerExceptionInterface
-     * @throws NotFoundExceptionInterface
-     * @throws Exception|InvalidArgumentException
-     */
-    public function testFactoryWithConfigWithoutDbal(): void
+    public function testFactoryThrowsWhenDbalMissing(): void
     {
-        $exceptionMock = $this->createMock(
-            NotFoundExceptionInterface::class
-        );
+        $container = new class implements ContainerInterface {
+            public function get(string $id)
+            {
+                if ('config' === $id) {
+                    return [
+                        'cycle' => [
+                            'entities' => ['src'],
+                        ],
+                    ];
+                }
 
-        $this->container
-            ->expects($this->once())
-            ->method('has')
-            ->with('config')
-            ->willReturn(true)
-        ;
+                throw new class('dbal not found') extends RuntimeException implements NotFoundExceptionInterface {};
+            }
 
-        $this->container->expects($this->exactly(2))
-            ->method('get')
-            ->willReturnCallback(fn ($serviceName) => match ($serviceName) {
-                'config' => $this->config,
-                'cache' => $this->cache,
-                'dbal' => throw new $exceptionMock('dbal not found'),
-                default => null,
-            })
-        ;
+            public function has(string $id): bool
+            {
+                return 'config' === $id;
+            }
+        };
 
         $factory = new CycleFactory();
 
         $this->expectException(NotFoundExceptionInterface::class);
         $this->expectExceptionMessage('dbal not found');
-        $factory($this->container);
+        $factory($container);
     }
 
-    /**
-     * @throws ContainerExceptionInterface
-     * @throws NotFoundExceptionInterface
-     * @throws Exception|InvalidArgumentException
-     */
-    public function testFactoryWithConfigWithDbalWithoutMigrator(): void
+    public function testFactoryCompilesAndPersistsSchemaWhenCacheEnabled(): void
     {
-        $exceptionMock = $this->createMock(
-            NotFoundExceptionInterface::class
-        );
+        $path = $this->tmpDir . '/schema.php';
+        $config = [
+            'cycle' => [
+                'entities' => ['src'],
+                'schema' => [
+                    'cache' => ['enabled' => true],
+                    'compiled' => ['path' => $path],
+                ],
+            ],
+        ];
 
-        $this->container
-            ->expects($this->once())
-            ->method('has')
-            ->willReturn(true)
-        ;
-
-        $this->container->expects($this->exactly(3))
-            ->method('get')
-            ->willReturnCallback(fn ($serviceName) => match ($serviceName) {
-                'config' => $this->config,
-                'cache' => $this->cache,
-                'dbal' => new DatabaseManager(new DatabaseConfig([])),
-                'migrator' => throw new $exceptionMock('migrator not found'),
-                default => null,
-            })
-        ;
+        $container = $this->createContainer($config);
 
         $factory = new CycleFactory();
+        $orm = $factory($container);
 
-        $this->expectException(NotFoundExceptionInterface::class);
-        $this->expectExceptionMessage('migrator not found');
-        $factory($this->container);
+        $this->assertInstanceOf(ORM::class, $orm);
+        $this->assertTrue(file_exists($path));
     }
 
-    /**
-     * @throws NotFoundExceptionInterface
-     * @throws Exception
-     * @throws InvalidArgumentException
-     * @throws ContainerExceptionInterface
-     */
-    public function testFactoryWithConfigWithDbalWithMigratorWithCache(): void
+    public function testFactoryCompilesWithoutPersistingWhenCacheDisabled(): void
     {
-        $this->makeFactory(true);
-        $this->assertTrue(file_exists(self::DEFAULT_CACHE_DIR));
-    }
+        $path = $this->tmpDir . '/schema.php';
+        $config = [
+            'cycle' => [
+                'entities' => ['src'],
+                'schema' => [
+                    'cache' => ['enabled' => false],
+                    'compiled' => ['path' => $path],
+                ],
+            ],
+        ];
 
-    /**
-     * @throws NotFoundExceptionInterface
-     * @throws Exception
-     * @throws InvalidArgumentException
-     * @throws ContainerExceptionInterface
-     */
-    public function testFactoryWithConfigWithDbalWithMigratorWithoutCache(): void
-    {
-        $this->makeFactory();
-    }
-
-    /**
-     * @throws ContainerExceptionInterface
-     * @throws NotFoundExceptionInterface
-     * @throws Exception|InvalidArgumentException
-     */
-    private function makeFactory(bool $cache = false): void
-    {
-        $migratorMock = $this->createMock(MigratorInterface::class);
-
-        $config = $this->config;
-        if ($cache) {
-            $config['cycle']['schema']['cache']['enabled'] = true;
-        }
-
-        $this->container
-            ->method('has')
-            ->willReturnCallback(fn ($serviceName) => match ($serviceName) {
-                'config' => true,
-                'cache' => $cache,
-                default => false,
-            })
-        ;
-
-        $this->container
-            ->expects($this->exactly($cache ? 4 : 3))
-            ->method('get')
-            ->willReturnCallback(fn ($serviceName) => match ($serviceName) {
-                'config' => $config,
-                'dbal' => new DatabaseManager(new DatabaseConfig([])),
-                'migrator' => $migratorMock,
-                'cache' => $cache ? $this->cache : null,
-                default => null,
-            })
-        ;
+        $container = $this->createContainer($config);
 
         $factory = new CycleFactory();
+        $orm = $factory($container);
 
-        $this->assertInstanceOf(
-            ORM::class,
-            $factory($this->container)
-        );
+        $this->assertInstanceOf(ORM::class, $orm);
+        $this->assertFalse(file_exists($path));
     }
 
-    private function removeCacheDir(): void
+    public function testFactoryAllowsMissingEntitiesWhenManualMappingExists(): void
     {
-        $filesystem = new Filesystem();
-        $filesystem->remove(self::DEFAULT_CACHE_DIR);
+        $config = [
+            'cycle' => [
+                'schema' => [
+                    'cache' => ['enabled' => false],
+                    'manual_mapping_schema_definitions' => [
+                        'dummy' => [
+                            SchemaInterface::ENTITY => stdClass::class,
+                            SchemaInterface::DATABASE => 'default',
+                            SchemaInterface::TABLE => 'dummy',
+                            SchemaInterface::PRIMARY_KEY => 'id',
+                            SchemaInterface::COLUMNS => ['id' => 'id'],
+                            SchemaInterface::TYPECAST => ['id' => 'int'],
+                            SchemaInterface::RELATIONS => [],
+                        ],
+                    ],
+                ],
+            ],
+        ];
+
+        $container = $this->createContainer($config);
+
+        $factory = new CycleFactory();
+        $orm = $factory($container);
+
+        $this->assertInstanceOf(ORM::class, $orm);
+    }
+
+    /**
+     * @param array<string, mixed> $config
+     */
+    private function createContainer(array $config): ContainerInterface
+    {
+        $dbal = new DatabaseManager(new DatabaseConfig([]));
+
+        return new class($config, $dbal) implements ContainerInterface {
+            /**
+             * @param array<string, mixed> $config
+             */
+            public function __construct(private readonly array $config, private readonly DatabaseManager $dbal) {}
+
+            public function get(string $id)
+            {
+                return match ($id) {
+                    'config' => $this->config,
+                    'dbal' => $this->dbal,
+                    default => throw new RuntimeException('Unknown service: ' . $id),
+                };
+            }
+
+            public function has(string $id): bool
+            {
+                return 'config' === $id;
+            }
+        };
     }
 }

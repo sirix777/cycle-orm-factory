@@ -22,7 +22,7 @@ final class RollbackCommand extends Command
     protected function configure(): void
     {
         $this
-            ->setName(CommandName::RollbackMigration->value)
+            ->setName(CommandName::MigrationRollback->value)
             ->setDescription('Rollback last migration')
         ;
     }
