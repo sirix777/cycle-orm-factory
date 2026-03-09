@@ -13,7 +13,7 @@
         "php": "~8.2.0 || ~8.3.0 || ~8.4.0 || ~8.5.0",
         "cycle/annotated": "^4.4",
         "cycle/database": "^2.15",
-        "cycle/orm": "^v2.12.3",
+        "cycle/orm": "^2.12.3",
         "spiral/tokenizer": "^2.14 || ^3.0"
     },
     "require-dev": {
@@ -32,6 +32,7 @@
         "cycle/migrations": "Optional: Database migrations runtime (Migrator). Required to run migration commands",
         "cycle/schema-migrations-generator": "Optional: Generate migration files from schema changes",
         "laminas/laminas-cli": "Optional: Provides convenient CLI integration for Laminas/Mezzio applications",
+        "sirix/cycle-orm-extensions": "Optional: Practical extensions for Cycle ORM: base repositories, entity traits, typecasts, and more",
         "symfony/console": "Optional: Required only for built-in CLI commands"
     },
     "autoload": {
