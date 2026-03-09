@@ -6,6 +6,7 @@ namespace Sirix\Cycle\Factory;
 
 use Cycle\Database\DatabaseManager;
 use Cycle\ORM;
+use Cycle\ORM\Entity\Behavior\EventDrivenCommandGenerator;
 use Cycle\ORM\Exception\ConfigException;
 use Cycle\ORM\ORMInterface;
 use Cycle\ORM\Schema as ORMSchema;
@@ -13,11 +14,11 @@ use Cycle\ORM\Transaction\CommandGeneratorInterface;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\ContainerInterface;
 use Psr\Container\NotFoundExceptionInterface;
+use Sirix\Cycle\Internal\PackageChecker;
 use Sirix\Cycle\Service\CompiledSchemaStorage;
 use Sirix\Cycle\Service\SchemaCompilerInterface;
 use Sirix\Cycle\Service\SchemaCompilerService;
 
-use function class_exists;
 use function is_array;
 use function is_string;
 
@@ -134,13 +135,10 @@ final class CycleFactory
         ORMSchema $schema,
         ContainerInterface $container
     ): ?CommandGeneratorInterface {
-        $commandGeneratorClass = 'Cycle\ORM\Entity\Behavior\EventDrivenCommandGenerator';
-        if (! class_exists($commandGeneratorClass)) {
+        if (! PackageChecker::isEntityBehaviorAvailable()) {
             return null;
         }
 
-        $commandGenerator = new $commandGeneratorClass($schema, $container);
-
-        return $commandGenerator instanceof CommandGeneratorInterface ? $commandGenerator : null;
+        return new EventDrivenCommandGenerator($schema, $container);
     }
 }

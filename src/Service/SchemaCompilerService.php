@@ -11,11 +11,13 @@ use Cycle\Database\DatabaseManager;
 use Cycle\ORM\Exception\ConfigException;
 use Cycle\Schema;
 use Cycle\Schema\Generator\Migrations\GenerateMigrations;
+use Cycle\Schema\GeneratorInterface;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\ContainerInterface;
 use Psr\Container\NotFoundExceptionInterface;
 use Sirix\Cycle\Enum\SchemaCompileMode;
 use Sirix\Cycle\Internal\MigrationsToggle;
+use Sirix\Cycle\Internal\PackageChecker;
 use Spiral\Tokenizer\ClassLocator;
 use Symfony\Component\Finder\Finder;
 
@@ -149,7 +151,7 @@ final readonly class SchemaCompilerService implements SchemaCompilerInterface
     /**
      * @param array<int, mixed> $additionalGenerators
      *
-     * @return array<Schema\GeneratorInterface>
+     * @return array<GeneratorInterface>
      *
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
@@ -160,13 +162,13 @@ final readonly class SchemaCompilerService implements SchemaCompilerInterface
 
         foreach ($additionalGenerators as $generator) {
             $instance = match (true) {
-                $generator instanceof Schema\GeneratorInterface => $generator,
+                $generator instanceof GeneratorInterface => $generator,
                 is_string($generator) && $this->container->has($generator) => $this->container->get($generator),
                 is_string($generator) && class_exists($generator) => new $generator(),
                 default => throw new ConfigException('Invalid schema generator provided in config.cycle.generators')
             };
 
-            if (! $instance instanceof Schema\GeneratorInterface) {
+            if (! $instance instanceof GeneratorInterface) {
                 throw new ConfigException('Invalid schema generator provided in config.cycle.generators');
             }
 
@@ -176,9 +178,13 @@ final readonly class SchemaCompilerService implements SchemaCompilerInterface
         return $resolved;
     }
 
+    /**
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     */
     private function createGenerateMigrationsGenerator(): GenerateMigrations
     {
-        if (! MigrationsToggle::isGenerateMigrationsAvailable() || MigrationsToggle::isDisabledByEnv()) {
+        if (! PackageChecker::isGenerateMigrationsAvailable() || MigrationsToggle::isDisabledByEnv()) {
             throw new ConfigException(
                 <<<'MESSAGE'
                     Schema migrations generator is unavailable. Ensure cycle/migrations and

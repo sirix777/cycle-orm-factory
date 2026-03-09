@@ -18,6 +18,7 @@
     },
     "require-dev": {
         "bamarni/composer-bin-plugin": "^1.8",
+        "cycle/entity-behavior": "^1.7",
         "cycle/migrations": "^4.2",
         "cycle/schema-migrations-generator": "^2.3",
         "mockery/mockery": "^1.6",
