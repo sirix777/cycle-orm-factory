@@ -103,13 +103,13 @@ final readonly class SchemaCompilerService implements SchemaCompilerInterface
                 ...$generators,
                 new Annotated\Embeddings(new TokenizerEmbeddingLocator($classLocator)),
                 new Annotated\Entities(new TokenizerEntityLocator($classLocator)),
-                new Annotated\TableInheritance(),
-                new Annotated\MergeColumns(),
             ];
         }
 
         $generators = [
             ...$generators,
+            new Annotated\TableInheritance(),
+            new Annotated\MergeColumns(),
             new Schema\Generator\GenerateRelations(),
             new Schema\Generator\GenerateModifiers(),
             new Schema\Generator\ValidateEntities(),
