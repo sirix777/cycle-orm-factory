@@ -56,9 +56,9 @@ final class ConfigProvider
 
         if (PackageChecker::isConsoleAvailable()) {
             $factories[Command\Cycle\ClearCycleSchemaCache::class] = Command\Cycle\ClearCycleSchemaCacheFactory::class;
-            $factories[Command\Cycle\SchemaSyncCommand::class] = Command\Cycle\SchemaSyncCommandFactory::class;
 
             if (PackageChecker::isEntityBehaviorAvailable()) {
+                $factories[Command\Cycle\SchemaSyncCommand::class] = Command\Cycle\SchemaSyncCommandFactory::class;
                 $factories[Command\Cycle\SchemaCompileCommand::class] = Command\Cycle\SchemaCompileCommandFactory::class;
             }
         }
@@ -70,7 +70,7 @@ final class ConfigProvider
             $factories[Command\Migrator\CreateSeedCommand::class] = Command\Migrator\CreateSeedCommandFactory::class;
             $factories[Command\Migrator\SeedCommand::class] = Command\Migrator\SeedCommandFactory::class;
 
-            if (PackageChecker::isGenerateMigrationsAvailable() && PackageChecker::isEntityBehaviorAvailable()) {
+            if (PackageChecker::isGenerateMigrationsAvailable()) {
                 $factories[Command\Cycle\SchemaMigrationsGenerateCommand::class]
                     = Command\Cycle\SchemaMigrationsGenerateCommandFactory::class;
             }
@@ -101,10 +101,10 @@ final class ConfigProvider
 
         $commands = [
             CommandName::ClearCache->value => Command\Cycle\ClearCycleSchemaCache::class,
-            CommandName::SchemaSync->value => Command\Cycle\SchemaSyncCommand::class,
         ];
 
         if (PackageChecker::isEntityBehaviorAvailable()) {
+            $commands[CommandName::SchemaSync->value] = Command\Cycle\SchemaSyncCommand::class;
             $commands[CommandName::SchemaCompile->value] = Command\Cycle\SchemaCompileCommand::class;
         }
 
@@ -115,7 +115,7 @@ final class ConfigProvider
             $commands[CommandName::GenerateSeed->value] = Command\Migrator\CreateSeedCommand::class;
             $commands[CommandName::RunSeed->value] = Command\Migrator\SeedCommand::class;
 
-            if (PackageChecker::isGenerateMigrationsAvailable() && PackageChecker::isEntityBehaviorAvailable()) {
+            if (PackageChecker::isGenerateMigrationsAvailable()) {
                 $commands[CommandName::SchemaMigrationsGenerate->value] = Command\Cycle\SchemaMigrationsGenerateCommand::class;
             }
         }
