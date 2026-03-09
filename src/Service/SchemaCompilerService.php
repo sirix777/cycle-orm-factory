@@ -74,6 +74,7 @@ final readonly class SchemaCompilerService implements SchemaCompilerInterface
         SchemaCompileMode $mode,
     ): array {
         $entities = $this->normalizeEntityDirectories($entities);
+
         if ([] === $entities && [] === $manualMappingSchemaDefinitions && [] === $additionalGenerators) {
             throw new ConfigException(
                 <<<'MESSAGE'
@@ -84,42 +85,57 @@ final readonly class SchemaCompilerService implements SchemaCompilerInterface
             );
         }
 
-        $generators = [];
+        /** @var array<GeneratorInterface> $generators */
+        $generators = [
+            new Schema\Generator\ResetTables(),
+        ];
+
+        $generators = [
+            ...$generators,
+            ...$this->resolveAdditionalGenerators($additionalGenerators),
+        ];
+
         if ([] !== $entities) {
             $finder = (new Finder())->files()->in($entities);
             $classLocator = new ClassLocator($finder);
+
             $generators = [
-                new Schema\Generator\ResetTables(),
+                ...$generators,
                 new Annotated\Embeddings(new TokenizerEmbeddingLocator($classLocator)),
                 new Annotated\Entities(new TokenizerEntityLocator($classLocator)),
                 new Annotated\TableInheritance(),
                 new Annotated\MergeColumns(),
-                new Schema\Generator\GenerateRelations(),
-                new Schema\Generator\GenerateModifiers(),
-                new Schema\Generator\ValidateEntities(),
-                new Schema\Generator\RenderTables(),
-                new Schema\Generator\RenderRelations(),
-                new Schema\Generator\RenderModifiers(),
-                new Schema\Generator\ForeignKeys(),
-                new Annotated\MergeIndexes(),
-                new Schema\Generator\GenerateTypecast(),
             ];
         }
 
-        $modeGenerators = match ($mode) {
-            SchemaCompileMode::Runtime => [],
-            SchemaCompileMode::SyncTables => [new Schema\Generator\SyncTables()],
-            SchemaCompileMode::GenerateMigrations => [$this->createGenerateMigrationsGenerator()],
+        $generators = [
+            ...$generators,
+            new Schema\Generator\GenerateRelations(),
+            new Schema\Generator\GenerateModifiers(),
+            new Schema\Generator\ValidateEntities(),
+            new Schema\Generator\RenderTables(),
+            new Schema\Generator\RenderRelations(),
+            new Schema\Generator\RenderModifiers(),
+            new Schema\Generator\ForeignKeys(),
+            new Annotated\MergeIndexes(),
+            new Schema\Generator\GenerateTypecast(),
+        ];
+
+        $modeGenerator = match ($mode) {
+            SchemaCompileMode::Runtime => null,
+            SchemaCompileMode::SyncTables => new Schema\Generator\SyncTables(),
+            SchemaCompileMode::GenerateMigrations => $this->createGenerateMigrationsGenerator(),
         };
 
-        $generators = array_merge($generators, $modeGenerators);
-
-        foreach ($this->resolveAdditionalGenerators($additionalGenerators) as $additionalGenerator) {
-            $generators[] = $additionalGenerator;
+        if ($modeGenerator instanceof GeneratorInterface) {
+            $generators[] = $modeGenerator;
         }
 
         $schemaCompiler = new Schema\Compiler();
-        $schema = $schemaCompiler->compile(new Schema\Registry($dbal), $generators);
+        $schema = $schemaCompiler->compile(
+            new Schema\Registry($dbal),
+            $generators,
+        );
 
         return array_merge($schema, $manualMappingSchemaDefinitions);
     }
