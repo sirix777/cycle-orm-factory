@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Strengthened factory validation by resolving container services and typed configuration through `sirix/container-resolver`.
+- Configured Composer dependency analyser to ignore optional integration dependencies and OPcache support.
 
 ### Deprecated
 - Deprecated legacy config key `cycle.schema.manual_entity_schema_definition`; it remains supported for migration compatibility and will be removed in `4.0`. Use `cycle.schema.manual_mapping_schema_definitions` instead.
