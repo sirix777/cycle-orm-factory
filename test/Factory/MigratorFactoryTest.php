@@ -6,13 +6,14 @@ namespace Sirix\Cycle\Test\Factory;
 
 use Cycle\Database\Config\DatabaseConfig;
 use Cycle\Database\DatabaseManager;
-use Cycle\Database\Exception\ConfigException;
 use PHPUnit\Framework\MockObject\Exception;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\ContainerInterface;
 use Psr\Container\NotFoundExceptionInterface;
+use Sirix\ContainerResolver\Exception\MissingConfigValueException;
+use Sirix\ContainerResolver\Exception\MissingContainerServiceException;
 use Sirix\Cycle\Factory\MigratorFactory;
 use Sirix\Cycle\Service\MigratorInterface;
 
@@ -47,64 +48,51 @@ final class MigratorFactoryTest extends TestCase
     public function testFactoryWithoutConfig(): void
     {
         $this->container
-            ->expects($this->once())
             ->method('has')
             ->with('config')
             ->willReturn(false)
         ;
 
         $factory = new MigratorFactory();
-        $this->expectException(ConfigException::class);
-        $this->expectExceptionMessage('Expected config migrator');
+        $this->expectException(MissingConfigValueException::class);
+        $this->expectExceptionMessage('cycle.migrator');
         $factory($this->container);
     }
 
     /**
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
-     * @throws Exception
      */
     public function testFactoryWithConfigAndWithoutDbal(): void
     {
-        $exceptionMock = $this->createMock(
-            NotFoundExceptionInterface::class
-        );
+        $this->container
+            ->method('has')
+            ->willReturnCallback(static fn (string $id): bool => 'config' === $id)
+        ;
 
         $this->container
             ->expects($this->once())
-            ->method('has')
-            ->with('config')
-            ->willReturn(true)
-        ;
-
-        $this->container->expects($this->exactly(2))
             ->method('get')
-            ->willReturnCallback(fn ($serviceName) => match ($serviceName) {
-                'config' => $this->config,
-                'dbal' => throw new $exceptionMock('dbal not found'),
-                default => null,
-            })
+            ->with('config')
+            ->willReturn($this->config)
         ;
 
         $factory = new MigratorFactory();
 
-        $this->expectException(NotFoundExceptionInterface::class);
-        $this->expectExceptionMessage('dbal not found');
+        $this->expectException(MissingContainerServiceException::class);
+        $this->expectExceptionMessage('dbal');
         $factory($this->container);
     }
 
     /**
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
-     * @throws Exception
      */
     public function testFactoryWithConfigAndDbal(): void
     {
         $this->container
-            ->expects($this->once())
             ->method('has')
-            ->with('config')
-            ->willReturn(true)
+            ->willReturnCallback(static fn (string $id): bool => 'config' === $id || 'dbal' === $id)
         ;
 
         $this->container

@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace Sirix\Cycle\Command\Migrator;
 
-use Cycle\Database\Exception\ConfigException;
+use Cycle\Database\DatabaseProviderInterface;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\ContainerInterface;
 use Psr\Container\NotFoundExceptionInterface;
+use Sirix\ContainerResolver\ConfigReader;
+use Sirix\ContainerResolver\ContainerResolver;
+use Sirix\ContainerResolver\Exception\ResolverException;
 use Sirix\Cycle\Service\MigratorService;
 
 final class SeedCommandFactory
@@ -15,21 +18,18 @@ final class SeedCommandFactory
     /**
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
+     * @throws ResolverException
      */
     public function __invoke(ContainerInterface $container): SeedCommand
     {
-        $config = $container->has('config')
-            ? $container->get('config')
-            : [];
+        $containerResolver = ContainerResolver::forFactory($container, self::class);
+        $configReader = ConfigReader::fromContainer($containerResolver);
+        $seedDirectory = $configReader->requiredNonEmptyString('cycle.migrator.seed_directory');
 
-        if (! isset($config['cycle']['migrator']['seed_directory'])) {
-            throw new ConfigException('Expected config migrator with seed_directory');
-        }
-
-        $seedDirectory = $config['cycle']['migrator']['seed_directory'];
-        $migratorService = $container->get(MigratorService::class);
-        $dbal = $container->get('dbal');
-
-        return new SeedCommand($migratorService, $seedDirectory, $dbal);
+        return new SeedCommand(
+            $containerResolver->get(MigratorService::class),
+            $seedDirectory,
+            $containerResolver->getAs('dbal', DatabaseProviderInterface::class),
+        );
     }
 }

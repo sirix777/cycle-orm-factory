@@ -11,7 +11,9 @@ use Cycle\Schema\GeneratorInterface;
 use Cycle\Schema\Registry;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\ContainerInterface;
+use Psr\Container\NotFoundExceptionInterface;
 use Sirix\Cycle\Enum\SchemaCompileMode;
 use Sirix\Cycle\Service\SchemaCompilerService;
 
@@ -101,6 +103,10 @@ final class SchemaCompilerServiceTest extends TestCase
         $this->addToAssertionCount(1);
     }
 
+    /**
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     */
     public function testCompileWithMigrationGenerationFailsWhenDisabledByEnv(): void
     {
         putenv('CYCLE_MIGRATIONS_DISABLED=1');
@@ -113,7 +119,7 @@ final class SchemaCompilerServiceTest extends TestCase
         $this->expectException(ConfigException::class);
         $this->expectExceptionMessage('Schema migrations generator is unavailable');
 
-        $service->compile($this->dbal, [$this->tmpDir], [], mode: SchemaCompileMode::GenerateMigrations);
+        $service->compile($this->dbal, [$this->tmpDir], [], schemaCompileMode: SchemaCompileMode::GenerateMigrations);
     }
 }
 

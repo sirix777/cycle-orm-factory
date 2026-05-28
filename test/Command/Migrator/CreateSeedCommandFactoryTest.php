@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Sirix\Cycle\Test\Command\Migrator;
 
-use Cycle\Database\Exception\ConfigException;
 use PHPUnit\Framework\MockObject\Exception;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\ContainerInterface;
 use Psr\Container\NotFoundExceptionInterface;
+use Sirix\ContainerResolver\Exception\MissingConfigValueException;
 use Sirix\Cycle\Command\Migrator\CreateSeedCommand;
 use Sirix\Cycle\Command\Migrator\CreateSeedCommandFactory;
 
@@ -34,7 +34,6 @@ class CreateSeedCommandFactoryTest extends TestCase
     public function testFactoryWithoutConfig(): void
     {
         $this->container
-            ->expects($this->once())
             ->method('has')
             ->with('config')
             ->willReturn(false)
@@ -42,8 +41,8 @@ class CreateSeedCommandFactoryTest extends TestCase
 
         $factory = new CreateSeedCommandFactory();
 
-        $this->expectException(ConfigException::class);
-        $this->expectExceptionMessage('Expected config migrator with seed_directory');
+        $this->expectException(MissingConfigValueException::class);
+        $this->expectExceptionMessage('cycle.migrator.seed_directory');
 
         $factory($this->container);
     }
@@ -56,10 +55,8 @@ class CreateSeedCommandFactoryTest extends TestCase
     public function testFactoryWithConfigWithoutSeedDirectory(): void
     {
         $this->container
-            ->expects($this->once())
             ->method('has')
-            ->with('config')
-            ->willReturn(true)
+            ->willReturnCallback(static fn (string $id): bool => 'config' === $id)
         ;
 
         $this->container
@@ -77,8 +74,8 @@ class CreateSeedCommandFactoryTest extends TestCase
 
         $factory = new CreateSeedCommandFactory();
 
-        $this->expectException(ConfigException::class);
-        $this->expectExceptionMessage('Expected config migrator with seed_directory');
+        $this->expectException(MissingConfigValueException::class);
+        $this->expectExceptionMessage('cycle.migrator.seed_directory');
 
         $factory($this->container);
     }
@@ -91,10 +88,8 @@ class CreateSeedCommandFactoryTest extends TestCase
     public function testFactoryWithConfigWithSeedDirectory(): void
     {
         $this->container
-            ->expects($this->once())
             ->method('has')
-            ->with('config')
-            ->willReturn(true)
+            ->willReturnCallback(static fn (string $id): bool => 'config' === $id)
         ;
 
         $this->container

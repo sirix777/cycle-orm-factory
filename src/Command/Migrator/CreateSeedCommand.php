@@ -68,18 +68,18 @@ final class CreateSeedCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $io = new SymfonyStyle($input, $output);
+        $symfonyStyle = new SymfonyStyle($input, $output);
 
         $seedName = (string) $input->getArgument('seed');
 
         if ('' === $seedName || '0' === $seedName) {
-            $io->error('Seed name is required. Use PascalCase, for example: cycle:seed:create CreateUsersSeed');
+            $symfonyStyle->error('Seed name is required. Use PascalCase, for example: cycle:seed:create CreateUsersSeed');
 
             return Command::INVALID;
         }
 
         if (! FileNameValidator::isPascalCase($seedName)) {
-            $io->error('Invalid seed name. Use PascalCase format.');
+            $symfonyStyle->error('Invalid seed name. Use PascalCase format.');
 
             return Command::FAILURE;
         }
@@ -97,9 +97,9 @@ final class CreateSeedCommand extends Command
 
         try {
             $filesystem->writeFile($filePath, $fileContent);
-            $io->success("Seed created: {$filePath}");
+            $symfonyStyle->success("Seed created: {$filePath}");
         } catch (Exception $e) {
-            $io->error("Failed to create seed: {$e->getMessage()}");
+            $symfonyStyle->error("Failed to create seed: {$e->getMessage()}");
 
             return Command::FAILURE;
         }

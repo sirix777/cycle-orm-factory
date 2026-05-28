@@ -25,7 +25,7 @@ final class SchemaSyncCommand extends Command
     public function __construct(
         private readonly SchemaCompilerInterface $schemaCompiler,
         private readonly CompiledSchemaStorage $compiledSchemaStorage,
-        private readonly DatabaseManager $dbal,
+        private readonly DatabaseManager $databaseManager,
         private readonly array $entities,
         private readonly array $manualMappingSchemaDefinitions,
         private readonly array $additionalGenerators,
@@ -46,11 +46,11 @@ final class SchemaSyncCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $io = new SymfonyStyle($input, $output);
+        $symfonyStyle = new SymfonyStyle($input, $output);
 
         try {
             $schema = $this->schemaCompiler->compile(
-                $this->dbal,
+                $this->databaseManager,
                 $this->entities,
                 $this->manualMappingSchemaDefinitions,
                 $this->additionalGenerators,
@@ -59,14 +59,14 @@ final class SchemaSyncCommand extends Command
 
             if ($this->isCacheEnabled) {
                 $this->compiledSchemaStorage->save($this->compiledSchemaPath, $schema);
-                $io->success('Schema synchronized and compiled cache refreshed.');
+                $symfonyStyle->success('Schema synchronized and compiled cache refreshed.');
             } else {
-                $io->success('Schema synchronized. Compiled cache update skipped (cache disabled).');
+                $symfonyStyle->success('Schema synchronized. Compiled cache update skipped (cache disabled).');
             }
 
             return Command::SUCCESS;
         } catch (Throwable $e) {
-            $io->error('Failed to synchronize schema: ' . $e->getMessage());
+            $symfonyStyle->error('Failed to synchronize schema: ' . $e->getMessage());
 
             return Command::FAILURE;
         }

@@ -4,13 +4,16 @@ declare(strict_types=1);
 
 namespace Sirix\Cycle\Factory;
 
-use Cycle\Database\Exception\ConfigException;
+use Cycle\Database\DatabaseProviderInterface;
 use Cycle\Migrations\Config\MigrationConfig;
 use Cycle\Migrations\FileRepository;
 use Cycle\Migrations\Migrator;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\ContainerInterface;
 use Psr\Container\NotFoundExceptionInterface;
+use Sirix\ContainerResolver\ConfigReader;
+use Sirix\ContainerResolver\ContainerResolver;
+use Sirix\ContainerResolver\Exception\ResolverException;
 use Sirix\Cycle\Internal\MigrationsToggle;
 use Sirix\Cycle\Service\MigratorInterface;
 use Sirix\Cycle\Service\MigratorWrapper;
@@ -29,6 +32,7 @@ final class MigratorFactory
     /**
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
+     * @throws ResolverException
      */
     public function __invoke(ContainerInterface $container): MigratorInterface
     {
@@ -36,22 +40,17 @@ final class MigratorFactory
             return new NullMigrator();
         }
 
-        $config = $container->has('config') ? $container->get('config') : [];
-
-        if (! isset($config['cycle']['migrator'])) {
-            throw new ConfigException('Expected config migrator');
-        }
-
-        $config = $config['cycle']['migrator'];
-
-        $migratorConfig = new MigrationConfig($this->parseConfig($config));
-
-        $dbal = $container->get('dbal');
+        $containerResolver = ContainerResolver::forFactory($container, self::class);
+        $configReader = ConfigReader::fromContainer($containerResolver);
+        $migrationConfig = new MigrationConfig($this->parseConfig(
+            $configReader->requiredMap('cycle.migrator'),
+        ));
+        $databaseProvider = $containerResolver->getAs('dbal', DatabaseProviderInterface::class);
 
         $migrator = new Migrator(
-            $migratorConfig,
-            $dbal,
-            new FileRepository($migratorConfig)
+            $migrationConfig,
+            $databaseProvider,
+            new FileRepository($migrationConfig)
         );
 
         return new MigratorWrapper($migrator);

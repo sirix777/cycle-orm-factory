@@ -29,21 +29,21 @@ final class MigrateCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $io = new SymfonyStyle($input, $output);
+        $symfonyStyle = new SymfonyStyle($input, $output);
 
-        $io->section('Starting Migration Process');
+        $symfonyStyle->section('Starting Migration Process');
 
         try {
-            $this->migratorService->migrate(function(string $message) use ($io): void {
-                $io->writeln($message);
+            $this->migratorService->migrate(function(string $message) use ($symfonyStyle): void {
+                $symfonyStyle->writeln($message);
             });
         } catch (Throwable $exception) {
-            $io->error("An error occurred during migration: {$exception->getMessage()}");
+            $symfonyStyle->error("An error occurred during migration: {$exception->getMessage()}");
 
             return Command::FAILURE;
         }
 
-        $io->success('Migration successful');
+        $symfonyStyle->success('Migration successful');
 
         return Command::SUCCESS;
     }

@@ -32,17 +32,17 @@ final class RollbackCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $io = new SymfonyStyle($input, $output);
+        $symfonyStyle = new SymfonyStyle($input, $output);
 
         try {
             $this->migratorService->rollback();
         } catch (Throwable $e) {
-            $io->error($e->getMessage());
+            $symfonyStyle->error($e->getMessage());
 
             return Command::FAILURE;
         }
 
-        $io->success('Migration rollback successful');
+        $symfonyStyle->success('Migration rollback successful');
 
         return Command::SUCCESS;
     }

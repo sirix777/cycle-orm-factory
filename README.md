@@ -152,10 +152,10 @@ Invalid entries throw `Cycle\ORM\Exception\ConfigException`.
 
 Primary key is `cycle.schema.manual_mapping_schema_definitions`.
 
-For migration compatibility, the package also reads legacy key:
+For migration compatibility, the package also reads deprecated legacy key:
 - `cycle.schema.manual_entity_schema_definition`
 
-Use the new key for all new configs.
+This legacy key will be removed in `4.0`. Use the new key for all new configs.
 
 ## Services
 

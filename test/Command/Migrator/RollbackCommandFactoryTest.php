@@ -10,6 +10,7 @@ use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\ContainerInterface;
 use Psr\Container\NotFoundExceptionInterface;
+use Sirix\ContainerResolver\Exception\MissingContainerServiceException;
 use Sirix\Cycle\Command\Migrator\RollbackCommand;
 use Sirix\Cycle\Command\Migrator\RollbackCommandFactory;
 use Sirix\Cycle\Service\MigratorService;
@@ -35,21 +36,16 @@ class RollbackCommandFactoryTest extends TestCase
      */
     public function testFactoryWithoutMigratorService(): void
     {
-        $exceptionMock = $this->createMock(
-            NotFoundExceptionInterface::class
-        );
         $this->container
             ->expects($this->once())
-            ->method('get')
+            ->method('has')
             ->with(MigratorService::class)
-            ->willThrowException(
-                new $exceptionMock('migrator service not found')
-            )
+            ->willReturn(false)
         ;
 
         $factory = new RollbackCommandFactory();
-        $this->expectException(NotFoundExceptionInterface::class);
-        $this->expectExceptionMessage('migrator service not found');
+        $this->expectException(MissingContainerServiceException::class);
+        $this->expectExceptionMessage(MigratorService::class);
         $factory($this->container);
     }
 
@@ -60,6 +56,13 @@ class RollbackCommandFactoryTest extends TestCase
      */
     public function testFactoryWithMigratorService(): void
     {
+        $this->container
+            ->expects($this->once())
+            ->method('has')
+            ->with(MigratorService::class)
+            ->willReturn(true)
+        ;
+
         $this->container
             ->expects($this->once())
             ->method('get')

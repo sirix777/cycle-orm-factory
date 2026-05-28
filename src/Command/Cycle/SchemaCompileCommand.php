@@ -24,7 +24,7 @@ final class SchemaCompileCommand extends Command
     public function __construct(
         private readonly SchemaCompilerInterface $schemaCompiler,
         private readonly CompiledSchemaStorage $compiledSchemaStorage,
-        private readonly DatabaseManager $dbal,
+        private readonly DatabaseManager $databaseManager,
         private readonly array $entities,
         private readonly array $manualMappingSchemaDefinitions,
         private readonly array $additionalGenerators,
@@ -45,26 +45,26 @@ final class SchemaCompileCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $io = new SymfonyStyle($input, $output);
+        $symfonyStyle = new SymfonyStyle($input, $output);
 
         try {
             $schema = $this->schemaCompiler->compile(
-                $this->dbal,
+                $this->databaseManager,
                 $this->entities,
                 $this->manualMappingSchemaDefinitions,
                 $this->additionalGenerators,
             );
 
             $this->compiledSchemaStorage->save($this->compiledSchemaPath, $schema);
-            $io->success('Cycle ORM schema compiled and saved to: ' . $this->compiledSchemaPath);
+            $symfonyStyle->success('Cycle ORM schema compiled and saved to: ' . $this->compiledSchemaPath);
 
             if (! $this->isCacheEnabled) {
-                $io->note('cycle.schema.cache.enabled=false, runtime will not use compiled schema cache.');
+                $symfonyStyle->note('cycle.schema.cache.enabled=false, runtime will not use compiled schema cache.');
             }
 
             return Command::SUCCESS;
         } catch (Throwable $e) {
-            $io->error('Failed to compile schema: ' . $e->getMessage());
+            $symfonyStyle->error('Failed to compile schema: ' . $e->getMessage());
 
             return Command::FAILURE;
         }

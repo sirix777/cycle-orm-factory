@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace Sirix\Cycle\Command\Migrator;
 
-use Cycle\Database\Exception\ConfigException;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\ContainerInterface;
 use Psr\Container\NotFoundExceptionInterface;
+use Sirix\ContainerResolver\ConfigReader;
+use Sirix\ContainerResolver\ContainerResolver;
+use Sirix\ContainerResolver\Exception\ResolverException;
 use Sirix\Cycle\Service\MigratorInterface;
 
 final class CreateMigrationCommandFactory
@@ -15,21 +17,16 @@ final class CreateMigrationCommandFactory
     /**
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
+     * @throws ResolverException
      */
     public function __invoke(ContainerInterface $container): CreateMigrationCommand
     {
-        $config = $container->has('config')
-            ? $container->get('config')
-            : [];
+        $containerResolver = ContainerResolver::forFactory($container, self::class);
+        $configReader = ConfigReader::fromContainer($containerResolver);
 
-        if (! isset($config['cycle']['migrator']['directory'])) {
-            throw new ConfigException('Expected config migrator');
-        }
-
-        $migrationDirectory = $config['cycle']['migrator']['directory'];
-
-        $migrator = $container->get(MigratorInterface::class);
-
-        return new CreateMigrationCommand($migrationDirectory, $migrator);
+        return new CreateMigrationCommand(
+            $configReader->requiredNonEmptyString('cycle.migrator.directory'),
+            $containerResolver->get(MigratorInterface::class),
+        );
     }
 }

@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace Sirix\Cycle\Test\Factory;
 
 use Cycle\Database\DatabaseProviderInterface;
-use Cycle\ORM\Exception\ConfigException;
 use PHPUnit\Framework\MockObject\Exception;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\ContainerInterface;
 use Psr\Container\NotFoundExceptionInterface;
+use Sirix\ContainerResolver\Exception\MissingConfigValueException;
 use Sirix\Cycle\Factory\DbalFactory;
 
 final class DbalFactoryTest extends TestCase
@@ -36,14 +36,13 @@ final class DbalFactoryTest extends TestCase
     public function testFactoryWithoutConfig(): void
     {
         $this->container
-            ->expects($this->once())
             ->method('has')
             ->with('config')
             ->willReturn(false)
         ;
         $factory = new DbalFactory();
-        $this->expectException(ConfigException::class);
-        $this->expectExceptionMessage('Expected config databases');
+        $this->expectException(MissingConfigValueException::class);
+        $this->expectExceptionMessage('cycle.db-config');
         $factory($this->container);
     }
 
@@ -54,10 +53,8 @@ final class DbalFactoryTest extends TestCase
     public function testFactoryWithConfig(): void
     {
         $this->container
-            ->expects($this->once())
             ->method('has')
-            ->with('config')
-            ->willReturn(true)
+            ->willReturnCallback(static fn (string $id): bool => 'config' === $id)
         ;
 
         $this->container

@@ -42,7 +42,7 @@ final class SeedCommand extends Command
     public function __construct(
         private readonly MigratorService $migratorService,
         private readonly string $seedDirectory,
-        private readonly DatabaseProviderInterface $dbal,
+        private readonly DatabaseProviderInterface $databaseProvider,
         ?string $name = null
     ) {
         parent::__construct($name);
@@ -81,7 +81,7 @@ final class SeedCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $io = new SymfonyStyle($input, $output);
+        $symfonyStyle = new SymfonyStyle($input, $output);
 
         $databaseOption = (string) $input->getOption('database');
         $this->databaseOverride = '' !== $databaseOption ? $databaseOption : null;
@@ -90,10 +90,10 @@ final class SeedCommand extends Command
         $seedName = $this->getSeedNameFromInput($input);
 
         if ('' !== $seedName && '0' !== $seedName) {
-            return $this->executeSingleSeed($seedName, $seedDirectory, $io);
+            return $this->executeSingleSeed($seedName, $seedDirectory, $symfonyStyle);
         }
 
-        return $this->executeAllSeeds($seedDirectory, $io);
+        return $this->executeAllSeeds($seedDirectory, $symfonyStyle);
     }
 
     private function resolveSeedDirectory(InputInterface $input): string
@@ -118,34 +118,37 @@ final class SeedCommand extends Command
         return $seedName;
     }
 
-    private function executeSingleSeed(string $seedName, string $seedDirectory, SymfonyStyle $io): int
+    private function executeSingleSeed(string $seedName, string $seedDirectory, SymfonyStyle $symfonyStyle): int
     {
-        $seed = $this->loadAndValidateSeed($seedName, $seedDirectory, $io);
+        $seed = $this->loadAndValidateSeed($seedName, $seedDirectory, $symfonyStyle);
         if (! $seed instanceof SeedInterface) {
             return Command::FAILURE;
         }
 
         try {
             $this->migratorService->seed($seed);
-            $io->success(sprintf('Seed "%s" executed successfully.', $seedName));
+            $symfonyStyle->success(sprintf('Seed "%s" executed successfully.', $seedName));
 
             return Command::SUCCESS;
         } catch (Throwable $e) {
-            $io->error(sprintf('Failed to run seed: %s', $e->getMessage()));
+            $symfonyStyle->error(sprintf('Failed to run seed: %s', $e->getMessage()));
 
             return Command::FAILURE;
         }
     }
 
-    private function loadAndValidateSeed(string $seedName, string $seedDirectory, SymfonyStyle $io): ?SeedInterface
-    {
-        if (! $this->validateSeedName($seedName, $io)) {
+    private function loadAndValidateSeed(
+        string $seedName,
+        string $seedDirectory,
+        SymfonyStyle $symfonyStyle
+    ): ?SeedInterface {
+        if (! $this->validateSeedName($seedName, $symfonyStyle)) {
             return null;
         }
 
         $seedFile = $this->getSeedFilePath($seedName, $seedDirectory);
         if (! file_exists($seedFile)) {
-            $io->error(sprintf('Seed file "%s" not found in directory "%s".', $seedName, $seedDirectory));
+            $symfonyStyle->error(sprintf('Seed file "%s" not found in directory "%s".', $seedName, $seedDirectory));
 
             return null;
         }
@@ -154,7 +157,7 @@ final class SeedCommand extends Command
 
         $seedClassName = $this->getSeedClassName($seedName);
         if (! class_exists($seedClassName)) {
-            $io->error(sprintf(
+            $symfonyStyle->error(sprintf(
                 'Seed class "%s" not found in the file. Make sure the class name matches the file name.',
                 $seedClassName
             ));
@@ -164,12 +167,12 @@ final class SeedCommand extends Command
 
         $seed = new $seedClassName();
 
-        if (! $this->injectDatabase($seed, $io)) {
+        if (! $this->injectDatabase($seed, $symfonyStyle)) {
             return null;
         }
 
         if (! $seed instanceof SeedInterface) {
-            $io->error(sprintf('Seed class "%s" must implement SeedInterface.', $seedClassName));
+            $symfonyStyle->error(sprintf('Seed class "%s" must implement SeedInterface.', $seedClassName));
 
             return null;
         }
@@ -177,12 +180,12 @@ final class SeedCommand extends Command
         return $seed;
     }
 
-    private function executeAllSeeds(string $seedDirectory, SymfonyStyle $io): int
+    private function executeAllSeeds(string $seedDirectory, SymfonyStyle $symfonyStyle): int
     {
         $seedFiles = glob($seedDirectory . DIRECTORY_SEPARATOR . '*.php');
 
         if ([] === $seedFiles || false === $seedFiles) {
-            $io->warning(sprintf('No seed files found in directory "%s".', $seedDirectory));
+            $symfonyStyle->warning(sprintf('No seed files found in directory "%s".', $seedDirectory));
 
             return Command::SUCCESS;
         }
@@ -192,15 +195,15 @@ final class SeedCommand extends Command
 
         foreach ($seedFiles as $seedFile) {
             $seedName = pathinfo($seedFile, PATHINFO_FILENAME);
-            $io->section(sprintf('Running seed: %s', $seedName));
+            $symfonyStyle->section(sprintf('Running seed: %s', $seedName));
 
-            $result = $this->executeSingleSeed($seedName, $seedDirectory, $io);
+            $result = $this->executeSingleSeed($seedName, $seedDirectory, $symfonyStyle);
 
             Command::SUCCESS === $result ? ++$successCount : ++$failureCount;
         }
 
         if ($failureCount > 0) {
-            $io->error(sprintf(
+            $symfonyStyle->error(sprintf(
                 'Seed execution completed with errors. %d succeeded, %d failed.',
                 $successCount,
                 $failureCount
@@ -209,15 +212,15 @@ final class SeedCommand extends Command
             return Command::FAILURE;
         }
 
-        $io->success(sprintf('All %d seeds executed successfully.', $successCount));
+        $symfonyStyle->success(sprintf('All %d seeds executed successfully.', $successCount));
 
         return Command::SUCCESS;
     }
 
-    private function validateSeedName(string $seedName, SymfonyStyle $io): bool
+    private function validateSeedName(string $seedName, SymfonyStyle $symfonyStyle): bool
     {
         if (! FileNameValidator::isPascalCase($seedName)) {
-            $io->error('Invalid seed name. Use PascalCase format.');
+            $symfonyStyle->error('Invalid seed name. Use PascalCase format.');
 
             return false;
         }
@@ -235,7 +238,7 @@ final class SeedCommand extends Command
         return sprintf('%s\%s', self::SEED_NAMESPACE, $seedName);
     }
 
-    private function injectDatabase(object $seed, SymfonyStyle $io): bool
+    private function injectDatabase(object $seed, SymfonyStyle $symfonyStyle): bool
     {
         try {
             $reflectionClass = new ReflectionClass($seed);
@@ -249,7 +252,7 @@ final class SeedCommand extends Command
                 }
             }
 
-            $database = $this->dbal->database($databaseName);
+            $database = $this->databaseProvider->database($databaseName);
 
             if ($reflectionClass->hasProperty(self::SEED_DATABASE_PROPERTY)) {
                 $databaseProperty = $reflectionClass->getProperty(self::SEED_DATABASE_PROPERTY);
@@ -258,7 +261,7 @@ final class SeedCommand extends Command
 
             return true;
         } catch (Throwable $e) {
-            $io->warning(sprintf('Could not inject database into seed class: %s', $e->getMessage()));
+            $symfonyStyle->warning(sprintf('Could not inject database into seed class: %s', $e->getMessage()));
 
             return false;
         }

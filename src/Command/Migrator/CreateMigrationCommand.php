@@ -85,17 +85,17 @@ final class CreateMigrationCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $io = new SymfonyStyle($input, $output);
+        $symfonyStyle = new SymfonyStyle($input, $output);
 
         $migrationName = (string) $input->getArgument('migrationName');
         if ('' === $migrationName || '0' === $migrationName) {
-            $io->error('Migration name is required. Use PascalCase, for example: cycle:migration:create CreateUsers');
+            $symfonyStyle->error('Migration name is required. Use PascalCase, for example: cycle:migration:create CreateUsers');
 
             return Command::INVALID;
         }
 
         if (! FileNameValidator::isPascalCase($migrationName)) {
-            $io->error('Invalid migration name. Use PascalCase format.');
+            $symfonyStyle->error('Invalid migration name. Use PascalCase format.');
 
             return Command::FAILURE;
         }
@@ -113,9 +113,9 @@ final class CreateMigrationCommand extends Command
 
         try {
             $filesystem->writeFile($filePath, $fileContent);
-            $io->success("Migration created: {$filePath}");
+            $symfonyStyle->success("Migration created: {$filePath}");
         } catch (Exception $e) {
-            $io->error("Failed to create migration: {$e->getMessage()}");
+            $symfonyStyle->error("Failed to create migration: {$e->getMessage()}");
 
             return Command::FAILURE;
         }
@@ -159,11 +159,11 @@ final class CreateMigrationCommand extends Command
         }
 
         $maxCounter = -1;
-        foreach ($existingFiles as $file) {
+        foreach ($existingFiles as $existingFile) {
             if (
                 preg_match(
                     '/\d{8}\.\d{6}_(\d+)_(\d+)_' . $databaseAlias . '_' . $migrationAlias . '\.php$/',
-                    $file,
+                    $existingFile,
                     $matches,
                 )
             ) {

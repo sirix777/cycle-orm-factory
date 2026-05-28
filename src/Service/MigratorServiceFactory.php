@@ -6,18 +6,19 @@ namespace Sirix\Cycle\Service;
 
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\ContainerInterface;
-use Psr\Container\NotFoundExceptionInterface;
+use Sirix\ContainerResolver\ContainerResolver;
+use Sirix\ContainerResolver\Exception\ResolverException;
 
 final class MigratorServiceFactory
 {
     /**
      * @throws ContainerExceptionInterface
-     * @throws NotFoundExceptionInterface
+     * @throws ResolverException
      */
     public function __invoke(ContainerInterface $container): MigratorService
     {
-        $migrator = $container->get('migrator');
+        $containerResolver = ContainerResolver::forFactory($container, self::class);
 
-        return new MigratorService($migrator);
+        return new MigratorService($containerResolver->getAs('migrator', MigratorInterface::class));
     }
 }

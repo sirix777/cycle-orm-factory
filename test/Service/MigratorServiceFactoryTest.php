@@ -11,10 +11,10 @@ use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\ContainerInterface;
 use Psr\Container\NotFoundExceptionInterface;
+use Sirix\ContainerResolver\Exception\MissingContainerServiceException;
 use Sirix\Cycle\Service\MigratorService;
 use Sirix\Cycle\Service\MigratorServiceFactory;
 use Sirix\Cycle\Service\MigratorWrapper;
-use TypeError;
 
 final class MigratorServiceFactoryTest extends TestCase
 {
@@ -43,8 +43,16 @@ final class MigratorServiceFactoryTest extends TestCase
      */
     public function testFactoryWithoutMigrator(): void
     {
+        $this->container
+            ->expects($this->once())
+            ->method('has')
+            ->with('migrator')
+            ->willReturn(false)
+        ;
+
         $factory = new MigratorServiceFactory();
-        $this->expectException(TypeError::class);
+        $this->expectException(MissingContainerServiceException::class);
+        $this->expectExceptionMessage('migrator');
         $factory($this->container);
     }
 
@@ -56,6 +64,13 @@ final class MigratorServiceFactoryTest extends TestCase
     public function testFactoryWithMigrator(): void
     {
         $migratorWrapperMock = Mockery::mock(MigratorWrapper::class);
+
+        $this->container
+            ->expects($this->once())
+            ->method('has')
+            ->with('migrator')
+            ->willReturn(true)
+        ;
 
         $this->container
             ->expects($this->once())

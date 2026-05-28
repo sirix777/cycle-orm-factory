@@ -51,7 +51,9 @@ final class MigratorFactoryEnvFlagTest extends TestCase
     {
         putenv('CYCLE_MIGRATIONS_DISABLED=1');
 
-        $this->container->method('has')->with('config')->willReturn(true);
+        $this->container->method('has')->willReturnCallback(
+            static fn (string $id): bool => 'config' === $id || 'dbal' === $id,
+        );
         $this->container->method('get')->willReturnMap([
             ['config', $this->config],
             ['dbal', new DatabaseManager(new DatabaseConfig([]))],
@@ -71,7 +73,9 @@ final class MigratorFactoryEnvFlagTest extends TestCase
 
         putenv('CYCLE_MIGRATIONS_DISABLED=0');
 
-        $this->container->method('has')->with('config')->willReturn(true);
+        $this->container->method('has')->willReturnCallback(
+            static fn (string $id): bool => 'config' === $id || 'dbal' === $id,
+        );
         $this->container->method('get')->willReturnMap([
             ['config', $this->config],
             ['dbal', new DatabaseManager(new DatabaseConfig([]))],

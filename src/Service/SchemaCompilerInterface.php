@@ -24,10 +24,10 @@ interface SchemaCompilerInterface
      * @throws NotFoundExceptionInterface
      */
     public function compile(
-        DatabaseManager $dbal,
+        DatabaseManager $databaseManager,
         array $entities,
         array $manualMappingSchemaDefinitions,
         array $additionalGenerators = [],
-        SchemaCompileMode $mode = SchemaCompileMode::Runtime,
+        SchemaCompileMode $schemaCompileMode = SchemaCompileMode::Runtime,
     ): array;
 }

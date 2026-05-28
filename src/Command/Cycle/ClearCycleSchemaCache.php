@@ -34,10 +34,10 @@ final class ClearCycleSchemaCache extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $io = new SymfonyStyle($input, $output);
+        $symfonyStyle = new SymfonyStyle($input, $output);
 
         if (! $this->isCacheEnabled) {
-            $io->note('Schema cache is disabled by configuration. Nothing to clear.');
+            $symfonyStyle->note('Schema cache is disabled by configuration. Nothing to clear.');
 
             return Command::SUCCESS;
         }
@@ -46,14 +46,14 @@ final class ClearCycleSchemaCache extends Command
             $deleted = $this->compiledSchemaStorage->clear($this->compiledSchemaPath);
 
             if ($deleted) {
-                $io->success('Cycle ORM schema cache file has been cleared successfully.');
+                $symfonyStyle->success('Cycle ORM schema cache file has been cleared successfully.');
             } else {
-                $io->note('No compiled schema file was found to clear.');
+                $symfonyStyle->note('No compiled schema file was found to clear.');
             }
 
             return Command::SUCCESS;
         } catch (Throwable $e) {
-            $io->error('Failed to clear Cycle ORM schema cache file: ' . $e->getMessage());
+            $symfonyStyle->error('Failed to clear Cycle ORM schema cache file: ' . $e->getMessage());
 
             return Command::FAILURE;
         }

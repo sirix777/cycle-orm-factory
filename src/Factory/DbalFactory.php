@@ -6,27 +6,23 @@ namespace Sirix\Cycle\Factory;
 
 use Cycle\Database\Config;
 use Cycle\Database\DatabaseManager;
-use Cycle\ORM\Exception\ConfigException;
-use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\ContainerInterface;
-use Psr\Container\NotFoundExceptionInterface;
+use Sirix\ContainerResolver\ConfigReader;
+use Sirix\ContainerResolver\ContainerResolver;
+use Sirix\ContainerResolver\Exception\ResolverException;
 
 final class DbalFactory
 {
     /**
-     * @throws ContainerExceptionInterface
-     * @throws NotFoundExceptionInterface
+     * @throws ResolverException
      */
     public function __invoke(ContainerInterface $container): DatabaseManager
     {
-        $config = $container->has('config') ? $container->get('config') : [];
+        $containerResolver = ContainerResolver::forFactory($container, self::class);
+        $configReader = ConfigReader::fromContainer($containerResolver);
 
-        if (! isset($config['cycle']['db-config'])) {
-            throw new ConfigException('Expected config databases');
-        }
-
-        $config = $config['cycle']['db-config'];
-
-        return new DatabaseManager(new Config\DatabaseConfig($config));
+        return new DatabaseManager(new Config\DatabaseConfig(
+            $configReader->requiredMap('cycle.db-config'),
+        ));
     }
 }

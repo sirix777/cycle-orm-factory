@@ -112,7 +112,7 @@ Use it when forcing schema refresh after changing entities/config outside of nor
 Preferred key:
 - `cycle.schema.manual_mapping_schema_definitions`
 
-Temporarily supported legacy key:
+Deprecated legacy key, temporarily supported for migration compatibility:
 - `cycle.schema.manual_entity_schema_definition`
 
-Migrate configs to the new key.
+This legacy key will be removed in `4.0`. Migrate configs to the new key.

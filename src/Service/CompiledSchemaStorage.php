@@ -22,11 +22,11 @@ use function var_export;
 
 final readonly class CompiledSchemaStorage
 {
-    private FileSystem $filesystem;
+    private FileSystem $fileSystem;
 
     public function __construct()
     {
-        $this->filesystem = new FileSystem();
+        $this->fileSystem = new FileSystem();
     }
 
     public function has(string $path): bool
@@ -59,11 +59,11 @@ final readonly class CompiledSchemaStorage
     public function save(string $path, array $schema): void
     {
         $directory = dirname($path);
-        $this->filesystem->ensureDirectory($directory);
+        $this->fileSystem->ensureDirectory($directory);
 
         $tmpPath = sprintf('%s.%s.tmp', $path, bin2hex(random_bytes(8)));
 
-        $this->filesystem->writeFile($tmpPath, $this->buildPhpFileContent($schema));
+        $this->fileSystem->writeFile($tmpPath, $this->buildPhpFileContent($schema));
         if (file_exists($path)) {
             unlink($path);
         }
@@ -81,7 +81,7 @@ final readonly class CompiledSchemaStorage
             return false;
         }
 
-        $this->filesystem->remove($path);
+        $this->fileSystem->remove($path);
         $this->invalidateOpcache($path);
 
         return true;

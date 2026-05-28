@@ -51,20 +51,20 @@ final class FileSystem
     {
         $items = is_array($paths) ? $paths : [$paths];
 
-        foreach ($items as $path) {
-            if (! file_exists($path)) {
+        foreach ($items as $item) {
+            if (! file_exists($item)) {
                 continue;
             }
 
-            if (is_file($path)) {
-                if (! unlink($path)) {
-                    throw new RuntimeException(sprintf('Unable to remove file: %s', $path));
+            if (is_file($item)) {
+                if (! unlink($item)) {
+                    throw new RuntimeException(sprintf('Unable to remove file: %s', $item));
                 }
 
                 continue;
             }
 
-            $this->removeDirectory($path);
+            $this->removeDirectory($item);
         }
     }
 

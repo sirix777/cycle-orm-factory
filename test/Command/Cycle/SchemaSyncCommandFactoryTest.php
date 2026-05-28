@@ -14,6 +14,8 @@ use Sirix\Cycle\Command\Cycle\SchemaSyncCommandFactory;
 use Sirix\Cycle\Service\CompiledSchemaStorage;
 use Sirix\Cycle\Service\SchemaCompilerInterface;
 
+use function in_array;
+
 final class SchemaSyncCommandFactoryTest extends TestCase
 {
     private ContainerInterface|MockObject $container;
@@ -35,8 +37,12 @@ final class SchemaSyncCommandFactoryTest extends TestCase
     {
         $this->container
             ->method('has')
-            ->with('config')
-            ->willReturn(true)
+            ->willReturnCallback(static fn (string $id): bool => in_array($id, [
+                'config',
+                SchemaCompilerInterface::class,
+                CompiledSchemaStorage::class,
+                'dbal',
+            ], true))
         ;
 
         $this->container

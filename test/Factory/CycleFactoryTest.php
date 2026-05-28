@@ -11,7 +11,6 @@ use Cycle\ORM\ORM;
 use Cycle\ORM\SchemaInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
-use Psr\Container\NotFoundExceptionInterface;
 use RuntimeException;
 use Sirix\Cycle\Factory\CycleFactory;
 use stdClass;
@@ -66,7 +65,7 @@ final class CycleFactoryTest extends TestCase
         $factory = new CycleFactory();
 
         $this->expectException(ConfigException::class);
-        $this->expectExceptionMessage('Expected dbal service');
+        $this->expectExceptionMessage('dbal');
         $factory($container);
     }
 
@@ -83,7 +82,7 @@ final class CycleFactoryTest extends TestCase
                     ];
                 }
 
-                throw new class('dbal not found') extends RuntimeException implements NotFoundExceptionInterface {};
+                throw new RuntimeException('Unknown service: ' . $id);
             }
 
             public function has(string $id): bool
@@ -94,8 +93,8 @@ final class CycleFactoryTest extends TestCase
 
         $factory = new CycleFactory();
 
-        $this->expectException(NotFoundExceptionInterface::class);
-        $this->expectExceptionMessage('dbal not found');
+        $this->expectException(ConfigException::class);
+        $this->expectExceptionMessage('dbal');
         $factory($container);
     }
 
@@ -196,7 +195,7 @@ final class CycleFactoryTest extends TestCase
 
             public function has(string $id): bool
             {
-                return 'config' === $id;
+                return 'config' === $id || 'dbal' === $id;
             }
         };
     }

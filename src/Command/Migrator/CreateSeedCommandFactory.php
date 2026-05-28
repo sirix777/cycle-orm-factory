@@ -4,29 +4,25 @@ declare(strict_types=1);
 
 namespace Sirix\Cycle\Command\Migrator;
 
-use Cycle\Database\Exception\ConfigException;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\ContainerInterface;
 use Psr\Container\NotFoundExceptionInterface;
+use Sirix\ContainerResolver\ConfigReader;
+use Sirix\ContainerResolver\ContainerResolver;
+use Sirix\ContainerResolver\Exception\ResolverException;
 
 final class CreateSeedCommandFactory
 {
     /**
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
+     * @throws ResolverException
      */
     public function __invoke(ContainerInterface $container): CreateSeedCommand
     {
-        $config = $container->has('config')
-            ? $container->get('config')
-            : [];
+        $containerResolver = ContainerResolver::forFactory($container, self::class);
+        $configReader = ConfigReader::fromContainer($containerResolver);
 
-        if (! isset($config['cycle']['migrator']['seed_directory'])) {
-            throw new ConfigException('Expected config migrator with seed_directory');
-        }
-
-        $seedDirectory = $config['cycle']['migrator']['seed_directory'];
-
-        return new CreateSeedCommand($seedDirectory);
+        return new CreateSeedCommand($configReader->requiredNonEmptyString('cycle.migrator.seed_directory'));
     }
 }
