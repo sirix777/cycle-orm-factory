@@ -25,7 +25,7 @@ final class SchemaMigrationsGenerateCommandFactory
     public function __invoke(ContainerInterface $container): SchemaMigrationsGenerateCommand
     {
         $containerResolver = ContainerResolver::forFactory($container, self::class);
-        $configReader = ConfigReader::fromContainer($containerResolver);
+        $configReader      = ConfigReader::fromContainer($containerResolver);
 
         return new SchemaMigrationsGenerateCommand(
             $containerResolver->get(SchemaCompilerInterface::class),

@@ -26,9 +26,9 @@ final class OptionalPackagesAbsentTest extends TestCase
             $this->markTestSkipped('Optional packages are installed in this environment.');
         }
 
-        $config = (new ConfigProvider())->__invoke();
+        $config       = (new ConfigProvider())->__invoke();
         $dependencies = $config['dependencies'];
-        $commands = $config['laminas-cli']['commands'];
+        $commands     = $config['laminas-cli']['commands'];
 
         $this->assertSame([], $commands);
 

@@ -25,7 +25,7 @@ final class SchemaSyncCommandFactory
     public function __invoke(ContainerInterface $container): SchemaSyncCommand
     {
         $containerResolver = ContainerResolver::forFactory($container, self::class);
-        $configReader = ConfigReader::fromContainer($containerResolver);
+        $configReader      = ConfigReader::fromContainer($containerResolver);
 
         return new SchemaSyncCommand(
             $containerResolver->get(SchemaCompilerInterface::class),

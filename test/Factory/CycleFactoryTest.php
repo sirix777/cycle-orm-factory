@@ -100,13 +100,17 @@ final class CycleFactoryTest extends TestCase
 
     public function testFactoryCompilesAndPersistsSchemaWhenCacheEnabled(): void
     {
-        $path = $this->tmpDir . '/schema.php';
+        $path   = $this->tmpDir . '/schema.php';
         $config = [
             'cycle' => [
                 'entities' => ['src'],
-                'schema' => [
-                    'cache' => ['enabled' => true],
-                    'compiled' => ['path' => $path],
+                'schema'   => [
+                    'cache'    => [
+                        'enabled' => true,
+                    ],
+                    'compiled' => [
+                        'path' => $path,
+                    ],
                 ],
             ],
         ];
@@ -114,7 +118,7 @@ final class CycleFactoryTest extends TestCase
         $container = $this->createContainer($config);
 
         $factory = new CycleFactory();
-        $orm = $factory($container);
+        $orm     = $factory($container);
 
         $this->assertInstanceOf(ORM::class, $orm);
         $this->assertTrue(file_exists($path));
@@ -122,13 +126,17 @@ final class CycleFactoryTest extends TestCase
 
     public function testFactoryCompilesWithoutPersistingWhenCacheDisabled(): void
     {
-        $path = $this->tmpDir . '/schema.php';
+        $path   = $this->tmpDir . '/schema.php';
         $config = [
             'cycle' => [
                 'entities' => ['src'],
-                'schema' => [
-                    'cache' => ['enabled' => false],
-                    'compiled' => ['path' => $path],
+                'schema'   => [
+                    'cache'    => [
+                        'enabled' => false,
+                    ],
+                    'compiled' => [
+                        'path' => $path,
+                    ],
                 ],
             ],
         ];
@@ -136,7 +144,7 @@ final class CycleFactoryTest extends TestCase
         $container = $this->createContainer($config);
 
         $factory = new CycleFactory();
-        $orm = $factory($container);
+        $orm     = $factory($container);
 
         $this->assertInstanceOf(ORM::class, $orm);
         $this->assertFalse(file_exists($path));
@@ -147,16 +155,22 @@ final class CycleFactoryTest extends TestCase
         $config = [
             'cycle' => [
                 'schema' => [
-                    'cache' => ['enabled' => false],
+                    'cache'                             => [
+                        'enabled' => false,
+                    ],
                     'manual_mapping_schema_definitions' => [
                         'dummy' => [
-                            SchemaInterface::ENTITY => stdClass::class,
-                            SchemaInterface::DATABASE => 'default',
-                            SchemaInterface::TABLE => 'dummy',
+                            SchemaInterface::ENTITY      => stdClass::class,
+                            SchemaInterface::DATABASE    => 'default',
+                            SchemaInterface::TABLE       => 'dummy',
                             SchemaInterface::PRIMARY_KEY => 'id',
-                            SchemaInterface::COLUMNS => ['id' => 'id'],
-                            SchemaInterface::TYPECAST => ['id' => 'int'],
-                            SchemaInterface::RELATIONS => [],
+                            SchemaInterface::COLUMNS     => [
+                                'id' => 'id',
+                            ],
+                            SchemaInterface::TYPECAST    => [
+                                'id' => 'int',
+                            ],
+                            SchemaInterface::RELATIONS   => [],
                         ],
                     ],
                 ],
@@ -166,7 +180,7 @@ final class CycleFactoryTest extends TestCase
         $container = $this->createContainer($config);
 
         $factory = new CycleFactory();
-        $orm = $factory($container);
+        $orm     = $factory($container);
 
         $this->assertInstanceOf(ORM::class, $orm);
     }
@@ -188,8 +202,8 @@ final class CycleFactoryTest extends TestCase
             {
                 return match ($id) {
                     'config' => $this->config,
-                    'dbal' => $this->dbal,
-                    default => throw new RuntimeException('Unknown service: ' . $id),
+                    'dbal'   => $this->dbal,
+                    default  => throw new RuntimeException('Unknown service: ' . $id),
                 };
             }
 

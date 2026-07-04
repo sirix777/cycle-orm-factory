@@ -26,7 +26,7 @@ final class MigratorServiceTest extends TestCase
         $this->migratorMock = Mockery::mock(MigratorInterface::class);
 
         /** @var MigratorInterface $migratorMock */
-        $migratorMock = $this->migratorMock;
+        $migratorMock          = $this->migratorMock;
         $this->migratorService = new MigratorService($migratorMock);
 
         $this->migratorMock

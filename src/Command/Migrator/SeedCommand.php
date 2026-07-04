@@ -29,8 +29,8 @@ use function sprintf;
 
 final class SeedCommand extends Command
 {
-    private const DEFAULT_DATABASE = 'main-db';
-    private const SEED_NAMESPACE = 'Seed';
+    private const DEFAULT_DATABASE       = 'main-db';
+    private const SEED_NAMESPACE         = 'Seed';
     private const SEED_DATABASE_CONSTANT = 'DATABASE';
     private const SEED_DATABASE_PROPERTY = 'database';
 
@@ -83,11 +83,11 @@ final class SeedCommand extends Command
     {
         $symfonyStyle = new SymfonyStyle($input, $output);
 
-        $databaseOption = (string) $input->getOption('database');
+        $databaseOption         = (string) $input->getOption('database');
         $this->databaseOverride = '' !== $databaseOption ? $databaseOption : null;
 
         $seedDirectory = $this->resolveSeedDirectory($input);
-        $seedName = $this->getSeedNameFromInput($input);
+        $seedName      = $this->getSeedNameFromInput($input);
 
         if ('' !== $seedName && '0' !== $seedName) {
             return $this->executeSingleSeed($seedName, $seedDirectory, $symfonyStyle);
@@ -137,11 +137,8 @@ final class SeedCommand extends Command
         }
     }
 
-    private function loadAndValidateSeed(
-        string $seedName,
-        string $seedDirectory,
-        SymfonyStyle $symfonyStyle
-    ): ?SeedInterface {
+    private function loadAndValidateSeed(string $seedName, string $seedDirectory, SymfonyStyle $symfonyStyle): ?SeedInterface
+    {
         if (! $this->validateSeedName($seedName, $symfonyStyle)) {
             return null;
         }

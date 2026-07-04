@@ -61,10 +61,12 @@ final class CreateMigrationCommandTest extends TestCase
     {
         $command = new CreateMigrationCommand($this->migrationDirectory, $this->migrator);
 
-        $input = new ArrayInput(['migrationName' => 'ValidMigrationName']);
+        $input = new ArrayInput([
+            'migrationName' => 'ValidMigrationName',
+        ]);
         $output = new BufferedOutput();
 
-        $resultCode = $command->run($input, $output);
+        $resultCode    = $command->run($input, $output);
         $outputContent = $output->fetch();
 
         $this->assertSame(Command::SUCCESS, $resultCode);
@@ -91,10 +93,10 @@ final class CreateMigrationCommandTest extends TestCase
     {
         $command = new CreateMigrationCommand($this->migrationDirectory, $this->migrator);
 
-        $input = new ArrayInput([]);
+        $input  = new ArrayInput([]);
         $output = new BufferedOutput();
 
-        $resultCode = $command->run($input, $output);
+        $resultCode    = $command->run($input, $output);
         $outputContent = $output->fetch();
 
         $this->assertSame(Command::INVALID, $resultCode);
@@ -108,10 +110,12 @@ final class CreateMigrationCommandTest extends TestCase
     {
         $command = new CreateMigrationCommand($this->migrationDirectory, $this->migrator);
 
-        $input = new ArrayInput(['migrationName' => 'invalid_migration_name']);
+        $input = new ArrayInput([
+            'migrationName' => 'invalid_migration_name',
+        ]);
         $output = new BufferedOutput();
 
-        $resultCode = $command->run($input, $output);
+        $resultCode    = $command->run($input, $output);
         $outputContent = $output->fetch();
 
         $this->assertSame(Command::FAILURE, $resultCode);
@@ -125,10 +129,12 @@ final class CreateMigrationCommandTest extends TestCase
     {
         $command = new CreateMigrationCommand('/dev/null', $this->migrator);
 
-        $input = new ArrayInput(['migrationName' => 'ValidMigrationName']);
+        $input = new ArrayInput([
+            'migrationName' => 'ValidMigrationName',
+        ]);
         $output = new BufferedOutput();
 
-        $resultCode = $command->run($input, $output);
+        $resultCode    = $command->run($input, $output);
         $outputContent = $output->fetch();
 
         $this->assertSame(Command::FAILURE, $resultCode);
@@ -142,7 +148,10 @@ final class CreateMigrationCommandTest extends TestCase
     {
         $command = new CreateMigrationCommand($this->migrationDirectory, $this->migrator);
 
-        $input = new ArrayInput(['migrationName' => 'ValidMigrationName', '-b' => 'custom-db']);
+        $input = new ArrayInput([
+            'migrationName' => 'ValidMigrationName',
+            '-b'            => 'custom-db',
+        ]);
         $output = new BufferedOutput();
 
         $resultCode = $command->run($input, $output);
@@ -166,7 +175,10 @@ final class CreateMigrationCommandTest extends TestCase
     {
         $command = new CreateMigrationCommand($this->migrationDirectory, $this->migrator);
 
-        $input = new ArrayInput(['migrationName' => 'ValidMigrationName', '--database' => 'long-db']);
+        $input = new ArrayInput([
+            'migrationName' => 'ValidMigrationName',
+            '--database'    => 'long-db',
+        ]);
         $output = new BufferedOutput();
 
         $resultCode = $command->run($input, $output);
@@ -190,13 +202,17 @@ final class CreateMigrationCommandTest extends TestCase
     {
         $command = new CreateMigrationCommand($this->migrationDirectory, $this->migrator);
 
-        $input = new ArrayInput(['migrationName' => 'DuplicateName']);
+        $input = new ArrayInput([
+            'migrationName' => 'DuplicateName',
+        ]);
         $output = new BufferedOutput();
         $command->run($input, $output);
 
         usleep(200_000);
 
-        $input = new ArrayInput(['migrationName' => 'DuplicateName']);
+        $input = new ArrayInput([
+            'migrationName' => 'DuplicateName',
+        ]);
         $output = new BufferedOutput();
         $command->run($input, $output);
 
@@ -228,7 +244,9 @@ final class CreateMigrationCommandTest extends TestCase
         $command1 = new CreateMigrationCommand($dir1, $this->migrator);
         $command2 = new CreateMigrationCommand($dir2, $this->migrator);
 
-        $input = new ArrayInput(['migrationName' => 'CrossDirTest']);
+        $input = new ArrayInput([
+            'migrationName' => 'CrossDirTest',
+        ]);
         $out1 = new BufferedOutput();
         $out2 = new BufferedOutput();
 
@@ -255,15 +273,21 @@ final class CreateMigrationCommandTest extends TestCase
     {
         $command = new CreateMigrationCommand($this->migrationDirectory, $this->migrator);
 
-        $command->run(new ArrayInput(['migrationName' => 'PerDbCounter', '--database' => 'db-a']), new BufferedOutput());
-        $command->run(new ArrayInput(['migrationName' => 'PerDbCounter', '--database' => 'db-b']), new BufferedOutput());
+        $command->run(new ArrayInput([
+            'migrationName' => 'PerDbCounter',
+            '--database'    => 'db-a',
+        ]), new BufferedOutput());
+        $command->run(new ArrayInput([
+            'migrationName' => 'PerDbCounter',
+            '--database'    => 'db-b',
+        ]), new BufferedOutput());
 
         $migrations = glob($this->migrationDirectory . DIRECTORY_SEPARATOR . '*.php') ?: [];
         $this->assertCount(2, $migrations);
 
         $filenames = [basename($migrations[0]), basename($migrations[1])];
-        $hasDbA = false;
-        $hasDbB = false;
+        $hasDbA    = false;
+        $hasDbB    = false;
 
         foreach ($filenames as $filename) {
             $hasDbA = $hasDbA || 1 === preg_match('/^\d{8}\.\d{6}_0_0_db-a_per_db_counter\.php$/', (string) $filename);
@@ -281,7 +305,9 @@ final class CreateMigrationCommandTest extends TestCase
     {
         $command = new CreateMigrationCommand($this->migrationDirectory, $this->migrator);
 
-        $resultCode = $command->run(new ArrayInput(['migrationName' => 'CreateUserAPIKey']), new BufferedOutput());
+        $resultCode = $command->run(new ArrayInput([
+            'migrationName' => 'CreateUserAPIKey',
+        ]), new BufferedOutput());
         $this->assertSame(Command::SUCCESS, $resultCode);
 
         $migrations = glob($this->migrationDirectory . DIRECTORY_SEPARATOR . '*.php') ?: [];

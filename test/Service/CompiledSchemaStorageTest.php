@@ -31,7 +31,7 @@ final class CompiledSchemaStorageTest extends TestCase
         mkdir($this->tmpDir, 0o777, true);
 
         $this->schemaPath = $this->tmpDir . '/schema.php';
-        $this->storage = new CompiledSchemaStorage();
+        $this->storage    = new CompiledSchemaStorage();
     }
 
     protected function tearDown(): void
@@ -46,7 +46,11 @@ final class CompiledSchemaStorageTest extends TestCase
 
     public function testSaveAndLoadSchema(): void
     {
-        $schema = ['foo' => ['bar' => 'baz']];
+        $schema = [
+            'foo' => [
+                'bar' => 'baz',
+            ],
+        ];
 
         $this->storage->save($this->schemaPath, $schema);
 
@@ -64,7 +68,9 @@ final class CompiledSchemaStorageTest extends TestCase
 
     public function testClearRemovesFile(): void
     {
-        $this->storage->save($this->schemaPath, ['a' => 1]);
+        $this->storage->save($this->schemaPath, [
+            'a' => 1,
+        ]);
 
         $this->assertTrue($this->storage->clear($this->schemaPath));
         $this->assertFalse(file_exists($this->schemaPath));

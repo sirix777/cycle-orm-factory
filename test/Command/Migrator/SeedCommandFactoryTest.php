@@ -27,9 +27,9 @@ class SeedCommandFactoryTest extends TestCase
     public function setUp(): void
     {
         parent::setUp();
-        $this->container = $this->createMock(ContainerInterface::class);
+        $this->container       = $this->createMock(ContainerInterface::class);
         $this->migratorService = $this->createMock(MigratorService::class);
-        $this->dbal = $this->createMock(DatabaseProviderInterface::class);
+        $this->dbal            = $this->createMock(DatabaseProviderInterface::class);
     }
 
     /**

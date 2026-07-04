@@ -21,7 +21,7 @@ final class CreateSeedCommandFactory
     public function __invoke(ContainerInterface $container): CreateSeedCommand
     {
         $containerResolver = ContainerResolver::forFactory($container, self::class);
-        $configReader = ConfigReader::fromContainer($containerResolver);
+        $configReader      = ConfigReader::fromContainer($containerResolver);
 
         return new CreateSeedCommand($configReader->requiredNonEmptyString('cycle.migrator.seed_directory'));
     }

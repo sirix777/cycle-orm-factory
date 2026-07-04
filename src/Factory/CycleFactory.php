@@ -48,14 +48,14 @@ final class CycleFactory
     private function createOrm(ContainerInterface $container): ORMInterface
     {
         $containerResolver = ContainerResolver::forFactory($container, self::class);
-        $configReader = ConfigReader::fromContainer($containerResolver);
+        $configReader      = ConfigReader::fromContainer($containerResolver);
 
-        $databaseManager = $containerResolver->getAs('dbal', DatabaseManager::class);
-        $entities = $configReader->nonEmptyStringList('cycle.entities', []);
+        $databaseManager                = $containerResolver->getAs('dbal', DatabaseManager::class);
+        $entities                       = $configReader->nonEmptyStringList('cycle.entities', []);
         $manualMappingSchemaDefinitions = $this->resolveManualMappingSchemaDefinitions($configReader);
-        $additionalGenerators = $configReader->list('cycle.generators', []);
-        $isCacheEnabled = $configReader->bool('cycle.schema.cache.enabled', true);
-        $compiledSchemaPath = $configReader->nonEmptyString(
+        $additionalGenerators           = $configReader->list('cycle.generators', []);
+        $isCacheEnabled                 = $configReader->bool('cycle.schema.cache.enabled', true);
+        $compiledSchemaPath             = $configReader->nonEmptyString(
             'cycle.schema.compiled.path',
             self::DEFAULT_COMPILED_SCHEMA_PATH,
         );
@@ -102,12 +102,9 @@ final class CycleFactory
     /**
      * @param array<string, mixed> $schema
      */
-    private function createOrmInstance(
-        ContainerInterface $container,
-        DatabaseManager $databaseManager,
-        array $schema
-    ): ORMInterface {
-        $schemaInstance = new ORMSchema($schema);
+    private function createOrmInstance(ContainerInterface $container, DatabaseManager $databaseManager, array $schema): ORMInterface
+    {
+        $schemaInstance   = new ORMSchema($schema);
         $commandGenerator = $this->createCommandGenerator($schemaInstance, $container);
 
         return new ORM\ORM(
@@ -117,10 +114,8 @@ final class CycleFactory
         );
     }
 
-    private function createCommandGenerator(
-        ORMSchema $ormSchema,
-        ContainerInterface $container
-    ): ?CommandGeneratorInterface {
+    private function createCommandGenerator(ORMSchema $ormSchema, ContainerInterface $container): ?CommandGeneratorInterface
+    {
         if (! PackageChecker::isEntityBehaviorAvailable()) {
             return null;
         }

@@ -38,12 +38,8 @@ final readonly class SchemaCompilerService implements SchemaCompilerInterface
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
      */
-    public function compile(
-        DatabaseManager $databaseManager,
-        array $entities,
-        array $manualMappingSchemaDefinitions,
-        array $additionalGenerators = [],
-    ): array {
+    public function compile(DatabaseManager $databaseManager, array $entities, array $manualMappingSchemaDefinitions, array $additionalGenerators = []): array
+    {
         return $this->compileWithGenerators(
             $databaseManager,
             $this->createBaseGenerators($entities, $manualMappingSchemaDefinitions, $additionalGenerators),
@@ -61,13 +57,9 @@ final readonly class SchemaCompilerService implements SchemaCompilerInterface
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
      */
-    public function sync(
-        DatabaseManager $databaseManager,
-        array $entities,
-        array $manualMappingSchemaDefinitions,
-        array $additionalGenerators = [],
-    ): array {
-        $generators = $this->createBaseGenerators($entities, $manualMappingSchemaDefinitions, $additionalGenerators);
+    public function sync(DatabaseManager $databaseManager, array $entities, array $manualMappingSchemaDefinitions, array $additionalGenerators = []): array
+    {
+        $generators   = $this->createBaseGenerators($entities, $manualMappingSchemaDefinitions, $additionalGenerators);
         $generators[] = new Schema\Generator\SyncTables();
 
         return $this->compileWithGenerators($databaseManager, $generators, $manualMappingSchemaDefinitions);
@@ -89,7 +81,7 @@ final readonly class SchemaCompilerService implements SchemaCompilerInterface
         array $manualMappingSchemaDefinitions,
         array $additionalGenerators = [],
     ): array {
-        $generators = $this->createBaseGenerators($entities, $manualMappingSchemaDefinitions, $additionalGenerators);
+        $generators   = $this->createBaseGenerators($entities, $manualMappingSchemaDefinitions, $additionalGenerators);
         $generators[] = $this->createGenerateMigrationsGenerator();
 
         return $this->compileWithGenerators($databaseManager, $generators, $manualMappingSchemaDefinitions);
@@ -105,11 +97,8 @@ final readonly class SchemaCompilerService implements SchemaCompilerInterface
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
      */
-    private function createBaseGenerators(
-        array $entities,
-        array $manualMappingSchemaDefinitions,
-        array $additionalGenerators,
-    ): array {
+    private function createBaseGenerators(array $entities, array $manualMappingSchemaDefinitions, array $additionalGenerators): array
+    {
         $entities = $this->normalizeEntityDirectories($entities);
 
         if ([] === $entities && [] === $manualMappingSchemaDefinitions && [] === $additionalGenerators) {
@@ -133,7 +122,7 @@ final readonly class SchemaCompilerService implements SchemaCompilerInterface
         ];
 
         if ([] !== $entities) {
-            $finder = (new Finder())->files()->in($entities);
+            $finder       = (new Finder())->files()->in($entities);
             $classLocator = new ClassLocator($finder);
 
             $generators = [
@@ -165,13 +154,10 @@ final readonly class SchemaCompilerService implements SchemaCompilerInterface
      *
      * @return array<string, mixed>
      */
-    private function compileWithGenerators(
-        DatabaseManager $databaseManager,
-        array $generators,
-        array $manualMappingSchemaDefinitions,
-    ): array {
+    private function compileWithGenerators(DatabaseManager $databaseManager, array $generators, array $manualMappingSchemaDefinitions): array
+    {
         $schemaCompiler = new Schema\Compiler();
-        $schema = $schemaCompiler->compile(
+        $schema         = $schemaCompiler->compile(
             new Schema\Registry($databaseManager),
             $generators,
         );
@@ -217,10 +203,10 @@ final readonly class SchemaCompilerService implements SchemaCompilerInterface
 
         foreach ($additionalGenerators as $additionalGenerator) {
             $instance = match (true) {
-                $additionalGenerator instanceof GeneratorInterface => $additionalGenerator,
+                $additionalGenerator instanceof GeneratorInterface                             => $additionalGenerator,
                 is_string($additionalGenerator) && $this->container->has($additionalGenerator) => $this->container->get($additionalGenerator),
-                is_string($additionalGenerator) && class_exists($additionalGenerator) => new $additionalGenerator(),
-                default => throw new ConfigException('Invalid schema generator provided in config.cycle.generators')
+                is_string($additionalGenerator) && class_exists($additionalGenerator)          => new $additionalGenerator(),
+                default                                                                        => throw new ConfigException('Invalid schema generator provided in config.cycle.generators')
             };
 
             if (! $instance instanceof GeneratorInterface) {

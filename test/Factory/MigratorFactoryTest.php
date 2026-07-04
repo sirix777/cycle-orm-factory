@@ -31,11 +31,11 @@ final class MigratorFactoryTest extends TestCase
     {
         parent::setUp();
         $this->container = $this->createMock(ContainerInterface::class);
-        $this->config = [
+        $this->config    = [
             'cycle' => [
                 'migrator' => [
                     'directory' => 'db/migrations',
-                    'table' => 'migrations',
+                    'table'     => 'migrations',
                 ],
             ],
         ];

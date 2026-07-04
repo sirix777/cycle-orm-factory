@@ -33,7 +33,7 @@ final class ClearCycleSchemaCacheTest extends TestCase
         mkdir($this->tmpDir, 0o777, true);
 
         $this->schemaPath = $this->tmpDir . '/schema.php';
-        $this->storage = new CompiledSchemaStorage();
+        $this->storage    = new CompiledSchemaStorage();
     }
 
     protected function tearDown(): void
@@ -52,9 +52,11 @@ final class ClearCycleSchemaCacheTest extends TestCase
      */
     public function testExecuteCacheClearedSuccessfully(): void
     {
-        $this->storage->save($this->schemaPath, ['foo' => 'bar']);
+        $this->storage->save($this->schemaPath, [
+            'foo' => 'bar',
+        ]);
 
-        $command = new ClearCycleSchemaCache($this->storage, $this->schemaPath, true);
+        $command       = new ClearCycleSchemaCache($this->storage, $this->schemaPath, true);
         $commandTester = new CommandTester($command);
         $commandTester->execute([]);
 

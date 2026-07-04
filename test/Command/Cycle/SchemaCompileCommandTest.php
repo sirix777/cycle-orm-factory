@@ -42,8 +42,8 @@ final class SchemaCompileCommandTest extends TestCase
         $this->schemaPath = $this->tmpDir . '/schema.php';
 
         $this->schemaCompiler = $this->createMock(SchemaCompilerInterface::class);
-        $this->storage = new CompiledSchemaStorage();
-        $this->dbal = new DatabaseManager(new DatabaseConfig([]));
+        $this->storage        = new CompiledSchemaStorage();
+        $this->dbal           = new DatabaseManager(new DatabaseConfig([]));
     }
 
     protected function tearDown(): void
@@ -59,9 +59,15 @@ final class SchemaCompileCommandTest extends TestCase
 
     public function testExecuteCompilesAndSavesSchema(): void
     {
-        $schema = ['foo' => 'bar'];
-        $entities = ['src/Entity'];
-        $manualMapping = ['m' => ['x' => 'y']];
+        $schema = [
+            'foo' => 'bar',
+        ];
+        $entities      = ['src/Entity'];
+        $manualMapping = [
+            'm' => [
+                'x' => 'y',
+            ],
+        ];
         $additionalGenerators = ['my.generator.service'];
 
         $this->schemaCompiler
@@ -82,7 +88,7 @@ final class SchemaCompileCommandTest extends TestCase
             true,
         );
 
-        $tester = new CommandTester($command);
+        $tester   = new CommandTester($command);
         $exitCode = $tester->execute([]);
 
         $this->assertSame(Command::SUCCESS, $exitCode);
@@ -110,7 +116,7 @@ final class SchemaCompileCommandTest extends TestCase
             true,
         );
 
-        $tester = new CommandTester($command);
+        $tester   = new CommandTester($command);
         $exitCode = $tester->execute([]);
 
         $this->assertSame(Command::FAILURE, $exitCode);

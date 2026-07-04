@@ -42,8 +42,8 @@ final class SchemaSyncCommandTest extends TestCase
         $this->schemaPath = $this->tmpDir . '/schema.php';
 
         $this->schemaCompiler = $this->createMock(SchemaCompilerInterface::class);
-        $this->storage = new CompiledSchemaStorage();
-        $this->dbal = new DatabaseManager(new DatabaseConfig([]));
+        $this->storage        = new CompiledSchemaStorage();
+        $this->dbal           = new DatabaseManager(new DatabaseConfig([]));
     }
 
     protected function tearDown(): void
@@ -59,7 +59,9 @@ final class SchemaSyncCommandTest extends TestCase
 
     public function testExecuteWithEnabledCacheRefreshesCompiledSchema(): void
     {
-        $schema = ['foo' => 'bar'];
+        $schema = [
+            'foo' => 'bar',
+        ];
         $this->schemaCompiler
             ->expects($this->once())
             ->method('sync')
@@ -78,7 +80,7 @@ final class SchemaSyncCommandTest extends TestCase
             true,
         );
 
-        $tester = new CommandTester($command);
+        $tester   = new CommandTester($command);
         $exitCode = $tester->execute([]);
 
         $this->assertSame(Command::SUCCESS, $exitCode);
@@ -93,7 +95,9 @@ final class SchemaSyncCommandTest extends TestCase
             ->expects($this->once())
             ->method('sync')
             ->with($this->dbal, [], [], [])
-            ->willReturn(['foo' => 'bar'])
+            ->willReturn([
+                'foo' => 'bar',
+            ])
         ;
 
         $command = new SchemaSyncCommand(
@@ -107,7 +111,7 @@ final class SchemaSyncCommandTest extends TestCase
             false,
         );
 
-        $tester = new CommandTester($command);
+        $tester   = new CommandTester($command);
         $exitCode = $tester->execute([]);
 
         $this->assertSame(Command::SUCCESS, $exitCode);
@@ -137,7 +141,7 @@ final class SchemaSyncCommandTest extends TestCase
             true,
         );
 
-        $tester = new CommandTester($command);
+        $tester   = new CommandTester($command);
         $exitCode = $tester->execute([]);
 
         $this->assertSame(Command::FAILURE, $exitCode);

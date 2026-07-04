@@ -19,7 +19,7 @@ final class DbalFactory
     public function __invoke(ContainerInterface $container): DatabaseManager
     {
         $containerResolver = ContainerResolver::forFactory($container, self::class);
-        $configReader = ConfigReader::fromContainer($containerResolver);
+        $configReader      = ConfigReader::fromContainer($containerResolver);
 
         return new DatabaseManager(new Config\DatabaseConfig(
             $configReader->requiredMap('cycle.db-config'),

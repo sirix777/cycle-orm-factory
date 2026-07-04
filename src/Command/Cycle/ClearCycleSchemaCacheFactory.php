@@ -15,7 +15,7 @@ final class ClearCycleSchemaCacheFactory
     public function __invoke(ContainerInterface $container): ClearCycleSchemaCache
     {
         $containerResolver = ContainerResolver::forFactory($container, self::class);
-        $configReader = ConfigReader::fromContainer($containerResolver);
+        $configReader      = ConfigReader::fromContainer($containerResolver);
 
         return new ClearCycleSchemaCache(
             $containerResolver->get(CompiledSchemaStorage::class),

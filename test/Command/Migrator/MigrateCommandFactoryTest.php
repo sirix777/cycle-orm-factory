@@ -72,7 +72,7 @@ class MigrateCommandFactoryTest extends TestCase
             )
         ;
 
-        $factory = new MigrateCommandFactory();
+        $factory        = new MigrateCommandFactory();
         $migrateCommand = $factory($this->container);
         $this->assertInstanceOf(
             MigrateCommand::class,

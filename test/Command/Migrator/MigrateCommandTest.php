@@ -88,13 +88,13 @@ class MigrateCommandTest extends TestCase
     private function runCommand(array $input): array
     {
         $command = $this->getMigrateCommand();
-        $output = new BufferedOutput();
+        $output  = new BufferedOutput();
 
-        $resultCode = $command->run(new ArrayInput($input), $output);
+        $resultCode    = $command->run(new ArrayInput($input), $output);
         $outputContent = $output->fetch();
 
         return [
-            'code' => $resultCode,
+            'code'   => $resultCode,
             'output' => $outputContent,
         ];
     }

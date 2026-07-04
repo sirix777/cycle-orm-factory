@@ -59,11 +59,8 @@ final class CreateMigrationCommand extends Command
         }
         PHP;
 
-    public function __construct(
-        private readonly string $migrationDirectory,
-        private readonly MigratorInterface $migrator,
-        ?string $name = null
-    ) {
+    public function __construct(private readonly string $migrationDirectory, private readonly MigratorInterface $migrator, ?string $name = null)
+    {
         parent::__construct($name);
     }
 
@@ -104,9 +101,9 @@ final class CreateMigrationCommand extends Command
         $database = $input->getOption('database');
         $database = null === $database || '' === $database ? self::DEFAULT_DATABASE : $database;
 
-        $filename = $this->generateMigrationName($migrationName, $database);
-        $filePath = $this->migrationDirectory . DIRECTORY_SEPARATOR . $filename;
-        $className = sprintf('Orm%s', ucfirst($this->getUniqueId()));
+        $filename    = $this->generateMigrationName($migrationName, $database);
+        $filePath    = $this->migrationDirectory . DIRECTORY_SEPARATOR . $filename;
+        $className   = sprintf('Orm%s', ucfirst($this->getUniqueId()));
         $fileContent = $this->getMigrationFileContent($className, $database);
 
         $filesystem = new FileSystem();
@@ -135,10 +132,10 @@ final class CreateMigrationCommand extends Command
 
     private function generateMigrationName(string $migrationName, string $database): string
     {
-        $timestamp = (new DateTime())->format('Ymd.His');
-        $databaseAlias = $this->normalizeDatabaseAliasForFilename($database);
+        $timestamp      = (new DateTime())->format('Ymd.His');
+        $databaseAlias  = $this->normalizeDatabaseAliasForFilename($database);
         $migrationAlias = $this->normalizeMigrationNameForFilename($migrationName);
-        $counter = $this->findNextCounter($migrationAlias, $databaseAlias);
+        $counter        = $this->findNextCounter($migrationAlias, $databaseAlias);
 
         return sprintf('%s_0_%d_%s_%s.php', $timestamp, $counter, $databaseAlias, $migrationAlias);
     }

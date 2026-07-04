@@ -23,8 +23,8 @@ final class SeedCommandFactory
     public function __invoke(ContainerInterface $container): SeedCommand
     {
         $containerResolver = ContainerResolver::forFactory($container, self::class);
-        $configReader = ConfigReader::fromContainer($containerResolver);
-        $seedDirectory = $configReader->requiredNonEmptyString('cycle.migrator.seed_directory');
+        $configReader      = ConfigReader::fromContainer($containerResolver);
+        $seedDirectory     = $configReader->requiredNonEmptyString('cycle.migrator.seed_directory');
 
         return new SeedCommand(
             $containerResolver->get(MigratorService::class),

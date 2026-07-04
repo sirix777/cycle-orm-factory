@@ -22,12 +22,7 @@ interface SchemaCompilerInterface
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
      */
-    public function compile(
-        DatabaseManager $databaseManager,
-        array $entities,
-        array $manualMappingSchemaDefinitions,
-        array $additionalGenerators = [],
-    ): array;
+    public function compile(DatabaseManager $databaseManager, array $entities, array $manualMappingSchemaDefinitions, array $additionalGenerators = []): array;
 
     /**
      * @param array<string>        $entities
@@ -40,12 +35,7 @@ interface SchemaCompilerInterface
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
      */
-    public function sync(
-        DatabaseManager $databaseManager,
-        array $entities,
-        array $manualMappingSchemaDefinitions,
-        array $additionalGenerators = [],
-    ): array;
+    public function sync(DatabaseManager $databaseManager, array $entities, array $manualMappingSchemaDefinitions, array $additionalGenerators = []): array;
 
     /**
      * @param array<string>        $entities

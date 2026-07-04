@@ -65,8 +65,8 @@ class SeedCommandTest extends TestCase
     protected function setUp(): void
     {
         $this->migratorService = $this->createMock(MigratorService::class);
-        $this->dbal = $this->createMock(DatabaseProviderInterface::class);
-        $this->seedDirectory = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'seeds_' . uniqid();
+        $this->dbal            = $this->createMock(DatabaseProviderInterface::class);
+        $this->seedDirectory   = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'seeds_' . uniqid();
 
         $database = $this->createMock(DatabaseInterface::class);
         $this->dbal->method('database')->willReturn($database);
@@ -115,13 +115,17 @@ class SeedCommandTest extends TestCase
 
     public function testExecuteWithInvalidSeedName(): void
     {
-        $result = $this->runCommand(['seed' => 'invalid_seed_name'], null);
+        $result = $this->runCommand([
+            'seed' => 'invalid_seed_name',
+        ], null);
         $this->assertCommandResult($result, Command::FAILURE, 'Invalid seed name. Use PascalCase format.');
     }
 
     public function testExecuteWithNonExistentSeedFile(): void
     {
-        $result = $this->runCommand(['seed' => 'NonExistentSeed'], null);
+        $result = $this->runCommand([
+            'seed' => 'NonExistentSeed',
+        ], null);
 
         $this->assertStringContainsString('Seed file "NonExistentSeed" not found in directory', $result['output']);
         $this->assertStringContainsString($this->seedDirectory, $result['output']);
@@ -147,7 +151,9 @@ class SeedCommandTest extends TestCase
         $seedFile = $this->seedDirectory . DIRECTORY_SEPARATOR . 'InvalidSeed.php';
         file_put_contents($seedFile, $seedContent);
 
-        $result = $this->runCommand(['seed' => 'InvalidSeed'], null);
+        $result = $this->runCommand([
+            'seed' => 'InvalidSeed',
+        ], null);
         $this->assertSame(Command::FAILURE, $result['code']);
     }
 
@@ -157,28 +163,36 @@ class SeedCommandTest extends TestCase
         $seed = (array) glob($this->seedDirectory . DIRECTORY_SEPARATOR . '*.php');
         $this->assertCount(1, $seed);
 
-        $result = $this->runCommand(['seed' => 'MismatchedSeed'], null);
+        $result = $this->runCommand([
+            'seed' => 'MismatchedSeed',
+        ], null);
         $this->assertCommandResult($result, Command::FAILURE, 'Seed class "Seed\MismatchedSeed" not found in the file');
     }
 
     public function testExecuteWithSuccessfulSeed(): void
     {
         $this->createSeedFile('SuperSeed');
-        $result = $this->runCommand(['seed' => 'SuperSeed']);
+        $result = $this->runCommand([
+            'seed' => 'SuperSeed',
+        ]);
         $this->assertCommandResult($result, Command::SUCCESS, 'Seed "SuperSeed" executed successfully.');
     }
 
     public function testExecuteWithSeedOption(): void
     {
         $this->createSeedFile('OptionSeed');
-        $result = $this->runCommand(['--seed' => 'OptionSeed']);
+        $result = $this->runCommand([
+            '--seed' => 'OptionSeed',
+        ]);
         $this->assertCommandResult($result, Command::SUCCESS, 'Seed "OptionSeed" executed successfully.');
     }
 
     public function testExecuteWithShortSeedOption(): void
     {
         $this->createSeedFile('ShortOptionSeed');
-        $result = $this->runCommand(['-s' => 'ShortOptionSeed']);
+        $result = $this->runCommand([
+            '-s' => 'ShortOptionSeed',
+        ]);
         $this->assertCommandResult($result, Command::SUCCESS, 'Seed "ShortOptionSeed" executed successfully.');
     }
 
@@ -187,7 +201,10 @@ class SeedCommandTest extends TestCase
         $this->createSeedFile('ExceptionSeed');
         $exception = new RuntimeException('Test exception');
 
-        $result = $this->runCommand(['seed' => 'ExceptionSeed', '__exception' => $exception]);
+        $result = $this->runCommand([
+            'seed'        => 'ExceptionSeed',
+            '__exception' => $exception,
+        ]);
         $this->assertCommandResult($result, Command::FAILURE, 'Failed to run seed: Test exception');
     }
 
@@ -202,7 +219,10 @@ class SeedCommandTest extends TestCase
             $customDir . DIRECTORY_SEPARATOR . 'CustomDirSeed.php'
         );
 
-        $result = $this->runCommand(['--path' => $customDir, '--seed' => 'CustomDirSeed']);
+        $result = $this->runCommand([
+            '--path' => $customDir,
+            '--seed' => 'CustomDirSeed',
+        ]);
         $this->assertCommandResult($result, Command::SUCCESS, 'Seed "CustomDirSeed" executed successfully.');
 
         $this->removePath($customDir);
@@ -219,7 +239,10 @@ class SeedCommandTest extends TestCase
             $customDir . DIRECTORY_SEPARATOR . 'ShortDirSeed.php'
         );
 
-        $result = $this->runCommand(['-p' => $customDir, '--seed' => 'ShortDirSeed']);
+        $result = $this->runCommand([
+            '-p'     => $customDir,
+            '--seed' => 'ShortDirSeed',
+        ]);
         $this->assertCommandResult($result, Command::SUCCESS, 'Seed "ShortDirSeed" executed successfully.');
 
         $this->removePath($customDir);
@@ -237,7 +260,10 @@ class SeedCommandTest extends TestCase
             ->willReturn($expectedDb)
         ;
 
-        $result = $this->runCommand(['seed' => 'DbOptionSeed', '--database' => 'reporting-db']);
+        $result = $this->runCommand([
+            'seed'       => 'DbOptionSeed',
+            '--database' => 'reporting-db',
+        ]);
         $this->assertCommandResult($result, Command::SUCCESS, 'Seed "DbOptionSeed" executed successfully.');
     }
 
@@ -253,24 +279,23 @@ class SeedCommandTest extends TestCase
             ->willReturn($expectedDb)
         ;
 
-        $result = $this->runCommand(['seed' => 'DbAliasSeed', '-b' => 'analytics-db']);
+        $result = $this->runCommand([
+            'seed' => 'DbAliasSeed',
+            '-b'   => 'analytics-db',
+        ]);
         $this->assertCommandResult($result, Command::SUCCESS, 'Seed "DbAliasSeed" executed successfully.');
     }
 
     /**
      * @param class-string $interface
      */
-    private function createSeedFile(
-        string $seedName,
-        string $interface = SeedInterface::class,
-        string $additionalCode = '',
-        ?string $className = null
-    ): void {
+    private function createSeedFile(string $seedName, string $interface = SeedInterface::class, string $additionalCode = '', ?string $className = null): void
+    {
         $className ??= $seedName;
         $interfaceName = (new ReflectionClass($interface))->getShortName();
 
         $seedContent = sprintf(self::SEED_TEMPLATE, $className, $interfaceName, $additionalCode);
-        $seedFile = $this->seedDirectory . DIRECTORY_SEPARATOR . $seedName . '.php';
+        $seedFile    = $this->seedDirectory . DIRECTORY_SEPARATOR . $seedName . '.php';
         file_put_contents($seedFile, $seedContent);
     }
 
@@ -282,7 +307,7 @@ class SeedCommandTest extends TestCase
     private function runCommand(array $input, ?int $expectedMigratorCalls = 1): array
     {
         $command = $this->getSeedCommand();
-        $output = new BufferedOutput();
+        $output  = new BufferedOutput();
 
         if (null !== $expectedMigratorCalls) {
             $expectation = $this->migratorService->expects($expectedMigratorCalls > 0
@@ -296,11 +321,11 @@ class SeedCommandTest extends TestCase
             }
         }
 
-        $resultCode = $command->run(new ArrayInput($input), $output);
+        $resultCode    = $command->run(new ArrayInput($input), $output);
         $outputContent = $output->fetch();
 
         return [
-            'code' => $resultCode,
+            'code'   => $resultCode,
             'output' => $outputContent,
         ];
     }

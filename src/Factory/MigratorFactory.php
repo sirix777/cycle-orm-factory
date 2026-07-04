@@ -20,11 +20,11 @@ use Sirix\Cycle\Service\MigratorWrapper;
 final class MigratorFactory
 {
     private const MIGRATION_CONFIG_MAP = [
-        'directory' => 'directory',
+        'directory'          => 'directory',
         'vendor_directories' => 'vendorDirectories',
-        'table' => 'table',
-        'safe' => 'safe',
-        'namespace' => 'namespace',
+        'table'              => 'table',
+        'safe'               => 'safe',
+        'namespace'          => 'namespace',
     ];
 
     /**
@@ -35,8 +35,8 @@ final class MigratorFactory
     public function __invoke(ContainerInterface $container): MigratorInterface
     {
         $containerResolver = ContainerResolver::forFactory($container, self::class);
-        $configReader = ConfigReader::fromContainer($containerResolver);
-        $migrationConfig = new MigrationConfig($this->parseConfig(
+        $configReader      = ConfigReader::fromContainer($containerResolver);
+        $migrationConfig   = new MigrationConfig($this->parseConfig(
             $configReader->requiredMap('cycle.migrator'),
         ));
         $databaseProvider = $containerResolver->getAs('dbal', DatabaseProviderInterface::class);
@@ -60,7 +60,7 @@ final class MigratorFactory
         $result = [];
 
         foreach ($config as $key => $value) {
-            $newKey = self::MIGRATION_CONFIG_MAP[$key] ?? $key;
+            $newKey          = self::MIGRATION_CONFIG_MAP[$key] ?? $key;
             $result[$newKey] = $value;
         }
 

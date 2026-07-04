@@ -33,7 +33,7 @@ final readonly class ConfigProvider
     {
         return [
             'dependencies' => $this->getDependencies(),
-            'laminas-cli' => $this->getCliConfig(),
+            'laminas-cli'  => $this->getCliConfig(),
         ];
     }
 
@@ -47,14 +47,14 @@ final readonly class ConfigProvider
     public function getDependencies(): array
     {
         $factories = [
-            'orm' => CycleFactory::class,
-            'dbal' => DbalFactory::class,
+            'orm'                                => CycleFactory::class,
+            'dbal'                               => DbalFactory::class,
             Service\SchemaCompilerService::class => Service\SchemaCompilerServiceFactory::class,
         ];
 
         $aliases = [
-            DatabaseInterface::class => 'dbal',
-            ORMInterface::class => 'orm',
+            DatabaseInterface::class       => 'dbal',
+            ORMInterface::class            => 'orm',
             SchemaCompilerInterface::class => Service\SchemaCompilerService::class,
         ];
 
@@ -62,23 +62,23 @@ final readonly class ConfigProvider
             $factories[Command\Cycle\ClearCycleSchemaCache::class] = Command\Cycle\ClearCycleSchemaCacheFactory::class;
 
             if (PackageChecker::isEntityBehaviorAvailable()) {
-                $factories[Command\Cycle\SchemaSyncCommand::class] = Command\Cycle\SchemaSyncCommandFactory::class;
+                $factories[Command\Cycle\SchemaSyncCommand::class]    = Command\Cycle\SchemaSyncCommandFactory::class;
                 $factories[Command\Cycle\SchemaCompileCommand::class] = Command\Cycle\SchemaCompileCommandFactory::class;
             }
         }
 
         if (PackageChecker::isMigratorAvailable()) {
             $migrationsLayerDependencies = $this->migrationsLayer->getDependencies();
-            $aliases = [...$aliases, ...$migrationsLayerDependencies['aliases']];
-            $factories = [...$factories, ...$migrationsLayerDependencies['factories']];
+            $aliases                     = [...$aliases, ...$migrationsLayerDependencies['aliases']];
+            $factories                   = [...$factories, ...$migrationsLayerDependencies['factories']];
         }
 
         return [
-            'aliases' => $aliases,
+            'aliases'    => $aliases,
             'invokables' => [
                 Service\CompiledSchemaStorage::class => Service\CompiledSchemaStorage::class,
             ],
-            'factories' => $factories,
+            'factories'  => $factories,
         ];
     }
 
@@ -88,7 +88,9 @@ final readonly class ConfigProvider
     private function getCliConfig(): array
     {
         if (! PackageChecker::isConsoleAvailable()) {
-            return ['commands' => []];
+            return [
+                'commands' => [],
+            ];
         }
 
         $commands = [
@@ -96,7 +98,7 @@ final readonly class ConfigProvider
         ];
 
         if (PackageChecker::isEntityBehaviorAvailable()) {
-            $commands[CommandName::SchemaSync->value] = Command\Cycle\SchemaSyncCommand::class;
+            $commands[CommandName::SchemaSync->value]    = Command\Cycle\SchemaSyncCommand::class;
             $commands[CommandName::SchemaCompile->value] = Command\Cycle\SchemaCompileCommand::class;
         }
 

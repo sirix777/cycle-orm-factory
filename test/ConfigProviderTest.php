@@ -31,7 +31,7 @@ final class ConfigProviderTest extends TestCase
         }
 
         $provider = new ConfigProvider();
-        $config = $provider->__invoke();
+        $config   = $provider->__invoke();
         $commands = $config['laminas-cli']['commands'];
 
         $this->assertArrayHasKey(CommandName::SchemaCompile->value, $commands);
@@ -43,9 +43,9 @@ final class ConfigProviderTest extends TestCase
         $this->assertArrayHasKey(CommandName::SeedRun->value, $commands);
         $this->assertArrayHasKey(CommandName::CacheClear->value, $commands);
 
-        $deps = $provider->getDependencies();
-        $factories = $deps['factories'];
-        $aliases = $deps['aliases'];
+        $deps       = $provider->getDependencies();
+        $factories  = $deps['factories'];
+        $aliases    = $deps['aliases'];
         $invokables = $deps['invokables'];
 
         $this->assertArrayHasKey(SchemaCompileCommand::class, $factories);

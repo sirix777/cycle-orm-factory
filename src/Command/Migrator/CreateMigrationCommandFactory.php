@@ -22,7 +22,7 @@ final class CreateMigrationCommandFactory
     public function __invoke(ContainerInterface $container): CreateMigrationCommand
     {
         $containerResolver = ContainerResolver::forFactory($container, self::class);
-        $configReader = ConfigReader::fromContainer($containerResolver);
+        $configReader      = ConfigReader::fromContainer($containerResolver);
 
         return new CreateMigrationCommand(
             $configReader->requiredNonEmptyString('cycle.migrator.directory'),

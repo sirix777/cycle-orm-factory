@@ -25,7 +25,7 @@ final class SchemaCompileCommandFactory
     public function __invoke(ContainerInterface $container): SchemaCompileCommand
     {
         $containerResolver = ContainerResolver::forFactory($container, self::class);
-        $configReader = ConfigReader::fromContainer($containerResolver);
+        $configReader      = ConfigReader::fromContainer($containerResolver);
 
         return new SchemaCompileCommand(
             $containerResolver->get(SchemaCompilerInterface::class),

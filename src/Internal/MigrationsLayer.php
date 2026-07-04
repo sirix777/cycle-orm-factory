@@ -24,16 +24,16 @@ final class MigrationsLayer
     public function getDependencies(): array
     {
         $factories = [
-            'migrator' => MigratorFactory::class,
+            'migrator'                     => MigratorFactory::class,
             Service\MigratorService::class => Service\MigratorServiceFactory::class,
         ];
 
         if (PackageChecker::isConsoleAvailable()) {
-            $factories[Command\Migrator\MigrateCommand::class] = Command\Migrator\MigrateCommandFactory::class;
-            $factories[Command\Migrator\RollbackCommand::class] = Command\Migrator\RollbackCommandFactory::class;
+            $factories[Command\Migrator\MigrateCommand::class]         = Command\Migrator\MigrateCommandFactory::class;
+            $factories[Command\Migrator\RollbackCommand::class]        = Command\Migrator\RollbackCommandFactory::class;
             $factories[Command\Migrator\CreateMigrationCommand::class] = Command\Migrator\CreateMigrationCommandFactory::class;
-            $factories[Command\Migrator\CreateSeedCommand::class] = Command\Migrator\CreateSeedCommandFactory::class;
-            $factories[Command\Migrator\SeedCommand::class] = Command\Migrator\SeedCommandFactory::class;
+            $factories[Command\Migrator\CreateSeedCommand::class]      = Command\Migrator\CreateSeedCommandFactory::class;
+            $factories[Command\Migrator\SeedCommand::class]            = Command\Migrator\SeedCommandFactory::class;
 
             if (PackageChecker::isGenerateMigrationsAvailable() && PackageChecker::isEntityBehaviorAvailable()) {
                 $factories[Command\Cycle\SchemaMigrationsGenerateCommand::class]
@@ -42,7 +42,7 @@ final class MigrationsLayer
         }
 
         return [
-            'aliases' => [
+            'aliases'   => [
                 MigratorInterface::class => 'migrator',
             ],
             'factories' => $factories,
@@ -59,11 +59,11 @@ final class MigrationsLayer
         }
 
         $commands = [
-            CommandName::MigrationRun->value => Command\Migrator\MigrateCommand::class,
+            CommandName::MigrationRun->value      => Command\Migrator\MigrateCommand::class,
             CommandName::MigrationRollback->value => Command\Migrator\RollbackCommand::class,
-            CommandName::MigrationCreate->value => Command\Migrator\CreateMigrationCommand::class,
-            CommandName::SeedCreate->value => Command\Migrator\CreateSeedCommand::class,
-            CommandName::SeedRun->value => Command\Migrator\SeedCommand::class,
+            CommandName::MigrationCreate->value   => Command\Migrator\CreateMigrationCommand::class,
+            CommandName::SeedCreate->value        => Command\Migrator\CreateSeedCommand::class,
+            CommandName::SeedRun->value           => Command\Migrator\SeedCommand::class,
         ];
 
         if (PackageChecker::isGenerateMigrationsAvailable() && PackageChecker::isEntityBehaviorAvailable()) {

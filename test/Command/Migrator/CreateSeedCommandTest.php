@@ -54,7 +54,9 @@ class CreateSeedCommandTest extends TestCase
     {
         $command = $this->getCreateSeedCommand();
 
-        $input = new ArrayInput(['seed' => 'ValidSeedName']);
+        $input = new ArrayInput([
+            'seed' => 'ValidSeedName',
+        ]);
         $output = new BufferedOutput();
 
         $resultCode = $command->run($input, $output);
@@ -83,7 +85,7 @@ class CreateSeedCommandTest extends TestCase
     {
         $command = $this->getCreateSeedCommand();
 
-        $input = new ArrayInput([]);
+        $input  = new ArrayInput([]);
         $output = new BufferedOutput();
 
         $resultCode = $command->run($input, $output);
@@ -101,7 +103,9 @@ class CreateSeedCommandTest extends TestCase
     {
         $command = $this->getCreateSeedCommand();
 
-        $input = new ArrayInput(['seed' => 'invalid_seed_name']);
+        $input = new ArrayInput([
+            'seed' => 'invalid_seed_name',
+        ]);
         $output = new BufferedOutput();
 
         $resultCode = $command->run($input, $output);
@@ -119,7 +123,9 @@ class CreateSeedCommandTest extends TestCase
     {
         $command = $this->getCreateSeedCommand('/dev/null');
 
-        $input = new ArrayInput(['seed' => 'ValidSeedName']);
+        $input = new ArrayInput([
+            'seed' => 'ValidSeedName',
+        ]);
         $output = new BufferedOutput();
 
         $resultCode = $command->run($input, $output);
@@ -137,7 +143,10 @@ class CreateSeedCommandTest extends TestCase
     {
         $command = $this->getCreateSeedCommand();
 
-        $input = new ArrayInput(['seed' => 'ValidSeedName', '--database' => 'custom-db']);
+        $input = new ArrayInput([
+            'seed'       => 'ValidSeedName',
+            '--database' => 'custom-db',
+        ]);
         $output = new BufferedOutput();
 
         $resultCode = $command->run($input, $output);
@@ -158,7 +167,10 @@ class CreateSeedCommandTest extends TestCase
     {
         $command = $this->getCreateSeedCommand();
 
-        $input = new ArrayInput(['seed' => 'ValidSeedName', '-b' => 'alias-db']);
+        $input = new ArrayInput([
+            'seed' => 'ValidSeedName',
+            '-b'   => 'alias-db',
+        ]);
         $output = new BufferedOutput();
 
         $resultCode = $command->run($input, $output);

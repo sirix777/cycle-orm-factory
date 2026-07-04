@@ -27,10 +27,10 @@ final class SchemaSyncCommandFactoryTest extends TestCase
     {
         parent::setUp();
 
-        $this->container = $this->createMock(ContainerInterface::class);
+        $this->container      = $this->createMock(ContainerInterface::class);
         $this->schemaCompiler = $this->createMock(SchemaCompilerInterface::class);
-        $this->storage = new CompiledSchemaStorage();
-        $this->dbal = new DatabaseManager(new DatabaseConfig([]));
+        $this->storage        = new CompiledSchemaStorage();
+        $this->dbal           = new DatabaseManager(new DatabaseConfig([]));
     }
 
     public function testFactoryBuildsCommand(): void
@@ -48,17 +48,26 @@ final class SchemaSyncCommandFactoryTest extends TestCase
         $this->container
             ->method('get')
             ->willReturnMap([
-                ['config', [
-                    'cycle' => [
-                        'entities' => ['src/Entity'],
-                        'generators' => ['my.generator'],
-                        'schema' => [
-                            'cache' => ['enabled' => false],
-                            'compiled' => ['path' => '/tmp/schema.php'],
-                            'manual_mapping_schema_definitions' => ['foo' => ['bar' => 'baz']],
+                [
+                    'config', [
+                        'cycle' => [
+                            'entities'   => ['src/Entity'],
+                            'generators' => ['my.generator'],
+                            'schema'     => [
+                                'cache'                             => [
+                                    'enabled' => false,
+                                ],
+                                'compiled'                          => [
+                                    'path' => '/tmp/schema.php',
+                                ],
+                                'manual_mapping_schema_definitions' => [
+                                    'foo' => [
+                                        'bar' => 'baz',
+                                    ],
+                                ],
+                            ],
                         ],
-                    ],
-                ]],
+                    ]],
                 [SchemaCompilerInterface::class, $this->schemaCompiler],
                 [CompiledSchemaStorage::class, $this->storage],
                 ['dbal', $this->dbal],

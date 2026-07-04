@@ -72,7 +72,7 @@ class RollbackCommandFactoryTest extends TestCase
             )
         ;
 
-        $factory = new RollbackCommandFactory();
+        $factory        = new RollbackCommandFactory();
         $migrateCommand = $factory($this->container);
         $this->assertInstanceOf(
             RollbackCommand::class,
