@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.0.0] - 2026-07-04
+
+### Breaking Changes
+- `SchemaCompilerInterface::compile()` no longer accepts a schema compile mode argument.
+  Use `compile()`, `sync()`, or `generateMigrations()` instead.
+- `Sirix\Cycle\Enum\SchemaCompileMode` was removed.
+- `Sirix\Cycle\Service\NullMigrator` was removed.
+- `CYCLE_MIGRATIONS_DISABLED` is no longer supported.
+- Migration services, aliases, and commands are no longer registered when `cycle/migrations` is missing.
+
+### Changed
+- Migration services and commands are now registered through a dedicated migrations layer only when `cycle/migrations` is installed.
+- Schema compilation service now exposes explicit `compile()`, `sync()`, and `generateMigrations()` methods instead of accepting a compile mode enum.
+
+### Removed
+- Removed the null migrator fallback.
+- Removed the migration disable environment flag.
+- Removed the `SchemaCompileMode` enum.
+
 ## [3.0.1] - 2026-05-29
 
 ### Changed
@@ -21,7 +40,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `cycle:schema:compile`
   - `cycle:schema:sync`
   - `cycle:schema:migration:generate` (available only when `cycle/migrations` and `cycle/schema-migrations-generator` are installed and migrations are enabled).
-- New schema compilation mode enum: `SchemaCompileMode` (`Runtime`, `SyncTables`, `GenerateMigrations`).
 - New reusable schema compiler service contract:
   - `Sirix\Cycle\Service\SchemaCompilerInterface`
   - `Sirix\Cycle\Service\SchemaCompilerService`
@@ -36,12 +54,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - loads compiled schema file when `cycle.schema.cache.enabled=true`,
   - compiles and persists schema on first run when file is missing,
   - compiles in-memory on each run when `cycle.schema.cache.enabled=false`.
-- Schema compilation API simplified to a single method with compile mode:
-  - `compile(..., SchemaCompileMode $mode = SchemaCompileMode::Runtime)`.
+- Schema compilation API provides explicit methods:
+  - `compile(...)`
+  - `sync(...)`
+  - `generateMigrations(...)`.
 - Schema compilation logic extracted from factory into dedicated service and reused by runtime and commands.
 - Command/factory registration updated:
   - built-in commands are registered only when `symfony/console` is available,
-  - migration commands are still guarded by migration package availability and `CYCLE_MIGRATIONS_DISABLED`.
+  - migration commands are guarded by migration package availability.
 - `cycle:migration:create` migration filenames now include normalized database alias and store migration names in `snake_case` (while CLI input remains `PascalCase`).
 - `CreateSeedCommand` template/default database behavior aligned with current migrator config and tests.
 - Documentation fully updated for v3 runtime/config/commands model.
@@ -62,7 +82,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - `cycle/orm` updated to `^2.12.3`.
-- Internal refactoring: replaced hardcoded class names with `::class` constants in `MigrationsToggle`.
+- Internal refactoring: replaced hardcoded class names with `::class` constants in migration availability checks.
 
 ### Fixed
 - Updated `shipmonk/composer-dependency-analyser` in development tools.
@@ -129,9 +149,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Schema-migrations generator commands are now exposed only when the `cycle/schema-migrations-generator` package is installed and migrations are enabled.
 
 ### Added
-- Optional feature flag to disable migration command registration even when the package is installed: set environment variable `CYCLE_MIGRATIONS_DISABLED` to a truthy value (`1`, `true`, `yes`, `on`). To explicitly keep migrations enabled, set it to a falsy value (`0`, `false`, `no`, `off`) or leave it unset.
-- Unit tests covering command registration with migrations enabled and with migrations disabled by the feature flag.
-- Internal helper to toggle migrations availability at runtime based on installed packages and the env flag.
+- Unit tests covering command registration with migrations enabled.
+- Internal helper to toggle migrations availability at runtime based on installed packages.
 
 ## [2.4.1] - 2025-09-23
 

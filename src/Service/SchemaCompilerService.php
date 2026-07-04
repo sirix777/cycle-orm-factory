@@ -15,8 +15,6 @@ use Cycle\Schema\GeneratorInterface;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\ContainerInterface;
 use Psr\Container\NotFoundExceptionInterface;
-use Sirix\Cycle\Enum\SchemaCompileMode;
-use Sirix\Cycle\Internal\MigrationsToggle;
 use Sirix\Cycle\Internal\PackageChecker;
 use Spiral\Tokenizer\ClassLocator;
 use Symfony\Component\Finder\Finder;
@@ -35,7 +33,7 @@ final readonly class SchemaCompilerService implements SchemaCompilerInterface
      * @param array<string, mixed> $manualMappingSchemaDefinitions
      * @param array<int, mixed>    $additionalGenerators
      *
-     * @return array<string, mixed>
+     * @return array<GeneratorInterface>
      *
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
@@ -45,14 +43,11 @@ final readonly class SchemaCompilerService implements SchemaCompilerInterface
         array $entities,
         array $manualMappingSchemaDefinitions,
         array $additionalGenerators = [],
-        SchemaCompileMode $schemaCompileMode = SchemaCompileMode::Runtime,
     ): array {
-        return $this->compileInternal(
+        return $this->compileWithGenerators(
             $databaseManager,
-            $entities,
+            $this->createBaseGenerators($entities, $manualMappingSchemaDefinitions, $additionalGenerators),
             $manualMappingSchemaDefinitions,
-            $additionalGenerators,
-            $schemaCompileMode,
         );
     }
 
@@ -66,12 +61,54 @@ final readonly class SchemaCompilerService implements SchemaCompilerInterface
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
      */
-    private function compileInternal(
+    public function sync(
         DatabaseManager $databaseManager,
         array $entities,
         array $manualMappingSchemaDefinitions,
+        array $additionalGenerators = [],
+    ): array {
+        $generators = $this->createBaseGenerators($entities, $manualMappingSchemaDefinitions, $additionalGenerators);
+        $generators[] = new Schema\Generator\SyncTables();
+
+        return $this->compileWithGenerators($databaseManager, $generators, $manualMappingSchemaDefinitions);
+    }
+
+    /**
+     * @param array<string>        $entities
+     * @param array<string, mixed> $manualMappingSchemaDefinitions
+     * @param array<int, mixed>    $additionalGenerators
+     *
+     * @return array<string, mixed>
+     *
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     */
+    public function generateMigrations(
+        DatabaseManager $databaseManager,
+        array $entities,
+        array $manualMappingSchemaDefinitions,
+        array $additionalGenerators = [],
+    ): array {
+        $generators = $this->createBaseGenerators($entities, $manualMappingSchemaDefinitions, $additionalGenerators);
+        $generators[] = $this->createGenerateMigrationsGenerator();
+
+        return $this->compileWithGenerators($databaseManager, $generators, $manualMappingSchemaDefinitions);
+    }
+
+    /**
+     * @param array<string>        $entities
+     * @param array<string, mixed> $manualMappingSchemaDefinitions
+     * @param array<int, mixed>    $additionalGenerators
+     *
+     * @return array<string, mixed>
+     *
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     */
+    private function createBaseGenerators(
+        array $entities,
+        array $manualMappingSchemaDefinitions,
         array $additionalGenerators,
-        SchemaCompileMode $schemaCompileMode,
     ): array {
         $entities = $this->normalizeEntityDirectories($entities);
 
@@ -106,7 +143,7 @@ final readonly class SchemaCompilerService implements SchemaCompilerInterface
             ];
         }
 
-        $generators = [
+        return [
             ...$generators,
             new Annotated\TableInheritance(),
             new Annotated\MergeColumns(),
@@ -120,17 +157,19 @@ final readonly class SchemaCompilerService implements SchemaCompilerInterface
             new Annotated\MergeIndexes(),
             new Schema\Generator\GenerateTypecast(),
         ];
+    }
 
-        $modeGenerator = match ($schemaCompileMode) {
-            SchemaCompileMode::Runtime => null,
-            SchemaCompileMode::SyncTables => new Schema\Generator\SyncTables(),
-            SchemaCompileMode::GenerateMigrations => $this->createGenerateMigrationsGenerator(),
-        };
-
-        if ($modeGenerator instanceof GeneratorInterface) {
-            $generators[] = $modeGenerator;
-        }
-
+    /**
+     * @param array<GeneratorInterface> $generators
+     * @param array<string, mixed>      $manualMappingSchemaDefinitions
+     *
+     * @return array<string, mixed>
+     */
+    private function compileWithGenerators(
+        DatabaseManager $databaseManager,
+        array $generators,
+        array $manualMappingSchemaDefinitions,
+    ): array {
         $schemaCompiler = new Schema\Compiler();
         $schema = $schemaCompiler->compile(
             new Schema\Registry($databaseManager),
@@ -200,13 +239,17 @@ final readonly class SchemaCompilerService implements SchemaCompilerInterface
      */
     private function createGenerateMigrationsGenerator(): GenerateMigrations
     {
-        if (! PackageChecker::isGenerateMigrationsAvailable() || MigrationsToggle::isDisabledByEnv()) {
+        if (! PackageChecker::isMigratorAvailable() || ! PackageChecker::isGenerateMigrationsAvailable()) {
             throw new ConfigException(
                 <<<'MESSAGE'
                     Schema migrations generator is unavailable. Ensure cycle/migrations and
-                    cycle/schema-migrations-generator are installed and CYCLE_MIGRATIONS_DISABLED is not enabled.
+                    cycle/schema-migrations-generator are installed.
                     MESSAGE
             );
+        }
+
+        if (! $this->container->has('migrator')) {
+            throw new ConfigException('Service "migrator" is not registered.');
         }
 
         $migrator = $this->container->get('migrator');

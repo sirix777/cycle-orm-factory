@@ -9,14 +9,14 @@ use Cycle\ORM\ORMInterface;
 use Sirix\Cycle\Enum\CommandName;
 use Sirix\Cycle\Factory\CycleFactory;
 use Sirix\Cycle\Factory\DbalFactory;
-use Sirix\Cycle\Factory\MigratorFactory;
-use Sirix\Cycle\Internal\MigrationsToggle;
+use Sirix\Cycle\Internal\MigrationsLayer;
 use Sirix\Cycle\Internal\PackageChecker;
-use Sirix\Cycle\Service\MigratorInterface;
 use Sirix\Cycle\Service\SchemaCompilerInterface;
 
-final class ConfigProvider
+final readonly class ConfigProvider
 {
+    public function __construct(private MigrationsLayer $migrationsLayer = new MigrationsLayer()) {}
+
     /**
      * @return array{
      *     dependencies: array{
@@ -48,10 +48,14 @@ final class ConfigProvider
     {
         $factories = [
             'orm' => CycleFactory::class,
-            'migrator' => MigratorFactory::class,
             'dbal' => DbalFactory::class,
-            Service\MigratorService::class => Service\MigratorServiceFactory::class,
             Service\SchemaCompilerService::class => Service\SchemaCompilerServiceFactory::class,
+        ];
+
+        $aliases = [
+            DatabaseInterface::class => 'dbal',
+            ORMInterface::class => 'orm',
+            SchemaCompilerInterface::class => Service\SchemaCompilerService::class,
         ];
 
         if (PackageChecker::isConsoleAvailable()) {
@@ -63,26 +67,14 @@ final class ConfigProvider
             }
         }
 
-        if (PackageChecker::isConsoleAvailable() && MigrationsToggle::areMigrationsEnabled()) {
-            $factories[Command\Migrator\MigrateCommand::class] = Command\Migrator\MigrateCommandFactory::class;
-            $factories[Command\Migrator\RollbackCommand::class] = Command\Migrator\RollbackCommandFactory::class;
-            $factories[Command\Migrator\CreateMigrationCommand::class] = Command\Migrator\CreateMigrationCommandFactory::class;
-            $factories[Command\Migrator\CreateSeedCommand::class] = Command\Migrator\CreateSeedCommandFactory::class;
-            $factories[Command\Migrator\SeedCommand::class] = Command\Migrator\SeedCommandFactory::class;
-
-            if (PackageChecker::isGenerateMigrationsAvailable() && PackageChecker::isEntityBehaviorAvailable()) {
-                $factories[Command\Cycle\SchemaMigrationsGenerateCommand::class]
-                    = Command\Cycle\SchemaMigrationsGenerateCommandFactory::class;
-            }
+        if (PackageChecker::isMigratorAvailable()) {
+            $migrationsLayerDependencies = $this->migrationsLayer->getDependencies();
+            $aliases = [...$aliases, ...$migrationsLayerDependencies['aliases']];
+            $factories = [...$factories, ...$migrationsLayerDependencies['factories']];
         }
 
         return [
-            'aliases' => [
-                DatabaseInterface::class => 'dbal',
-                MigratorInterface::class => 'migrator',
-                ORMInterface::class => 'orm',
-                SchemaCompilerInterface::class => Service\SchemaCompilerService::class,
-            ],
+            'aliases' => $aliases,
             'invokables' => [
                 Service\CompiledSchemaStorage::class => Service\CompiledSchemaStorage::class,
             ],
@@ -108,16 +100,8 @@ final class ConfigProvider
             $commands[CommandName::SchemaCompile->value] = Command\Cycle\SchemaCompileCommand::class;
         }
 
-        if (MigrationsToggle::areMigrationsEnabled()) {
-            $commands[CommandName::MigrationRun->value] = Command\Migrator\MigrateCommand::class;
-            $commands[CommandName::MigrationRollback->value] = Command\Migrator\RollbackCommand::class;
-            $commands[CommandName::MigrationCreate->value] = Command\Migrator\CreateMigrationCommand::class;
-            $commands[CommandName::SeedCreate->value] = Command\Migrator\CreateSeedCommand::class;
-            $commands[CommandName::SeedRun->value] = Command\Migrator\SeedCommand::class;
-
-            if (PackageChecker::isGenerateMigrationsAvailable() && PackageChecker::isEntityBehaviorAvailable()) {
-                $commands[CommandName::SchemaMigrationGenerate->value] = Command\Cycle\SchemaMigrationsGenerateCommand::class;
-            }
+        if (PackageChecker::isMigratorAvailable()) {
+            $commands = [...$commands, ...$this->migrationsLayer->getCommands()];
         }
 
         return [

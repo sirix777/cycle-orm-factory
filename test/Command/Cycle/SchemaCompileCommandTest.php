@@ -10,7 +10,6 @@ use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 use Sirix\Cycle\Command\Cycle\SchemaCompileCommand;
-use Sirix\Cycle\Enum\SchemaCompileMode;
 use Sirix\Cycle\Service\CompiledSchemaStorage;
 use Sirix\Cycle\Service\SchemaCompilerInterface;
 use Symfony\Component\Console\Command\Command;
@@ -68,7 +67,7 @@ final class SchemaCompileCommandTest extends TestCase
         $this->schemaCompiler
             ->expects($this->once())
             ->method('compile')
-            ->with($this->dbal, $entities, $manualMapping, $additionalGenerators, SchemaCompileMode::Runtime)
+            ->with($this->dbal, $entities, $manualMapping, $additionalGenerators)
             ->willReturn($schema)
         ;
 

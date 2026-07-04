@@ -6,7 +6,6 @@ namespace Sirix\Cycle\Command\Cycle;
 
 use Cycle\Database\DatabaseManager;
 use Sirix\Cycle\Enum\CommandName;
-use Sirix\Cycle\Enum\SchemaCompileMode;
 use Sirix\Cycle\Service\CompiledSchemaStorage;
 use Sirix\Cycle\Service\SchemaCompilerInterface;
 use Symfony\Component\Console\Command\Command;
@@ -49,12 +48,11 @@ final class SchemaSyncCommand extends Command
         $symfonyStyle = new SymfonyStyle($input, $output);
 
         try {
-            $schema = $this->schemaCompiler->compile(
+            $schema = $this->schemaCompiler->sync(
                 $this->databaseManager,
                 $this->entities,
                 $this->manualMappingSchemaDefinitions,
                 $this->additionalGenerators,
-                SchemaCompileMode::SyncTables,
             );
 
             if ($this->isCacheEnabled) {

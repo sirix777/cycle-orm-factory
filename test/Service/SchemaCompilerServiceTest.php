@@ -14,12 +14,11 @@ use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\ContainerInterface;
 use Psr\Container\NotFoundExceptionInterface;
-use Sirix\Cycle\Enum\SchemaCompileMode;
 use Sirix\Cycle\Service\SchemaCompilerService;
 
 use function bin2hex;
+use function class_exists;
 use function mkdir;
-use function putenv;
 use function random_bytes;
 use function rmdir;
 use function sprintf;
@@ -42,7 +41,6 @@ final class SchemaCompilerServiceTest extends TestCase
 
     protected function tearDown(): void
     {
-        putenv('CYCLE_MIGRATIONS_DISABLED');
         @rmdir($this->tmpDir);
 
         parent::tearDown();
@@ -107,19 +105,25 @@ final class SchemaCompilerServiceTest extends TestCase
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
      */
-    public function testCompileWithMigrationGenerationFailsWhenDisabledByEnv(): void
+    public function testGenerateMigrationsFailsWhenMigrationsAreUnavailable(): void
     {
-        putenv('CYCLE_MIGRATIONS_DISABLED=1');
-
         /** @var ContainerInterface&MockObject $container */
         $container = $this->createMock(ContainerInterface::class);
+        $container->method('has')->willReturn(false);
 
         $service = new SchemaCompilerService($container);
 
         $this->expectException(ConfigException::class);
-        $this->expectExceptionMessage('Schema migrations generator is unavailable');
+        if (
+            ! class_exists('Cycle\Migrations\Migrator')
+            || ! class_exists('Cycle\Schema\Generator\Migrations\GenerateMigrations')
+        ) {
+            $this->expectExceptionMessage('Schema migrations generator is unavailable');
+        } else {
+            $this->expectExceptionMessage('Service "migrator" is not registered.');
+        }
 
-        $service->compile($this->dbal, [$this->tmpDir], [], schemaCompileMode: SchemaCompileMode::GenerateMigrations);
+        $service->generateMigrations($this->dbal, [$this->tmpDir], []);
     }
 }
 

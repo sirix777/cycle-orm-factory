@@ -10,7 +10,6 @@ use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 use Sirix\Cycle\Command\Cycle\SchemaSyncCommand;
-use Sirix\Cycle\Enum\SchemaCompileMode;
 use Sirix\Cycle\Service\CompiledSchemaStorage;
 use Sirix\Cycle\Service\SchemaCompilerInterface;
 use Symfony\Component\Console\Command\Command;
@@ -63,8 +62,8 @@ final class SchemaSyncCommandTest extends TestCase
         $schema = ['foo' => 'bar'];
         $this->schemaCompiler
             ->expects($this->once())
-            ->method('compile')
-            ->with($this->dbal, ['src/Entity'], [], [], SchemaCompileMode::SyncTables)
+            ->method('sync')
+            ->with($this->dbal, ['src/Entity'], [], [])
             ->willReturn($schema)
         ;
 
@@ -92,8 +91,8 @@ final class SchemaSyncCommandTest extends TestCase
     {
         $this->schemaCompiler
             ->expects($this->once())
-            ->method('compile')
-            ->with($this->dbal, [], [], [], SchemaCompileMode::SyncTables)
+            ->method('sync')
+            ->with($this->dbal, [], [], [])
             ->willReturn(['foo' => 'bar'])
         ;
 
@@ -123,7 +122,7 @@ final class SchemaSyncCommandTest extends TestCase
     {
         $this->schemaCompiler
             ->expects($this->once())
-            ->method('compile')
+            ->method('sync')
             ->willThrowException(new RuntimeException('sync failed'))
         ;
 

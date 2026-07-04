@@ -10,28 +10,63 @@ permissions:
   contents: read
 
 jobs:
-  build:
+  check:
 
     runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        php-version: [ "8.2", "8.3", "8.4", "8.5" ]
+
+    name: PHP ${{ matrix.php-version }}
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Validate composer.json and composer.lock
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-version }}
+          coverage: none
+          tools: composer:v2
+
+      - name: Validate composer.json
         run: composer validate --strict
 
       - name: Install dependencies
-        run: composer install --prefer-dist --no-progress
+        run: composer update --prefer-dist --no-progress --no-interaction
 
-      - name: Run cs-check
-        run: composer cs-check
+      - name: Run checks
+        run: composer check
 
-      - name: Run rector
-        run: composer rector
+  optional-packages-absent:
 
-      - name: Run phpstan
-        run: composer phpstan
+    runs-on: ubuntu-latest
 
-      - name: Run phpunit
-        run: composer test
+    name: Optional packages absent
 
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.2"
+          coverage: none
+          tools: composer:v2
+
+      - name: Validate composer.json
+        run: composer validate --strict
+
+      - name: Remove optional packages
+        run: |
+          composer remove --dev --no-update --no-plugins \
+            cycle/entity-behavior \
+            cycle/migrations \
+            cycle/schema-migrations-generator \
+            symfony/console
+          composer update --prefer-dist --no-progress --no-interaction --no-plugins
+
+      - name: Run optional-absent tests
+        run: vendor/bin/phpunit --colors=always --testdox test/OptionalPackagesAbsentTest.php

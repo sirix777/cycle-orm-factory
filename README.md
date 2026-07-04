@@ -9,6 +9,7 @@
 Migration guides:
 - [v1 to v2](docs/v1-to-v2.md)
 - [v2 to v3](docs/v2-to-v3.md)
+- [v3 to v4](docs/v3-to-v4.md)
 
 Factories for integrating Cycle ORM into Mezzio with a runtime-focused schema pipeline.
 
@@ -162,6 +163,8 @@ This legacy key will be removed in `4.0`. Use the new key for all new configs.
 Aliases provided by `ConfigProvider`:
 - `orm` -> `Cycle\ORM\ORMInterface`
 - `dbal` -> `Cycle\Database\DatabaseInterface`
+
+Migration aliases provided only when `cycle/migrations` is installed:
 - `migrator` -> `Sirix\Cycle\Service\MigratorInterface`
 
 ## CLI commands
@@ -171,7 +174,7 @@ Commands are registered only when `symfony/console` is installed.
 `cycle:schema:*` commands:
 - `cycle:schema:compile`: compile schema and store compiled file.
 - `cycle:schema:sync`: run sync pipeline; refresh compiled file only when cache is enabled.
-- `cycle:schema:migration:generate`: generate migrations via schema pipeline; available only with `cycle/migrations` and `cycle/schema-migrations-generator`, and when migrations are not disabled by env.
+- `cycle:schema:migration:generate`: generate migrations via schema pipeline; available only with `cycle/migrations` and `cycle/schema-migrations-generator`.
 
 Other commands:
 - `cycle:cache:clear`: remove compiled schema file.
@@ -182,8 +185,7 @@ Other commands:
 - `cycle:seed:run`
 
 Migration/seed command availability:
-- registered only when `cycle/migrations` is installed,
-- can be force-disabled by `CYCLE_MIGRATIONS_DISABLED=1|true|yes|on`.
+- registered only when `cycle/migrations` is installed.
 
 ### Create migration notes
 

@@ -81,7 +81,7 @@ When `cycle.schema.cache.enabled=false`:
   - run schema sync pipeline (`SyncTables`).
 - `cycle:schema:migration:generate`
   - run migration generation pipeline.
-  - available only if `cycle/migrations` and `cycle/schema-migrations-generator` are installed and migrations are not disabled by `CYCLE_MIGRATIONS_DISABLED`.
+  - available only if `cycle/migrations` and `cycle/schema-migrations-generator` are installed.
 
 ## Deploy flow (recommended)
 

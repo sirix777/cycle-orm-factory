@@ -10,7 +10,6 @@ use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 use Sirix\Cycle\Command\Cycle\SchemaMigrationsGenerateCommand;
-use Sirix\Cycle\Enum\SchemaCompileMode;
 use Sirix\Cycle\Service\CompiledSchemaStorage;
 use Sirix\Cycle\Service\SchemaCompilerInterface;
 use Symfony\Component\Console\Command\Command;
@@ -63,8 +62,8 @@ final class SchemaMigrationsGenerateCommandTest extends TestCase
         $schema = ['foo' => 'bar'];
         $this->schemaCompiler
             ->expects($this->once())
-            ->method('compile')
-            ->with($this->dbal, ['src/Entity'], [], [], SchemaCompileMode::GenerateMigrations)
+            ->method('generateMigrations')
+            ->with($this->dbal, ['src/Entity'], [], [])
             ->willReturn($schema)
         ;
 
@@ -95,8 +94,8 @@ final class SchemaMigrationsGenerateCommandTest extends TestCase
     {
         $this->schemaCompiler
             ->expects($this->once())
-            ->method('compile')
-            ->with($this->dbal, [], [], [], SchemaCompileMode::GenerateMigrations)
+            ->method('generateMigrations')
+            ->with($this->dbal, [], [], [])
             ->willReturn(['foo' => 'bar'])
         ;
 
@@ -126,7 +125,7 @@ final class SchemaMigrationsGenerateCommandTest extends TestCase
     {
         $this->schemaCompiler
             ->expects($this->once())
-            ->method('compile')
+            ->method('generateMigrations')
             ->willThrowException(new RuntimeException('migration generation failed'))
         ;
 

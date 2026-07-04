@@ -14,10 +14,8 @@ use Psr\Container\NotFoundExceptionInterface;
 use Sirix\ContainerResolver\ConfigReader;
 use Sirix\ContainerResolver\ContainerResolver;
 use Sirix\ContainerResolver\Exception\ResolverException;
-use Sirix\Cycle\Internal\MigrationsToggle;
 use Sirix\Cycle\Service\MigratorInterface;
 use Sirix\Cycle\Service\MigratorWrapper;
-use Sirix\Cycle\Service\NullMigrator;
 
 final class MigratorFactory
 {
@@ -36,10 +34,6 @@ final class MigratorFactory
      */
     public function __invoke(ContainerInterface $container): MigratorInterface
     {
-        if (! MigrationsToggle::areMigrationsEnabled()) {
-            return new NullMigrator();
-        }
-
         $containerResolver = ContainerResolver::forFactory($container, self::class);
         $configReader = ConfigReader::fromContainer($containerResolver);
         $migrationConfig = new MigrationConfig($this->parseConfig(
