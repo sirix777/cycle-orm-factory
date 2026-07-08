@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Sirix\Cycle\Command\Cycle;
 
+use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\ContainerInterface;
 use Sirix\ContainerResolver\ConfigReader;
 use Sirix\ContainerResolver\ContainerResolver;
@@ -12,6 +13,9 @@ use Sirix\Cycle\Service\CompiledSchemaStorage;
 
 final class ClearCycleSchemaCacheFactory
 {
+    /**
+     * @throws ContainerExceptionInterface
+     */
     public function __invoke(ContainerInterface $container): ClearCycleSchemaCache
     {
         $containerResolver = ContainerResolver::forFactory($container, self::class);

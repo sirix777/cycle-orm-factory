@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Cycle\Database\Config;
+use Cycle\ORM\Collection\ArrayCollectionFactory;
 use Cycle\ORM\Mapper\Mapper;
 use Cycle\ORM\Relation;
 use Cycle\ORM\SchemaInterface;
@@ -46,6 +47,15 @@ return [
             // 'my.custom.generator.service',
             // \App\Cycle\Schema\Generator\MyCustomGenerator::class,
             // new \App\Cycle\Schema\Generator\InlineGenerator(),
+        ],
+        'collections' => [
+            'default' => ArrayCollectionFactory::class,
+            'factories' => [
+                // Register any Cycle ORM collection factory:
+                // 'doctrine' => \Cycle\ORM\Collection\DoctrineCollectionFactory::class,
+                // 'illuminate' => \Cycle\ORM\Collection\IlluminateCollectionFactory::class,
+                // 'loophp' => \Cycle\ORM\Collection\LoophpCollectionFactory::class,
+            ],
         ],
         'schema' => [
             'cache' => [

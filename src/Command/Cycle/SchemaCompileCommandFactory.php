@@ -32,23 +32,10 @@ final class SchemaCompileCommandFactory
             $containerResolver->get(CompiledSchemaStorage::class),
             $containerResolver->getAs('dbal', DatabaseManager::class),
             $configReader->nonEmptyStringList('cycle.entities', []),
-            $this->resolveManualMappingSchemaDefinitions($configReader),
+            $configReader->map('cycle.schema.manual_mapping_schema_definitions', []),
             $configReader->list('cycle.generators', []),
             $configReader->nonEmptyString('cycle.schema.compiled.path', CycleFactory::DEFAULT_COMPILED_SCHEMA_PATH),
             $configReader->bool('cycle.schema.cache.enabled', true),
         );
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    private function resolveManualMappingSchemaDefinitions(ConfigReader $configReader): array
-    {
-        if ($configReader->has('cycle.schema.manual_mapping_schema_definitions')) {
-            return $configReader->map('cycle.schema.manual_mapping_schema_definitions', []);
-        }
-
-        // Deprecated legacy key; remove support in 4.0.
-        return $configReader->map('cycle.schema.manual_entity_schema_definition', []);
     }
 }

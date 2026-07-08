@@ -6,6 +6,7 @@ namespace Sirix\Cycle\Factory;
 
 use Cycle\Database\Config;
 use Cycle\Database\DatabaseManager;
+use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\ContainerInterface;
 use Sirix\ContainerResolver\ConfigReader;
 use Sirix\ContainerResolver\ContainerResolver;
@@ -15,6 +16,7 @@ final class DbalFactory
 {
     /**
      * @throws ResolverException
+     * @throws ContainerExceptionInterface
      */
     public function __invoke(ContainerInterface $container): DatabaseManager
     {
