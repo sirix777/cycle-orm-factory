@@ -10,9 +10,17 @@ use Cycle\ORM\Exception\ConfigException;
 use Cycle\ORM\ORM;
 use Cycle\ORM\SchemaInterface;
 use PHPUnit\Framework\TestCase;
+use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\ContainerInterface;
+use Psr\Container\NotFoundExceptionInterface;
 use RuntimeException;
 use Sirix\Cycle\Factory\CycleFactory;
+use Sirix\Cycle\Service\CompiledSchemaStorage;
+use Sirix\Cycle\Service\SchemaCompilerInterface;
+use Sirix\Cycle\Service\SchemaCompilerService;
+use Sirix\Cycle\Test\Fixture\Collection\TestBaseCollection;
+use Sirix\Cycle\Test\Fixture\Collection\TestCollection;
+use Sirix\Cycle\Test\Fixture\Collection\TestCollectionFactory;
 use stdClass;
 
 use function bin2hex;
@@ -69,6 +77,10 @@ final class CycleFactoryTest extends TestCase
         $factory($container);
     }
 
+    /**
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     */
     public function testFactoryThrowsWhenDbalMissing(): void
     {
         $container = new class implements ContainerInterface {
@@ -185,31 +197,133 @@ final class CycleFactoryTest extends TestCase
         $this->assertInstanceOf(ORM::class, $orm);
     }
 
+    public function testFactoryConfiguresDefaultCollectionFactory(): void
+    {
+        $config = [
+            'cycle' => [
+                'entities'    => ['src'],
+                'collections' => [
+                    'default' => TestCollectionFactory::class,
+                ],
+                'schema'      => [
+                    'cache' => [
+                        'enabled' => false,
+                    ],
+                ],
+            ],
+        ];
+
+        $container = $this->createContainer($config);
+
+        $factory = new CycleFactory();
+        $orm     = $factory($container);
+
+        $this->assertInstanceOf(TestCollectionFactory::class, $orm->getFactory()->collection());
+    }
+
+    public function testFactoryConfiguresNamedCollectionFactory(): void
+    {
+        $config = [
+            'cycle' => [
+                'entities'    => ['src'],
+                'collections' => [
+                    'factories' => [
+                        'test' => TestCollectionFactory::class,
+                    ],
+                ],
+                'schema'      => [
+                    'cache' => [
+                        'enabled' => false,
+                    ],
+                ],
+            ],
+        ];
+
+        $container = $this->createContainer($config);
+
+        $factory = new CycleFactory();
+        $orm     = $factory($container);
+
+        $this->assertInstanceOf(TestCollectionFactory::class, $orm->getFactory()->collection('test'));
+    }
+
+    public function testFactoryConfiguresCollectionFactoryInterfaceMatching(): void
+    {
+        $config = [
+            'cycle' => [
+                'entities'    => ['src'],
+                'collections' => [
+                    'factories' => [
+                        'test' => [
+                            'factory'   => 'test.collection.factory',
+                            'interface' => TestBaseCollection::class,
+                        ],
+                    ],
+                ],
+                'schema'      => [
+                    'cache' => [
+                        'enabled' => false,
+                    ],
+                ],
+            ],
+        ];
+
+        $collectionFactory = new TestCollectionFactory();
+        $container         = $this->createContainer($config, [
+            'test.collection.factory' => $collectionFactory,
+        ]);
+
+        $factory = new CycleFactory();
+        $orm     = $factory($container);
+
+        $resolvedFactory = $orm->getFactory()->collection(TestCollection::class);
+
+        $this->assertInstanceOf(TestCollectionFactory::class, $resolvedFactory);
+        $this->assertNotSame($collectionFactory, $resolvedFactory);
+        $this->assertSame(TestCollection::class, $resolvedFactory->collectionClass);
+    }
+
     /**
      * @param array<string, mixed> $config
+     * @param array<string, mixed> $services
      */
-    private function createContainer(array $config): ContainerInterface
+    private function createContainer(array $config, array $services = []): ContainerInterface
     {
-        $dbal = new DatabaseManager(new DatabaseConfig([]));
+        $services = [
+            'config' => $config,
+            'dbal'   => new DatabaseManager(new DatabaseConfig([])),
+            ...$services,
+        ];
 
-        return new class($config, $dbal) implements ContainerInterface {
+        return new class($services) implements ContainerInterface {
+            private CompiledSchemaStorage $compiledSchemaStorage;
+
             /**
-             * @param array<string, mixed> $config
+             * @param array<string, mixed> $services
              */
-            public function __construct(private readonly array $config, private readonly DatabaseManager $dbal) {}
+            public function __construct(private readonly array $services)
+            {
+                $this->compiledSchemaStorage = new CompiledSchemaStorage();
+            }
 
             public function get(string $id)
             {
-                return match ($id) {
-                    'config' => $this->config,
-                    'dbal'   => $this->dbal,
-                    default  => throw new RuntimeException('Unknown service: ' . $id),
-                };
+                if (SchemaCompilerInterface::class === $id) {
+                    return $this->services[$id] ?? new SchemaCompilerService($this);
+                }
+
+                if (CompiledSchemaStorage::class === $id) {
+                    return $this->services[$id] ?? $this->compiledSchemaStorage;
+                }
+
+                return $this->services[$id] ?? throw new RuntimeException('Unknown service: ' . $id);
             }
 
             public function has(string $id): bool
             {
-                return 'config' === $id || 'dbal' === $id;
+                return isset($this->services[$id])
+                    || SchemaCompilerInterface::class === $id
+                    || CompiledSchemaStorage::class === $id;
             }
         };
     }

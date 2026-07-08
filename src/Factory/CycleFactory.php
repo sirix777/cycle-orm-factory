@@ -17,14 +17,16 @@ use Psr\Container\NotFoundExceptionInterface;
 use Sirix\ContainerResolver\ConfigReader;
 use Sirix\ContainerResolver\ContainerResolver;
 use Sirix\ContainerResolver\Exception\ResolverException;
+use Sirix\Cycle\Internal\CollectionFactoryConfigurator;
 use Sirix\Cycle\Internal\PackageChecker;
 use Sirix\Cycle\Service\CompiledSchemaStorage;
 use Sirix\Cycle\Service\SchemaCompilerInterface;
-use Sirix\Cycle\Service\SchemaCompilerService;
 
-final class CycleFactory
+final readonly class CycleFactory
 {
     public const DEFAULT_COMPILED_SCHEMA_PATH = 'data/cache/cycle/schema.php';
+
+    public function __construct(private CollectionFactoryConfigurator $collectionFactoryConfigurator = new CollectionFactoryConfigurator()) {}
 
     /**
      * @throws ConfigException
@@ -52,7 +54,7 @@ final class CycleFactory
 
         $databaseManager                = $containerResolver->getAs('dbal', DatabaseManager::class);
         $entities                       = $configReader->nonEmptyStringList('cycle.entities', []);
-        $manualMappingSchemaDefinitions = $this->resolveManualMappingSchemaDefinitions($configReader);
+        $manualMappingSchemaDefinitions = $configReader->map('cycle.schema.manual_mapping_schema_definitions', []);
         $additionalGenerators           = $configReader->list('cycle.generators', []);
         $isCacheEnabled                 = $configReader->bool('cycle.schema.cache.enabled', true);
         $compiledSchemaPath             = $configReader->nonEmptyString(
@@ -60,17 +62,19 @@ final class CycleFactory
             self::DEFAULT_COMPILED_SCHEMA_PATH,
         );
 
-        $compiledSchemaStorage = $containerResolver->has(CompiledSchemaStorage::class)
-            ? $containerResolver->get(CompiledSchemaStorage::class)
-            : new CompiledSchemaStorage();
+        $compiledSchemaStorage = $containerResolver->get(CompiledSchemaStorage::class);
 
         if ($isCacheEnabled && $compiledSchemaStorage->has($compiledSchemaPath)) {
-            return $this->createOrmInstance($container, $databaseManager, $compiledSchemaStorage->load($compiledSchemaPath));
+            return $this->createOrmInstance(
+                $container,
+                $databaseManager,
+                $compiledSchemaStorage->load($compiledSchemaPath),
+                $containerResolver,
+                $configReader,
+            );
         }
 
-        $schemaCompiler = $containerResolver->has(SchemaCompilerInterface::class)
-            ? $containerResolver->get(SchemaCompilerInterface::class)
-            : new SchemaCompilerService($container);
+        $schemaCompiler = $containerResolver->get(SchemaCompilerInterface::class);
 
         $schema = $schemaCompiler->compile(
             $databaseManager,
@@ -83,32 +87,31 @@ final class CycleFactory
             $compiledSchemaStorage->save($compiledSchemaPath, $schema);
         }
 
-        return $this->createOrmInstance($container, $databaseManager, $schema);
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    private function resolveManualMappingSchemaDefinitions(ConfigReader $configReader): array
-    {
-        if ($configReader->has('cycle.schema.manual_mapping_schema_definitions')) {
-            return $configReader->map('cycle.schema.manual_mapping_schema_definitions', []);
-        }
-
-        // Deprecated legacy key; remove support in 4.0.
-        return $configReader->map('cycle.schema.manual_entity_schema_definition', []);
+        return $this->createOrmInstance($container, $databaseManager, $schema, $containerResolver, $configReader);
     }
 
     /**
      * @param array<string, mixed> $schema
+     *
+     * @throws ContainerExceptionInterface
+     * @throws ResolverException
      */
-    private function createOrmInstance(ContainerInterface $container, DatabaseManager $databaseManager, array $schema): ORMInterface
-    {
+    private function createOrmInstance(
+        ContainerInterface $container,
+        DatabaseManager $databaseManager,
+        array $schema,
+        ContainerResolver $containerResolver,
+        ConfigReader $configReader,
+    ): ORMInterface {
         $schemaInstance   = new ORMSchema($schema);
         $commandGenerator = $this->createCommandGenerator($schemaInstance, $container);
 
         return new ORM\ORM(
-            factory: new ORM\Factory($databaseManager),
+            factory: $this->collectionFactoryConfigurator->createFactory(
+                $databaseManager,
+                $configReader,
+                $containerResolver,
+            ),
             schema: $schemaInstance,
             commandGenerator: $commandGenerator,
         );

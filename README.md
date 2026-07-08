@@ -36,6 +36,7 @@ Create `config/autoload/cycle-orm.global.php`:
 declare(strict_types=1);
 
 use Cycle\Database\Config;
+use Cycle\ORM\Collection\ArrayCollectionFactory;
 use Cycle\ORM\Mapper\Mapper;
 use Cycle\ORM\Relation;
 use Cycle\ORM\SchemaInterface;
@@ -82,6 +83,16 @@ return [
             // 'my.custom.generator.service',
             // \App\Cycle\Schema\Generator\MyCustomGenerator::class,
             // new \App\Cycle\Schema\Generator\InlineGenerator(),
+        ],
+
+        'collections' => [
+            'default' => ArrayCollectionFactory::class,
+            'factories' => [
+                // Register any Cycle ORM collection factory:
+                // 'doctrine' => \Cycle\ORM\Collection\DoctrineCollectionFactory::class,
+                // 'illuminate' => \Cycle\ORM\Collection\IlluminateCollectionFactory::class,
+                // 'loophp' => \Cycle\ORM\Collection\LoophpCollectionFactory::class,
+            ],
         ],
 
         'schema' => [
@@ -149,14 +160,88 @@ Recommended production setup:
 
 Invalid entries throw `Cycle\ORM\Exception\ConfigException`.
 
+## Collection factories
+
+`cycle.collections` configures Cycle ORM collection factories for `*Many` relations.
+It works with the built-in Cycle factories and with custom implementations of
+`Cycle\ORM\Collection\CollectionFactoryInterface`.
+
+```php
+use Cycle\ORM\Collection\ArrayCollectionFactory;
+use Cycle\ORM\Collection\DoctrineCollectionFactory;
+use Cycle\ORM\Collection\IlluminateCollectionFactory;
+use Cycle\ORM\Collection\LoophpCollectionFactory;
+
+return [
+    'cycle' => [
+        'collections' => [
+            'default' => ArrayCollectionFactory::class,
+            'factories' => [
+                // Requires doctrine/collections.
+                'doctrine' => DoctrineCollectionFactory::class,
+
+                // Requires illuminate/collections.
+                'illuminate' => IlluminateCollectionFactory::class,
+
+                // Requires loophp/collection.
+                'loophp' => LoophpCollectionFactory::class,
+            ],
+        ],
+    ],
+];
+```
+
+Factory definitions support:
+- service ID from container,
+- factory FQCN with zero-arg constructor,
+- direct instance implementing `Cycle\ORM\Collection\CollectionFactoryInterface`.
+
+Custom collection factories may use the same short form as built-in factories:
+
+```php
+return [
+    'cycle' => [
+        'collections' => [
+            'factories' => [
+                'custom' => App\Cycle\Collection\CustomCollectionFactory::class,
+            ],
+        ],
+    ],
+];
+```
+
+With the short form, the package registers the factory by alias and lets Cycle infer the collection interface from
+`CustomCollectionFactory::getInterface()`. If the factory class has constructor dependencies, register it as a container
+service and use that service ID instead of the class name.
+
+Use the extended definition only when you need to explicitly provide a base collection class or interface for
+`collection: CustomCollection::class` matching:
+
+```php
+return [
+    'cycle' => [
+        'collections' => [
+            'factories' => [
+                'custom' => [
+                    'factory' => App\Cycle\Collection\CustomCollectionFactory::class,
+                    'interface' => App\Collection\BaseCollection::class,
+                ],
+            ],
+        ],
+    ],
+];
+```
+
+The `factory` value in the extended definition accepts the same inputs as the short form:
+a container service ID, a factory FQCN with a zero-arg constructor, or a direct factory instance.
+
+For ManyToMany pivot entity access specifically, use a collection factory that supports Cycle pivoted collections.
+Cycle's Doctrine collection factory provides that support, so install `doctrine/collections`, register `doctrine`,
+and set the relation collection to `doctrine`.
+
 ## Manual mapping key compatibility
 
-Primary key is `cycle.schema.manual_mapping_schema_definitions`.
-
-For migration compatibility, the package also reads deprecated legacy key:
-- `cycle.schema.manual_entity_schema_definition`
-
-This legacy key will be removed in `4.0`. Use the new key for all new configs.
+Manual schema definitions are configured with `cycle.schema.manual_mapping_schema_definitions`.
 
 ## Services
 

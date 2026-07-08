@@ -11,6 +11,7 @@ This guide describes breaking changes and migration steps for upgrading to v4.
 | Migration fallback service | `NullMigrator` returned when migrations were disabled/unavailable | Removed; migrator services are not registered when `cycle/migrations` is missing |
 | Migration disable flag | `CYCLE_MIGRATIONS_DISABLED` could hide migration commands | Removed |
 | Migration DI registrations | Some migration services could exist as fallbacks | Migration services/aliases/commands are registered only when `cycle/migrations` is installed |
+| Manual mapping schema config | `cycle.schema.manual_entity_schema_definition` legacy key was still accepted | Removed; use `cycle.schema.manual_mapping_schema_definitions` |
 
 ## Schema compiler API migration
 
@@ -132,3 +133,35 @@ composer require cycle/migrations cycle/schema-migrations-generator symfony/cons
 ```
 
 `cycle/schema-migrations-generator` is needed only for `cycle:schema:migration:generate`.
+
+## Manual mapping schema config
+
+The deprecated `cycle.schema.manual_entity_schema_definition` config key is no longer supported.
+
+### Before (v3)
+
+```php
+return [
+    'cycle' => [
+        'schema' => [
+            'manual_entity_schema_definition' => [
+                // role => schema definition
+            ],
+        ],
+    ],
+];
+```
+
+### After (v4)
+
+```php
+return [
+    'cycle' => [
+        'schema' => [
+            'manual_mapping_schema_definitions' => [
+                // role => schema definition
+            ],
+        ],
+    ],
+];
+```
