@@ -15,7 +15,7 @@
         "cycle/database": "^2.15",
         "cycle/orm": "^2.12.3",
         "psr/container": "^1.0 || ^2.0",
-        "sirix/container-resolver": "^0.1.1",
+        "sirix/container-resolver": "^0.2",
         "spiral/tokenizer": "^2.14 || ^3.0"
     },
     "require-dev": {
