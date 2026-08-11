@@ -58,15 +58,11 @@ final class RepositoryFactory
         $roles = [];
 
         foreach ($schema->getRoles() as $role) {
-            if (! is_string($role)) {
-                continue;
-            }
-
-            if ('' === $role) {
-                continue;
-            }
-
-            if ($schema->define($role, SchemaInterface::REPOSITORY) === $repository) {
+            if (
+                is_string($role)
+                && '' !== $role
+                && $schema->define($role, SchemaInterface::REPOSITORY) === $repository
+            ) {
                 $roles[] = $role;
             }
         }
