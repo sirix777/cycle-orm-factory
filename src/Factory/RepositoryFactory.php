@@ -21,14 +21,12 @@ use function sprintf;
 final class RepositoryFactory
 {
     /**
-     * @param null|array<mixed> $options
-     *
      * @return RepositoryInterface<object>
      *
      * @throws ContainerExceptionInterface
      * @throws ResolverException
      */
-    public function __invoke(ContainerInterface $container, string $requestedName, ?array $options = null): RepositoryInterface
+    public function __invoke(ContainerInterface $container, string $requestedName): RepositoryInterface
     {
         $containerResolver = ContainerResolver::forFactory($container, self::class);
         $orm               = $containerResolver->getAs(ORMInterface::class, ORMInterface::class);
@@ -60,7 +58,11 @@ final class RepositoryFactory
         $roles = [];
 
         foreach ($schema->getRoles() as $role) {
-            if (! is_string($role) || '' === $role) {
+            if (! is_string($role)) {
+                continue;
+            }
+
+            if ('' === $role) {
                 continue;
             }
 
