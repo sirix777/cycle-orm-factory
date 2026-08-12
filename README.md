@@ -252,6 +252,37 @@ Aliases provided by `ConfigProvider`:
 Migration aliases provided only when `cycle/migrations` is installed:
 - `migrator` -> `Sirix\Cycle\Service\MigratorInterface`
 
+## Repository services
+
+`RepositoryFactory` exposes a custom Cycle repository as a container service without injecting `ORMInterface` into application code.
+Assign the repository class to an entity in the Cycle schema, register it with the factory, and alias your application interface to it:
+
+```php
+use App\Entity\User;
+use App\Repository\UserRepository;
+use App\Repository\UserRepositoryInterface;
+use Cycle\Annotated\Annotation\Entity;
+use Sirix\Cycle\Factory\RepositoryFactory;
+
+#[Entity(repository: UserRepository::class)]
+final class User {}
+
+return [
+    'dependencies' => [
+        'factories' => [
+            UserRepository::class => RepositoryFactory::class,
+        ],
+        'aliases' => [
+            UserRepositoryInterface::class => UserRepository::class,
+        ],
+    ],
+];
+```
+
+The factory resolves the repository class from the compiled Cycle schema and asks Cycle for the corresponding entity role. It supports custom read repositories and repositories that add persist methods through `EntityManager`.
+
+See the [Repository Services guide](docs/repositories.md) for read and persist repository examples, manual schema configuration, string roles, aliases, and schema-cache refresh requirements.
+
 ## CLI commands
 
 Commands are registered only when `symfony/console` is installed.
