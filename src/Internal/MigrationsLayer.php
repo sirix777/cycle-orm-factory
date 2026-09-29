@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Sirix\Cycle\Internal;
 
+use Psr\Container\ContainerInterface;
 use Sirix\Cycle\Command;
 use Sirix\Cycle\Enum\CommandName;
 use Sirix\Cycle\Factory\MigratorFactory;
@@ -18,7 +19,7 @@ final class MigrationsLayer
     /**
      * @return array{
      *     aliases: array<string, string>,
-     *     factories: array<string, string>
+     *     factories: array<string, class-string<callable(ContainerInterface, string, null|array<mixed>): mixed&object>>
      * }
      */
     public function getDependencies(): array

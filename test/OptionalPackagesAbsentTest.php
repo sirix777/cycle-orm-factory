@@ -4,8 +4,14 @@ declare(strict_types=1);
 
 namespace Sirix\Cycle\Test;
 
+use Cycle\Database\DatabaseInterface;
+use Cycle\Database\DatabaseProviderInterface;
 use PHPUnit\Framework\TestCase;
 use Sirix\Cycle\ConfigProvider;
+use Sirix\Cycle\Factory\DatabaseFactory;
+use Sirix\Cycle\Factory\DbalFactory;
+use Sirix\Cycle\Factory\NamedDatabaseAbstractFactory;
+use Sirix\Cycle\Internal\PackageChecker;
 use Sirix\Cycle\Service\MigratorInterface;
 use Sirix\Cycle\Service\MigratorService;
 use Sirix\Cycle\Service\SchemaCompilerInterface;
@@ -33,15 +39,25 @@ final class OptionalPackagesAbsentTest extends TestCase
         $this->assertSame([], $commands);
 
         $this->assertSame('orm', $dependencies['aliases']['Cycle\ORM\ORMInterface']);
-        $this->assertSame('dbal', $dependencies['aliases']['Cycle\Database\DatabaseInterface']);
+        $this->assertSame('dbal', $dependencies['aliases'][DatabaseProviderInterface::class]);
+        $this->assertArrayNotHasKey(DatabaseInterface::class, $dependencies['aliases']);
         $this->assertSame(SchemaCompilerService::class, $dependencies['aliases'][SchemaCompilerInterface::class]);
         $this->assertArrayNotHasKey(MigratorInterface::class, $dependencies['aliases']);
 
         $this->assertArrayHasKey('orm', $dependencies['factories']);
         $this->assertArrayHasKey('dbal', $dependencies['factories']);
+        $this->assertSame(DbalFactory::class, $dependencies['factories']['dbal']);
+        $this->assertArrayHasKey(DatabaseInterface::class, $dependencies['factories']);
+        $this->assertSame(DatabaseFactory::class, $dependencies['factories'][DatabaseInterface::class]);
         $this->assertArrayHasKey(SchemaCompilerService::class, $dependencies['factories']);
         $this->assertArrayNotHasKey('migrator', $dependencies['factories']);
         $this->assertArrayNotHasKey(MigratorService::class, $dependencies['factories']);
+
+        if (PackageChecker::isServiceManagerAvailable()) {
+            $this->assertContains(NamedDatabaseAbstractFactory::class, $dependencies['abstract_factories']);
+        } else {
+            $this->assertSame([], $dependencies['abstract_factories']);
+        }
 
         $this->assertArrayNotHasKey('Sirix\Cycle\Command\Cycle\ClearCycleSchemaCache', $dependencies['factories']);
         $this->assertArrayNotHasKey('Sirix\Cycle\Command\Cycle\SchemaCompileCommand', $dependencies['factories']);

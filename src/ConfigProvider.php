@@ -5,10 +5,15 @@ declare(strict_types=1);
 namespace Sirix\Cycle;
 
 use Cycle\Database\DatabaseInterface;
+use Cycle\Database\DatabaseProviderInterface;
 use Cycle\ORM\ORMInterface;
+use Laminas\ServiceManager\Factory\AbstractFactoryInterface;
+use Psr\Container\ContainerInterface;
 use Sirix\Cycle\Enum\CommandName;
 use Sirix\Cycle\Factory\CycleFactory;
+use Sirix\Cycle\Factory\DatabaseFactory;
 use Sirix\Cycle\Factory\DbalFactory;
+use Sirix\Cycle\Factory\NamedDatabaseAbstractFactory;
 use Sirix\Cycle\Internal\MigrationsLayer;
 use Sirix\Cycle\Internal\PackageChecker;
 use Sirix\Cycle\Service\SchemaCompilerInterface;
@@ -21,8 +26,9 @@ final readonly class ConfigProvider
      * @return array{
      *     dependencies: array{
      *         aliases: array<string, string>,
-     *         invokables: array<string, string>,
-     *         factories: array<string, string>
+     *         invokables: array<string, class-string>,
+     *         factories: array<string, class-string<callable(ContainerInterface, string, null|array<mixed>): mixed&object>>,
+     *         abstract_factories: array<class-string<AbstractFactoryInterface>>
      *     },
      *     laminas-cli: array{
      *         commands: array<string, class-string>
@@ -40,8 +46,9 @@ final readonly class ConfigProvider
     /**
      * @return array{
      *     aliases: array<string, string>,
-     *     invokables: array<string, string>,
-     *     factories: array<string, string>
+     *     invokables: array<string, class-string>,
+     *     factories: array<string, class-string<callable(ContainerInterface, string, null|array<mixed>): mixed&object>>,
+     *     abstract_factories: array<class-string<AbstractFactoryInterface>>
      * }
      */
     public function getDependencies(): array
@@ -49,14 +56,21 @@ final readonly class ConfigProvider
         $factories = [
             'orm'                                => CycleFactory::class,
             'dbal'                               => DbalFactory::class,
+            DatabaseInterface::class             => DatabaseFactory::class,
             Service\SchemaCompilerService::class => Service\SchemaCompilerServiceFactory::class,
         ];
 
         $aliases = [
-            DatabaseInterface::class       => 'dbal',
-            ORMInterface::class            => 'orm',
-            SchemaCompilerInterface::class => Service\SchemaCompilerService::class,
+            DatabaseProviderInterface::class => 'dbal',
+            ORMInterface::class              => 'orm',
+            SchemaCompilerInterface::class   => Service\SchemaCompilerService::class,
         ];
+
+        $abstractFactories = [];
+
+        if (PackageChecker::isServiceManagerAvailable()) {
+            $abstractFactories[NamedDatabaseAbstractFactory::class] = NamedDatabaseAbstractFactory::class;
+        }
 
         if (PackageChecker::isConsoleAvailable()) {
             $factories[Command\Cycle\ClearCycleSchemaCache::class] = Command\Cycle\ClearCycleSchemaCacheFactory::class;
@@ -74,11 +88,12 @@ final readonly class ConfigProvider
         }
 
         return [
-            'aliases'    => $aliases,
-            'invokables' => [
+            'aliases'            => $aliases,
+            'invokables'         => [
                 Service\CompiledSchemaStorage::class => Service\CompiledSchemaStorage::class,
             ],
-            'factories'  => $factories,
+            'factories'          => $factories,
+            'abstract_factories' => $abstractFactories,
         ];
     }
 

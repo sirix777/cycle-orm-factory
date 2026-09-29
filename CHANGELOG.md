@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.0.0] - 2026-09-29
+
+### Added
+- Added `NamedDatabaseAbstractFactory` for Laminas ServiceManager applications, exposing databases listed in `cycle.database_services` as container services.
+- Added `laminas/laminas-servicemanager` to `suggest` and `require-dev`.
+
+### Changed
+- `Cycle\Database\DatabaseInterface` now resolves to the default database of the shared `dbal` manager instead of aliasing `dbal` directly.
+- `Cycle\Database\DatabaseProviderInterface` is now aliased to `dbal`.
+
+### Breaking Changes
+- Code that incorrectly obtained the `DatabaseManager` through `DatabaseInterface::class` will now receive a real `DatabaseInterface`.
+  Retrieve the manager through `dbal` or `DatabaseProviderInterface::class` instead. This change is not fully backward compatible for that incorrect usage.
+
 ## [4.2.1] - 2026-08-13
 
 ### Changed

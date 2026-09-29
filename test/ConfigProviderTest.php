@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Sirix\Cycle\Test;
 
+use Cycle\Database\DatabaseInterface;
+use Cycle\Database\DatabaseProviderInterface;
 use PHPUnit\Framework\TestCase;
 use Sirix\Cycle\Command\Cycle\SchemaCompileCommand;
 use Sirix\Cycle\Command\Cycle\SchemaSyncCommand;
@@ -14,6 +16,10 @@ use Sirix\Cycle\Command\Migrator\RollbackCommand;
 use Sirix\Cycle\Command\Migrator\SeedCommand;
 use Sirix\Cycle\ConfigProvider;
 use Sirix\Cycle\Enum\CommandName;
+use Sirix\Cycle\Factory\DatabaseFactory;
+use Sirix\Cycle\Factory\DbalFactory;
+use Sirix\Cycle\Factory\NamedDatabaseAbstractFactory;
+use Sirix\Cycle\Internal\PackageChecker;
 use Sirix\Cycle\Service\CompiledSchemaStorage;
 use Sirix\Cycle\Service\MigratorInterface;
 use Sirix\Cycle\Service\MigratorService;
@@ -63,5 +69,18 @@ final class ConfigProviderTest extends TestCase
         $this->assertArrayHasKey(MigratorInterface::class, $aliases);
         $this->assertSame('migrator', $aliases[MigratorInterface::class]);
         $this->assertArrayHasKey(CompiledSchemaStorage::class, $invokables);
+
+        $this->assertSame('dbal', $aliases[DatabaseProviderInterface::class]);
+        $this->assertArrayNotHasKey(DatabaseInterface::class, $aliases);
+        $this->assertArrayHasKey('dbal', $factories);
+        $this->assertSame(DbalFactory::class, $factories['dbal']);
+        $this->assertArrayHasKey(DatabaseInterface::class, $factories);
+        $this->assertSame(DatabaseFactory::class, $factories[DatabaseInterface::class]);
+
+        if (PackageChecker::isServiceManagerAvailable()) {
+            $this->assertContains(NamedDatabaseAbstractFactory::class, $deps['abstract_factories']);
+        } else {
+            $this->assertSame([], $deps['abstract_factories']);
+        }
     }
 }

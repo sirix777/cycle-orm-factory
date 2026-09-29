@@ -23,6 +23,7 @@
         "cycle/entity-behavior": "^1.7",
         "cycle/migrations": "^4.2",
         "cycle/schema-migrations-generator": "^2.3",
+        "laminas/laminas-servicemanager": "^3.0 || ^4.0",
         "mockery/mockery": "^1.6",
         "phpstan/phpstan-mockery": "^1.1",
         "phpunit/phpunit": "^11.5",
@@ -34,6 +35,7 @@
         "cycle/migrations": "Optional: Database migrations runtime (Migrator). Required to run migration commands",
         "cycle/schema-migrations-generator": "Optional: Generate migration files from schema changes",
         "laminas/laminas-cli": "Optional: Provides convenient CLI integration for Laminas/Mezzio applications",
+        "laminas/laminas-servicemanager": "Optional: Enables named database services through NamedDatabaseAbstractFactory",
         "sirix/cycle-orm-extensions": "Optional: Practical extensions for Cycle ORM: base repositories, entity traits, typecasts, and more",
         "symfony/console": "Optional: Required only for built-in CLI commands"
     },

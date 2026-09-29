@@ -10,6 +10,7 @@ Migration guides:
 - [v1 to v2](docs/v1-to-v2.md)
 - [v2 to v3](docs/v2-to-v3.md)
 - [v3 to v4](docs/v3-to-v4.md)
+- [v4 to v5](docs/v4-to-v5.md)
 
 Factories for integrating Cycle ORM into Mezzio with a runtime-focused schema pipeline.
 
@@ -25,6 +26,7 @@ Optional packages:
 - `cycle/migrations`: required for migration runtime commands.
 - `cycle/schema-migrations-generator`: required for `cycle:schema:migration:generate`.
 - `cycle/entity-behavior` and `cycle/entity-behavior-uuid`: optional behavior events; runtime falls back to default Cycle command generator if not installed.
+- `laminas/laminas-servicemanager`: required for named database services through the abstract factory.
 
 ## Configuration
 
@@ -35,6 +37,7 @@ Create `config/autoload/cycle-orm.global.php`:
 
 declare(strict_types=1);
 
+use App\Entity\User;
 use Cycle\Database\Config;
 use Cycle\ORM\Collection\ArrayCollectionFactory;
 use Cycle\ORM\Mapper\Mapper;
@@ -245,12 +248,100 @@ Manual schema definitions are configured with `cycle.schema.manual_mapping_schem
 
 ## Services
 
-Aliases provided by `ConfigProvider`:
+Provided by `ConfigProvider`:
+- `dbal` -> `Cycle\Database\DatabaseManager`
+- `Cycle\Database\DatabaseProviderInterface` -> alias of `dbal`
+- `Cycle\Database\DatabaseInterface` -> default database resolved from the same `dbal` manager
 - `orm` -> `Cycle\ORM\ORMInterface`
-- `dbal` -> `Cycle\Database\DatabaseInterface`
 
 Migration aliases provided only when `cycle/migrations` is installed:
 - `migrator` -> `Sirix\Cycle\Service\MigratorInterface`
+
+The ORM, commands, schema generation, and database factories all resolve `dbal`. Configure your
+container to share that service so they receive the same `DatabaseManager`. Laminas ServiceManager
+shares services by default; other containers and custom sharing settings may behave differently.
+Use the provider to select any configured database:
+
+```php
+use Cycle\Database\DatabaseProviderInterface;
+
+/** @var DatabaseProviderInterface $provider */
+$provider = $container->get(DatabaseProviderInterface::class);
+
+$analytics = $provider->database('analytics');
+```
+
+`Cycle\Database\DatabaseInterface` resolves to the default database of that manager:
+
+```php
+use Cycle\Database\DatabaseInterface;
+
+/** @var DatabaseInterface $db */
+$db = $container->get(DatabaseInterface::class);
+
+$db->transaction(static function (DatabaseInterface $db): void {
+    // atomic work; Cycle commits on success and rolls back on exception
+});
+```
+
+Transactions belong to the database's write driver. ORM operations participate in that transaction
+only when they use the same write connection.
+
+### Named database services with Laminas ServiceManager
+
+When `laminas/laminas-servicemanager` is installed, `NamedDatabaseAbstractFactory` lets an
+application expose named Cycle databases as explicit container services. List the service IDs
+and the Cycle database names they map to in `cycle.database_services`:
+
+```php
+use Cycle\Database\Config\SQLiteDriverConfig;
+
+return [
+    'cycle' => [
+        'database_services' => [
+            'db.analytics' => 'analytics',
+            'db.archive'   => 'archive',
+        ],
+        'db-config' => [
+            'default'   => 'default',
+            'databases' => [
+                'default'   => ['connection' => 'primary'],
+                'analytics' => ['connection' => 'reporting'],
+                'archive'   => ['connection' => 'archive'],
+            ],
+            'connections' => [
+                'primary'   => new SQLiteDriverConfig(),
+                'reporting' => new SQLiteDriverConfig(),
+                'archive'   => new SQLiteDriverConfig(),
+            ],
+        ],
+    ],
+    'dependencies' => [
+        'aliases' => [
+            // Replace with an interface declared by your application.
+            App\Database\AnalyticsDatabaseInterface::class => 'db.analytics',
+        ],
+    ],
+];
+```
+
+This example uses separate in-memory SQLite connections. Replace them with your application's
+driver configurations. The map values are Cycle database names from `db-config.databases`, not
+connection names.
+
+`$container->get('db.analytics')` returns `$container->get('dbal')->database('analytics')` from the
+same manager when `dbal` is shared. Only service IDs listed in `cycle.database_services` are
+intercepted; unknown services are left to the container. For other PSR-11 containers, register
+named databases with your own factory using explicit service IDs.
+
+### Transaction lifetime
+
+Fixing the alias does not change connection lifetime. `DatabaseManager` caches databases and drivers.
+If a long-running worker shares `dbal` between requests, the same database object and write driver
+may survive between them. Prefer `$db->transaction(static function (DatabaseInterface $db): void { /* work */ })`;
+it commits on success and rolls back on exception. A manual `begin()` must be closed with an explicit
+`try`/`catch`/`finally` on every path. Request-boundary cleanup belongs to the application or runner,
+not to these factories.
 
 ## Repository services
 

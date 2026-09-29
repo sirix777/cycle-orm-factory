@@ -21,6 +21,7 @@ return $config
             'cycle/entity-behavior',
             'cycle/migrations',
             'cycle/schema-migrations-generator',
+            'laminas/laminas-servicemanager',
             'symfony/console',
         ],
         [ErrorType::DEV_DEPENDENCY_IN_PROD],
