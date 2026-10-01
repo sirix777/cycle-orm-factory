@@ -10,7 +10,6 @@ use Cycle\ORM\ORMInterface;
 use PHPUnit\Framework\TestCase;
 use Sirix\Cycle\Command;
 use Sirix\Cycle\ConfigProvider;
-use Sirix\Cycle\Enum\CommandName;
 use Sirix\Cycle\Factory\CycleFactory;
 use Sirix\Cycle\Factory\DatabaseFactory;
 use Sirix\Cycle\Factory\DbalFactory;
@@ -131,15 +130,15 @@ final class OptionalPackageRegistrationTest extends TestCase
 
         if ($console) {
             $expectedCommands = [
-                CommandName::MigrationRun->value      => Command\Migrator\MigrateCommand::class,
-                CommandName::MigrationRollback->value => Command\Migrator\RollbackCommand::class,
-                CommandName::MigrationCreate->value   => Command\Migrator\CreateMigrationCommand::class,
-                CommandName::SeedCreate->value        => Command\Migrator\CreateSeedCommand::class,
-                CommandName::SeedRun->value           => Command\Migrator\SeedCommand::class,
+                'cycle:migration:run'      => Command\Migrator\MigrateCommand::class,
+                'cycle:migration:rollback' => Command\Migrator\RollbackCommand::class,
+                'cycle:migration:create'   => Command\Migrator\CreateMigrationCommand::class,
+                'cycle:seed:create'        => Command\Migrator\CreateSeedCommand::class,
+                'cycle:seed:run'           => Command\Migrator\SeedCommand::class,
             ];
 
             if ($generator && $behavior) {
-                $expectedCommands[CommandName::SchemaMigrationGenerate->value]
+                $expectedCommands['cycle:schema:migration:generate']
                     = Command\Cycle\SchemaMigrationsGenerateCommand::class;
             }
         }
@@ -151,7 +150,7 @@ final class OptionalPackageRegistrationTest extends TestCase
     {
         $scenario = getenv('CYCLE_OPTIONAL_SCENARIO');
 
-        if (false === $scenario || '' === $scenario) {
+        if (false === $scenario) {
             $this->addToAssertionCount(1);
 
             return;
@@ -235,23 +234,23 @@ final class OptionalPackageRegistrationTest extends TestCase
         }
 
         $commands = [
-            CommandName::CacheClear->value => Command\Cycle\ClearCycleSchemaCache::class,
+            'cycle:cache:clear' => Command\Cycle\ClearCycleSchemaCache::class,
         ];
 
         if ($behavior) {
-            $commands[CommandName::SchemaSync->value]    = Command\Cycle\SchemaSyncCommand::class;
-            $commands[CommandName::SchemaCompile->value] = Command\Cycle\SchemaCompileCommand::class;
+            $commands['cycle:schema:sync']    = Command\Cycle\SchemaSyncCommand::class;
+            $commands['cycle:schema:compile'] = Command\Cycle\SchemaCompileCommand::class;
         }
 
         if ($migrator) {
-            $commands[CommandName::MigrationRun->value]      = Command\Migrator\MigrateCommand::class;
-            $commands[CommandName::MigrationRollback->value] = Command\Migrator\RollbackCommand::class;
-            $commands[CommandName::MigrationCreate->value]   = Command\Migrator\CreateMigrationCommand::class;
-            $commands[CommandName::SeedCreate->value]        = Command\Migrator\CreateSeedCommand::class;
-            $commands[CommandName::SeedRun->value]           = Command\Migrator\SeedCommand::class;
+            $commands['cycle:migration:run']      = Command\Migrator\MigrateCommand::class;
+            $commands['cycle:migration:rollback'] = Command\Migrator\RollbackCommand::class;
+            $commands['cycle:migration:create']   = Command\Migrator\CreateMigrationCommand::class;
+            $commands['cycle:seed:create']        = Command\Migrator\CreateSeedCommand::class;
+            $commands['cycle:seed:run']           = Command\Migrator\SeedCommand::class;
 
             if ($generator && $behavior) {
-                $commands[CommandName::SchemaMigrationGenerate->value]
+                $commands['cycle:schema:migration:generate']
                     = Command\Cycle\SchemaMigrationsGenerateCommand::class;
             }
         }

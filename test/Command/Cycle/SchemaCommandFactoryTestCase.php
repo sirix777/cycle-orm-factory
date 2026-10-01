@@ -14,6 +14,7 @@ use ReflectionNamedType;
 use Sirix\ContainerResolver\Exception\InvalidConfigValueException;
 use Sirix\ContainerResolver\Exception\MissingContainerServiceException;
 use Sirix\Cycle\Factory\CycleFactory;
+use Sirix\Cycle\Internal\FileSystem;
 use Sirix\Cycle\Service\CompiledSchemaStorage;
 use Sirix\Cycle\Service\SchemaCompilerInterface;
 use Symfony\Component\Console\Command\Command;
@@ -24,14 +25,10 @@ use function chdir;
 use function file_exists;
 use function getcwd;
 use function in_array;
-use function is_dir;
 use function mkdir;
 use function random_bytes;
-use function rmdir;
-use function scandir;
 use function sprintf;
 use function sys_get_temp_dir;
-use function unlink;
 
 abstract class SchemaCommandFactoryTestCase extends TestCase
 {
@@ -57,7 +54,7 @@ abstract class SchemaCommandFactoryTestCase extends TestCase
 
     protected function tearDown(): void
     {
-        $this->removeDirectory($this->tmpDir);
+        (new FileSystem())->remove($this->tmpDir);
 
         parent::tearDown();
     }
@@ -264,27 +261,4 @@ abstract class SchemaCommandFactoryTestCase extends TestCase
     abstract protected function savesWhenCacheDisabled(): bool;
 
     abstract protected function buildCommandWithContainer(ContainerInterface $container): Command;
-
-    private function removeDirectory(string $directory): void
-    {
-        if (! is_dir($directory)) {
-            return;
-        }
-
-        foreach (scandir($directory) ?: [] as $entry) {
-            if ('.' === $entry || '..' === $entry) {
-                continue;
-            }
-
-            $path = $directory . '/' . $entry;
-
-            if (is_dir($path)) {
-                $this->removeDirectory($path);
-            } else {
-                unlink($path);
-            }
-        }
-
-        rmdir($directory);
-    }
 }

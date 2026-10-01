@@ -96,7 +96,7 @@ jobs:
       - name: Run registration tests
         env:
           CYCLE_OPTIONAL_SCENARIO: ${{ matrix.scenario }}
-        run: vendor/bin/phpunit --colors=always test/OptionalPackageRegistrationTest.php
+        run: vendor/bin/phpunit --colors=always --fail-on-skipped test/OptionalPackageRegistrationTest.php
 
       - name: Run absent-package tests
         if: matrix.scenario == 'all-absent'
