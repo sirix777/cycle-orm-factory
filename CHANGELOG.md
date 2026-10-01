@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.0.1] - 2026-10-01
+
+### Added
+- Added optional-package registration tests and a seven-scenario CI matrix; CLI command names are pinned as literals in the tests.
+
+### Changed
+- Schema command factories now share construction through the internal `Sirix\Cycle\Internal\SchemaCommandFactory`; public factory classes, concrete return types, and resolver diagnostics are unchanged.
+- `ConfigProvider` and `MigrationsLayer` now derive their command and factory maps from explicit registration entries; registered commands, factories, aliases, and ordering are unchanged.
+
 ## [5.0.0] - 2026-09-29
 
 ### Added
