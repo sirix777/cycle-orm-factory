@@ -40,11 +40,38 @@ jobs:
       - name: Run checks
         run: composer check
 
-  optional-packages-absent:
+  optional-packages:
 
     runs-on: ubuntu-latest
 
-    name: Optional packages absent
+    name: Optional packages (${{ matrix.scenario }})
+
+    strategy:
+      fail-fast: false
+      matrix:
+        scenario:
+          - all-present
+          - no-console
+          - no-behavior
+          - no-generator
+          - no-migrations
+          - no-servicemanager
+          - all-absent
+        include:
+          - scenario: all-present
+            remove: ""
+          - scenario: no-console
+            remove: "symfony/console"
+          - scenario: no-behavior
+            remove: "cycle/entity-behavior"
+          - scenario: no-generator
+            remove: "cycle/schema-migrations-generator"
+          - scenario: no-migrations
+            remove: "cycle/migrations cycle/schema-migrations-generator"
+          - scenario: no-servicemanager
+            remove: "laminas/laminas-servicemanager"
+          - scenario: all-absent
+            remove: "cycle/entity-behavior cycle/migrations cycle/schema-migrations-generator symfony/console laminas/laminas-servicemanager"
 
     steps:
       - uses: actions/checkout@v4
@@ -60,13 +87,17 @@ jobs:
         run: composer validate --strict
 
       - name: Remove optional packages
-        run: |
-          composer remove --dev --no-update --no-plugins \
-            cycle/entity-behavior \
-            cycle/migrations \
-            cycle/schema-migrations-generator \
-            symfony/console
-          composer update --prefer-dist --no-progress --no-interaction --no-plugins
+        if: matrix.remove != ''
+        run: composer remove --dev --no-update --no-plugins ${{ matrix.remove }}
 
-      - name: Run optional-absent tests
+      - name: Install dependencies
+        run: composer update --prefer-dist --no-progress --no-interaction --no-plugins
+
+      - name: Run registration tests
+        env:
+          CYCLE_OPTIONAL_SCENARIO: ${{ matrix.scenario }}
+        run: vendor/bin/phpunit --colors=always test/OptionalPackageRegistrationTest.php
+
+      - name: Run absent-package tests
+        if: matrix.scenario == 'all-absent'
         run: vendor/bin/phpunit --colors=always --testdox test/OptionalPackagesAbsentTest.php
