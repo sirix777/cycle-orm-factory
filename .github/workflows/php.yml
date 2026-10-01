@@ -100,4 +100,4 @@ jobs:
 
       - name: Run absent-package tests
         if: matrix.scenario == 'all-absent'
-        run: vendor/bin/phpunit --colors=always --testdox test/OptionalPackagesAbsentTest.php
+        run: vendor/bin/phpunit --colors=always --testdox --fail-on-skipped test/OptionalPackagesAbsentTest.php
