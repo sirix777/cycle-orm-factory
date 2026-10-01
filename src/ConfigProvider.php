@@ -72,13 +72,8 @@ final readonly class ConfigProvider
             $abstractFactories[NamedDatabaseAbstractFactory::class] = NamedDatabaseAbstractFactory::class;
         }
 
-        if (PackageChecker::isConsoleAvailable()) {
-            $factories[Command\Cycle\ClearCycleSchemaCache::class] = Command\Cycle\ClearCycleSchemaCacheFactory::class;
-
-            if (PackageChecker::isEntityBehaviorAvailable()) {
-                $factories[Command\Cycle\SchemaSyncCommand::class]    = Command\Cycle\SchemaSyncCommandFactory::class;
-                $factories[Command\Cycle\SchemaCompileCommand::class] = Command\Cycle\SchemaCompileCommandFactory::class;
-            }
+        foreach ($this->getCommandRegistrations() as $registration) {
+            $factories[$registration['command']] = $registration['factory'];
         }
 
         if (PackageChecker::isMigratorAvailable()) {
@@ -102,19 +97,10 @@ final readonly class ConfigProvider
      */
     private function getCliConfig(): array
     {
-        if (! PackageChecker::isConsoleAvailable()) {
-            return [
-                'commands' => [],
-            ];
-        }
+        $commands = [];
 
-        $commands = [
-            CommandName::CacheClear->value => Command\Cycle\ClearCycleSchemaCache::class,
-        ];
-
-        if (PackageChecker::isEntityBehaviorAvailable()) {
-            $commands[CommandName::SchemaSync->value]    = Command\Cycle\SchemaSyncCommand::class;
-            $commands[CommandName::SchemaCompile->value] = Command\Cycle\SchemaCompileCommand::class;
+        foreach ($this->getCommandRegistrations() as $name => $registration) {
+            $commands[$name] = $registration['command'];
         }
 
         if (PackageChecker::isMigratorAvailable()) {
@@ -124,5 +110,38 @@ final readonly class ConfigProvider
         return [
             'commands' => $commands,
         ];
+    }
+
+    /**
+     * @return array<string, array{
+     *     command: class-string,
+     *     factory: class-string<callable(ContainerInterface, string, null|array<mixed>): mixed&object>
+     * }>
+     */
+    private function getCommandRegistrations(): array
+    {
+        if (! PackageChecker::isConsoleAvailable()) {
+            return [];
+        }
+
+        $registrations = [
+            CommandName::CacheClear->value => [
+                'command' => Command\Cycle\ClearCycleSchemaCache::class,
+                'factory' => Command\Cycle\ClearCycleSchemaCacheFactory::class,
+            ],
+        ];
+
+        if (PackageChecker::isEntityBehaviorAvailable()) {
+            $registrations[CommandName::SchemaSync->value] = [
+                'command' => Command\Cycle\SchemaSyncCommand::class,
+                'factory' => Command\Cycle\SchemaSyncCommandFactory::class,
+            ];
+            $registrations[CommandName::SchemaCompile->value] = [
+                'command' => Command\Cycle\SchemaCompileCommand::class,
+                'factory' => Command\Cycle\SchemaCompileCommandFactory::class,
+            ];
+        }
+
+        return $registrations;
     }
 }

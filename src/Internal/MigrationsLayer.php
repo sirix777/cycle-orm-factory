@@ -29,17 +29,8 @@ final class MigrationsLayer
             Service\MigratorService::class => Service\MigratorServiceFactory::class,
         ];
 
-        if (PackageChecker::isConsoleAvailable()) {
-            $factories[Command\Migrator\MigrateCommand::class]         = Command\Migrator\MigrateCommandFactory::class;
-            $factories[Command\Migrator\RollbackCommand::class]        = Command\Migrator\RollbackCommandFactory::class;
-            $factories[Command\Migrator\CreateMigrationCommand::class] = Command\Migrator\CreateMigrationCommandFactory::class;
-            $factories[Command\Migrator\CreateSeedCommand::class]      = Command\Migrator\CreateSeedCommandFactory::class;
-            $factories[Command\Migrator\SeedCommand::class]            = Command\Migrator\SeedCommandFactory::class;
-
-            if (PackageChecker::isGenerateMigrationsAvailable() && PackageChecker::isEntityBehaviorAvailable()) {
-                $factories[Command\Cycle\SchemaMigrationsGenerateCommand::class]
-                    = Command\Cycle\SchemaMigrationsGenerateCommandFactory::class;
-            }
+        foreach ($this->getCommandRegistrations() as $registration) {
+            $factories[$registration['command']] = $registration['factory'];
         }
 
         return [
@@ -55,22 +46,57 @@ final class MigrationsLayer
      */
     public function getCommands(): array
     {
+        $commands = [];
+
+        foreach ($this->getCommandRegistrations() as $name => $registration) {
+            $commands[$name] = $registration['command'];
+        }
+
+        return $commands;
+    }
+
+    /**
+     * @return array<string, array{
+     *     command: class-string,
+     *     factory: class-string<callable(ContainerInterface, string, null|array<mixed>): mixed&object>
+     * }>
+     */
+    private function getCommandRegistrations(): array
+    {
         if (! PackageChecker::isConsoleAvailable()) {
             return [];
         }
 
-        $commands = [
-            CommandName::MigrationRun->value      => Command\Migrator\MigrateCommand::class,
-            CommandName::MigrationRollback->value => Command\Migrator\RollbackCommand::class,
-            CommandName::MigrationCreate->value   => Command\Migrator\CreateMigrationCommand::class,
-            CommandName::SeedCreate->value        => Command\Migrator\CreateSeedCommand::class,
-            CommandName::SeedRun->value           => Command\Migrator\SeedCommand::class,
+        $registrations = [
+            CommandName::MigrationRun->value      => [
+                'command' => Command\Migrator\MigrateCommand::class,
+                'factory' => Command\Migrator\MigrateCommandFactory::class,
+            ],
+            CommandName::MigrationRollback->value => [
+                'command' => Command\Migrator\RollbackCommand::class,
+                'factory' => Command\Migrator\RollbackCommandFactory::class,
+            ],
+            CommandName::MigrationCreate->value   => [
+                'command' => Command\Migrator\CreateMigrationCommand::class,
+                'factory' => Command\Migrator\CreateMigrationCommandFactory::class,
+            ],
+            CommandName::SeedCreate->value        => [
+                'command' => Command\Migrator\CreateSeedCommand::class,
+                'factory' => Command\Migrator\CreateSeedCommandFactory::class,
+            ],
+            CommandName::SeedRun->value           => [
+                'command' => Command\Migrator\SeedCommand::class,
+                'factory' => Command\Migrator\SeedCommandFactory::class,
+            ],
         ];
 
         if (PackageChecker::isGenerateMigrationsAvailable() && PackageChecker::isEntityBehaviorAvailable()) {
-            $commands[CommandName::SchemaMigrationGenerate->value] = Command\Cycle\SchemaMigrationsGenerateCommand::class;
+            $registrations[CommandName::SchemaMigrationGenerate->value] = [
+                'command' => Command\Cycle\SchemaMigrationsGenerateCommand::class,
+                'factory' => Command\Cycle\SchemaMigrationsGenerateCommandFactory::class,
+            ];
         }
 
-        return $commands;
+        return $registrations;
     }
 }
