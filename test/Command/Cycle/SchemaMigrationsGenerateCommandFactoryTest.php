@@ -4,79 +4,35 @@ declare(strict_types=1);
 
 namespace Sirix\Cycle\Test\Command\Cycle;
 
-use Cycle\Database\Config\DatabaseConfig;
-use Cycle\Database\DatabaseManager;
-use PHPUnit\Framework\MockObject\MockObject;
-use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
 use Sirix\Cycle\Command\Cycle\SchemaMigrationsGenerateCommand;
 use Sirix\Cycle\Command\Cycle\SchemaMigrationsGenerateCommandFactory;
-use Sirix\Cycle\Service\CompiledSchemaStorage;
-use Sirix\Cycle\Service\SchemaCompilerInterface;
+use Symfony\Component\Console\Command\Command;
 
-use function in_array;
-
-final class SchemaMigrationsGenerateCommandFactoryTest extends TestCase
+final class SchemaMigrationsGenerateCommandFactoryTest extends SchemaCommandFactoryTestCase
 {
-    private ContainerInterface|MockObject $container;
-    private MockObject|SchemaCompilerInterface $schemaCompiler;
-    private CompiledSchemaStorage $storage;
-    private DatabaseManager $dbal;
-
-    protected function setUp(): void
+    protected function buildCommandWithContainer(ContainerInterface $container): Command
     {
-        parent::setUp();
-
-        $this->container      = $this->createMock(ContainerInterface::class);
-        $this->schemaCompiler = $this->createMock(SchemaCompilerInterface::class);
-        $this->storage        = new CompiledSchemaStorage();
-        $this->dbal           = new DatabaseManager(new DatabaseConfig([]));
+        return (new SchemaMigrationsGenerateCommandFactory())($container);
     }
 
-    public function testFactoryBuildsCommand(): void
+    protected function factoryClass(): string
     {
-        $this->container
-            ->method('has')
-            ->willReturnCallback(static fn (string $id): bool => in_array($id, [
-                'config',
-                SchemaCompilerInterface::class,
-                CompiledSchemaStorage::class,
-                'dbal',
-            ], true))
-        ;
+        return SchemaMigrationsGenerateCommandFactory::class;
+    }
 
-        $this->container
-            ->method('get')
-            ->willReturnMap([
-                [
-                    'config', [
-                        'cycle' => [
-                            'entities'   => ['src/Entity'],
-                            'generators' => ['my.generator'],
-                            'schema'     => [
-                                'cache'                             => [
-                                    'enabled' => true,
-                                ],
-                                'compiled'                          => [
-                                    'path' => '/tmp/schema.php',
-                                ],
-                                'manual_mapping_schema_definitions' => [
-                                    'foo' => [
-                                        'bar' => 'baz',
-                                    ],
-                                ],
-                            ],
-                        ],
-                    ]],
-                [SchemaCompilerInterface::class, $this->schemaCompiler],
-                [CompiledSchemaStorage::class, $this->storage],
-                ['dbal', $this->dbal],
-            ])
-        ;
+    protected function commandClass(): string
+    {
+        return SchemaMigrationsGenerateCommand::class;
+    }
 
-        $factory = new SchemaMigrationsGenerateCommandFactory();
-        $command = $factory($this->container);
+    protected function operationMethod(): string
+    {
+        return 'generateMigrations';
+    }
 
-        $this->assertInstanceOf(SchemaMigrationsGenerateCommand::class, $command);
+    protected function savesWhenCacheDisabled(): bool
+    {
+        return false;
     }
 }
