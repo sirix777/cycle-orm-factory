@@ -10,7 +10,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Added PHP 8.6 support; CI runs the full 8.3–8.6 matrix.
 - Added a CI job that runs the test suite against the lowest allowed dependency versions.
-- Added tests for the compiled-schema cache hit, schema sync and migration generation against SQLite, migration rollback, and the cache-clear and create-migration command factories, plus their configuration and failure paths.
 
 ### Fixed
 - `NamedDatabaseAbstractFactory` no longer causes a fatal error with `laminas/laminas-servicemanager` 3.x: `$requestedName` is untyped again in `__invoke()` and `canCreate()`, matching the 3.x interfaces (regression since 5.0.0).
@@ -18,7 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - PHP 8.3 is now the minimum supported version.
 - Class constants are now typed.
-- Development: PHPUnit moved to `^12.5`; rector uses the PHP 8.3 set and php-cs-fixer the `@PHP8x3Migration` rules.
+- Development: PHPUnit moved to `^12.5`; rector uses the PHP 8.3 set without the deprecated `NAMING` and `EARLY_RETURN` sets, and php-cs-fixer the `@PHP8x3Migration` rules; added tests for the compiled-schema cache hit, schema sync and migration generation on SQLite, migration rollback, command factories, and configuration and failure paths.
 
 ### Removed
 - Dropped PHP 8.2 support.

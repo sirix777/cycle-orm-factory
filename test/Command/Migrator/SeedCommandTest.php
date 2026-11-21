@@ -8,6 +8,7 @@ use Cycle\Database\DatabaseInterface;
 use Cycle\Database\DatabaseProviderInterface;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 use RuntimeException;
@@ -60,7 +61,7 @@ class SeedCommandTest extends TestCase
     /** @var MigratorService&MockObject */
     private MigratorService $migratorService;
 
-    /** @var DatabaseProviderInterface&MockObject */
+    /** @var DatabaseProviderInterface&(MockObject|Stub) */
     private DatabaseProviderInterface $dbal;
     private string $seedDirectory;
 
@@ -114,7 +115,7 @@ class SeedCommandTest extends TestCase
     public function testExecuteFailsWhenDatabaseInjectionFails(): void
     {
         $this->createSeedFile('UnreachableDatabaseSeed');
-        $this->dbal = $this->createMock(DatabaseProviderInterface::class);
+        $this->dbal = $this->createStub(DatabaseProviderInterface::class);
         $this->dbal->method('database')->willThrowException(new RuntimeException('Database "main-db" is down'));
 
         $result = $this->runCommand([

@@ -36,6 +36,7 @@ final class DbalFactoryTest extends TestCase
     public function testFactoryWithoutConfig(): void
     {
         $this->container
+            ->expects($this->once())
             ->method('has')
             ->with('config')
             ->willReturn(false)
