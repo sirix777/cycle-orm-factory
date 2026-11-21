@@ -78,8 +78,11 @@ abstract class SchemaCommandFactoryTestCase extends TestCase
 
     public function testFactoryReportsConcreteContextWhenCompilerMissing(): void
     {
+        $container = $this->createStub(ContainerInterface::class);
+        $container->method('has')->willReturn(false);
+
         try {
-            $this->buildCommandWithContainer($this->createStub(ContainerInterface::class));
+            $this->buildCommandWithContainer($container);
             $this->fail('Expected a missing compiler service exception.');
         } catch (MissingContainerServiceException $exception) {
             $this->assertStringContainsString(SchemaCompilerInterface::class, $exception->getMessage());
