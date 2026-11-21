@@ -7,7 +7,7 @@ namespace Sirix\Cycle\Test\Command\Migrator;
 use const DIRECTORY_SEPARATOR;
 
 use Cycle\Migrations\Config\MigrationConfig;
-use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
 use Sirix\Cycle\Command\Migrator\CreateMigrationCommand;
 use Sirix\Cycle\Service\MigratorInterface;
@@ -33,7 +33,7 @@ final class CreateMigrationCommandTest extends TestCase
 {
     private string $migrationDirectory;
 
-    /** @var MigratorInterface&MockObject */
+    /** @var MigratorInterface&Stub */
     private MigratorInterface $migrator;
 
     protected function setUp(): void
@@ -45,7 +45,7 @@ final class CreateMigrationCommandTest extends TestCase
             'namespace' => 'Migration',
         ]);
 
-        $this->migrator = $this->createMock(MigratorInterface::class);
+        $this->migrator = $this->createStub(MigratorInterface::class);
         $this->migrator->method('getConfig')->willReturn($config);
     }
 

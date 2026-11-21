@@ -9,7 +9,7 @@ use Cycle\Database\DatabaseManager;
 use Cycle\ORM\Exception\ConfigException;
 use Cycle\Schema\GeneratorInterface;
 use Cycle\Schema\Registry;
-use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\ContainerInterface;
@@ -48,8 +48,8 @@ final class SchemaCompilerServiceTest extends TestCase
 
     public function testCompileWithAdditionalGeneratorsFromContainerAndClass(): void
     {
-        /** @var ContainerInterface&MockObject $container */
-        $container = $this->createMock(ContainerInterface::class);
+        /** @var ContainerInterface&Stub $container */
+        $container = $this->createStub(ContainerInterface::class);
         $container->method('has')->willReturnCallback(static fn (string $id): bool => 'my.generator.service' === $id);
         $container->method('get')->willReturnCallback(static function(string $id) {
             if ('my.generator.service' === $id) {
@@ -77,8 +77,8 @@ final class SchemaCompilerServiceTest extends TestCase
 
     public function testCompileThrowsForInvalidAdditionalGenerator(): void
     {
-        /** @var ContainerInterface&MockObject $container */
-        $container = $this->createMock(ContainerInterface::class);
+        /** @var ContainerInterface&Stub $container */
+        $container = $this->createStub(ContainerInterface::class);
         $container->method('has')->willReturn(false);
 
         $service = new SchemaCompilerService($container);
@@ -91,8 +91,8 @@ final class SchemaCompilerServiceTest extends TestCase
 
     public function testCompileAllowsOnlyAdditionalGeneratorsWithoutEntitiesAndManualMapping(): void
     {
-        /** @var ContainerInterface&MockObject $container */
-        $container = $this->createMock(ContainerInterface::class);
+        /** @var ContainerInterface&Stub $container */
+        $container = $this->createStub(ContainerInterface::class);
         $container->method('has')->willReturn(false);
 
         $service = new SchemaCompilerService($container);
@@ -107,8 +107,8 @@ final class SchemaCompilerServiceTest extends TestCase
      */
     public function testGenerateMigrationsFailsWhenMigrationsAreUnavailable(): void
     {
-        /** @var ContainerInterface&MockObject $container */
-        $container = $this->createMock(ContainerInterface::class);
+        /** @var ContainerInterface&Stub $container */
+        $container = $this->createStub(ContainerInterface::class);
         $container->method('has')->willReturn(false);
 
         $service = new SchemaCompilerService($container);

@@ -6,6 +6,7 @@ namespace Sirix\Cycle\Test\Command\Migrator;
 
 use Cycle\Database\DatabaseInterface;
 use Cycle\Database\DatabaseProviderInterface;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
@@ -30,6 +31,7 @@ use function sys_get_temp_dir;
 use function uniqid;
 use function unlink;
 
+#[AllowMockObjectsWithoutExpectations]
 class SeedCommandTest extends TestCase
 {
     private const SEED_TEMPLATE = <<<'PHP'

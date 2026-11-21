@@ -8,7 +8,6 @@ use Cycle\ORM\ORMInterface;
 use Cycle\ORM\RepositoryInterface;
 use Cycle\ORM\SchemaInterface;
 use InvalidArgumentException;
-use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
 use Sirix\Cycle\Factory\RepositoryFactory;
@@ -19,7 +18,7 @@ final class RepositoryFactoryTest extends TestCase
 {
     public function testCreatesRepositoryConfiguredForRole(): void
     {
-        $repository = $this->createMock(RepositoryInterface::class);
+        $repository = $this->createStub(RepositoryInterface::class);
         $schema     = $this->createMock(SchemaInterface::class);
         $orm        = $this->createMock(ORMInterface::class);
 
@@ -45,8 +44,8 @@ final class RepositoryFactoryTest extends TestCase
 
     public function testThrowsWhenRepositoryIsNotConfigured(): void
     {
-        $schema = $this->createMock(SchemaInterface::class);
-        $orm    = $this->createMock(ORMInterface::class);
+        $schema = $this->createStub(SchemaInterface::class);
+        $orm    = $this->createStub(ORMInterface::class);
 
         $schema->method('getRoles')->willReturn(['user']);
         $schema->method('define')->willReturn(OtherRepository::class);
@@ -61,8 +60,8 @@ final class RepositoryFactoryTest extends TestCase
 
     public function testThrowsWhenRepositoryIsConfiguredForMultipleRoles(): void
     {
-        $schema = $this->createMock(SchemaInterface::class);
-        $orm    = $this->createMock(ORMInterface::class);
+        $schema = $this->createStub(SchemaInterface::class);
+        $orm    = $this->createStub(ORMInterface::class);
 
         $schema->method('getRoles')->willReturn(['user', 'admin']);
         $schema->method('define')->willReturn(TestUserRepository::class);
@@ -75,7 +74,7 @@ final class RepositoryFactoryTest extends TestCase
         $factory($this->createContainer($orm), TestUserRepository::class);
     }
 
-    private function createContainer(MockObject|ORMInterface $orm): ContainerInterface
+    private function createContainer(ORMInterface $orm): ContainerInterface
     {
         return new class($orm) implements ContainerInterface {
             public function __construct(private readonly ORMInterface $orm) {}
