@@ -10,6 +10,8 @@ use Sirix\Cycle\Service\CompiledSchemaStorage;
 
 use function bin2hex;
 use function file_exists;
+use function file_put_contents;
+use function glob;
 use function mkdir;
 use function random_bytes;
 use function rmdir;
@@ -62,6 +64,31 @@ final class CompiledSchemaStorageTest extends TestCase
     {
         $this->expectException(ConfigException::class);
         $this->expectExceptionMessage('does not exist');
+
+        $this->storage->load($this->schemaPath);
+    }
+
+    public function testSaveOverwritesExistingSchemaWithoutLeavingTemporaryFiles(): void
+    {
+        $this->storage->save($this->schemaPath, [
+            'old' => 1,
+        ]);
+        $this->storage->save($this->schemaPath, [
+            'new' => 2,
+        ]);
+
+        $this->assertSame([
+            'new' => 2,
+        ], $this->storage->load($this->schemaPath));
+        $this->assertSame([$this->schemaPath], glob($this->tmpDir . '/*'));
+    }
+
+    public function testLoadThrowsWhenFileDoesNotReturnArray(): void
+    {
+        file_put_contents($this->schemaPath, "<?php\n\nreturn 1;\n");
+
+        $this->expectException(ConfigException::class);
+        $this->expectExceptionMessage('must return an array');
 
         $this->storage->load($this->schemaPath);
     }

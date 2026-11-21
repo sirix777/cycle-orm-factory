@@ -162,6 +162,60 @@ final class CycleFactoryTest extends TestCase
         $this->assertFalse(file_exists($path));
     }
 
+    public function testFactoryLoadsCachedSchemaWithoutCompiling(): void
+    {
+        $path = $this->tmpDir . '/schema.php';
+        (new CompiledSchemaStorage())->save($path, [
+            'cached' => $this->dummyEntitySchema('cached'),
+        ]);
+
+        $compiler = $this->createMock(SchemaCompilerInterface::class);
+        $compiler->expects($this->never())->method('compile');
+
+        $container = $this->createContainer([
+            'cycle' => [
+                'entities' => ['src'],
+                'schema'   => [
+                    'compiled' => [
+                        'path' => $path,
+                    ],
+                ],
+            ],
+        ], [
+            SchemaCompilerInterface::class => $compiler,
+        ]);
+
+        $orm = (new CycleFactory())($container);
+
+        $this->assertTrue($orm->getSchema()->defines('cached'));
+    }
+
+    public function testFactoryIgnoresCachedSchemaWhenCacheDisabled(): void
+    {
+        $path = $this->tmpDir . '/schema.php';
+        (new CompiledSchemaStorage())->save($path, [
+            'stale' => $this->dummyEntitySchema('stale'),
+        ]);
+
+        $container = $this->createContainer([
+            'cycle' => [
+                'entities' => ['src'],
+                'schema'   => [
+                    'cache'    => [
+                        'enabled' => false,
+                    ],
+                    'compiled' => [
+                        'path' => $path,
+                    ],
+                ],
+            ],
+        ]);
+
+        $orm = (new CycleFactory())($container);
+
+        $this->assertFalse($orm->getSchema()->defines('stale'));
+    }
+
     public function testFactoryAllowsMissingEntitiesWhenManualMappingExists(): void
     {
         $config = [
@@ -281,6 +335,26 @@ final class CycleFactoryTest extends TestCase
         $this->assertInstanceOf(TestCollectionFactory::class, $resolvedFactory);
         $this->assertNotSame($collectionFactory, $resolvedFactory);
         $this->assertSame(TestCollection::class, $resolvedFactory->collectionClass);
+    }
+
+    /**
+     * @return array<int, mixed>
+     */
+    private function dummyEntitySchema(string $table): array
+    {
+        return [
+            SchemaInterface::ENTITY      => stdClass::class,
+            SchemaInterface::DATABASE    => 'default',
+            SchemaInterface::TABLE       => $table,
+            SchemaInterface::PRIMARY_KEY => 'id',
+            SchemaInterface::COLUMNS     => [
+                'id' => 'id',
+            ],
+            SchemaInterface::TYPECAST    => [
+                'id' => 'int',
+            ],
+            SchemaInterface::RELATIONS   => [],
+        ];
     }
 
     /**
