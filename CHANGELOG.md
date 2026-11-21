@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.1.0] - 2026-11-21
+
+### Added
+- Added PHP 8.6 support; CI runs the full 8.3–8.6 matrix.
+- Added a CI job that runs the test suite against the lowest allowed dependency versions.
+- Added tests for the compiled-schema cache hit, schema sync and migration generation against SQLite, migration rollback, and the cache-clear and create-migration command factories, plus their configuration and failure paths.
+
+### Fixed
+- `NamedDatabaseAbstractFactory` no longer causes a fatal error with `laminas/laminas-servicemanager` 3.x: `$requestedName` is untyped again in `__invoke()` and `canCreate()`, matching the 3.x interfaces (regression since 5.0.0).
+
+### Changed
+- PHP 8.3 is now the minimum supported version.
+- Class constants are now typed.
+- Development: PHPUnit moved to `^12.5`; rector uses the PHP 8.3 set and php-cs-fixer the `@PHP8x3Migration` rules.
+
+### Removed
+- Dropped PHP 8.2 support.
+- Removed the unused `phpstan/phpstan-mockery` development dependency.
+
 ## [5.0.1] - 2026-10-01
 
 ### Added
