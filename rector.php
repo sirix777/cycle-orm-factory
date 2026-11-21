@@ -14,11 +14,9 @@ return static function(RectorConfig $rectorConfig): void {
     ]);
 
     $rectorConfig->sets([
-        SetList::NAMING,
         SetList::CODE_QUALITY,
         SetList::PRIVATIZATION,
         SetList::DEAD_CODE,
-        SetList::EARLY_RETURN,
-        LevelSetList::UP_TO_PHP_82,
+        LevelSetList::UP_TO_PHP_83,
     ]);
 };
