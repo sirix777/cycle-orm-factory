@@ -25,7 +25,7 @@ use function sprintf;
  */
 final class NamedDatabaseAbstractFactory implements AbstractFactoryInterface
 {
-    public const CONFIG_PATH = 'cycle.database_services';
+    public const string CONFIG_PATH = 'cycle.database_services';
 
     /**
      * @param null|array<mixed> $options

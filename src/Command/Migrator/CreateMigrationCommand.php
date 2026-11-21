@@ -33,10 +33,10 @@ use function ucfirst;
 
 final class CreateMigrationCommand extends Command
 {
-    private const UNIQUE_ID_LENGTH = 18;
-    private const DEFAULT_DATABASE = 'default';
+    private const int UNIQUE_ID_LENGTH    = 18;
+    private const string DEFAULT_DATABASE = 'default';
 
-    private const MIGRATION_TEMPLATE = <<<'PHP'
+    private const string MIGRATION_TEMPLATE = <<<'PHP'
         <?php
 
         declare(strict_types=1);

@@ -29,10 +29,10 @@ use function sprintf;
 
 final class SeedCommand extends Command
 {
-    private const DEFAULT_DATABASE       = 'main-db';
-    private const SEED_NAMESPACE         = 'Seed';
-    private const SEED_DATABASE_CONSTANT = 'DATABASE';
-    private const SEED_DATABASE_PROPERTY = 'database';
+    private const string DEFAULT_DATABASE       = 'main-db';
+    private const string SEED_NAMESPACE         = 'Seed';
+    private const string SEED_DATABASE_CONSTANT = 'DATABASE';
+    private const string SEED_DATABASE_PROPERTY = 'database';
 
     /**
      * If provided via the --database (alias: --b) option, overrides the DATABASE constant in seeds.

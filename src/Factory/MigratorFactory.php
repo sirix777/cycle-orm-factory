@@ -19,7 +19,7 @@ use Sirix\Cycle\Service\MigratorWrapper;
 
 final class MigratorFactory
 {
-    private const MIGRATION_CONFIG_MAP = [
+    private const array MIGRATION_CONFIG_MAP = [
         'directory'          => 'directory',
         'vendor_directories' => 'vendorDirectories',
         'table'              => 'table',
