@@ -24,7 +24,7 @@ use Sirix\Cycle\Service\SchemaCompilerInterface;
 
 final readonly class CycleFactory
 {
-    public const DEFAULT_COMPILED_SCHEMA_PATH = 'data/cache/cycle/schema.php';
+    public const string DEFAULT_COMPILED_SCHEMA_PATH = 'data/cache/cycle/schema.php';
 
     public function __construct(private CollectionFactoryConfigurator $collectionFactoryConfigurator = new CollectionFactoryConfigurator()) {}
 

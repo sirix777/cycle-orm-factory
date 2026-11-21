@@ -21,9 +21,9 @@ use function sprintf;
 
 final class CreateSeedCommand extends Command
 {
-    private const DEFAULT_DATABASE = 'default';
+    private const string DEFAULT_DATABASE = 'default';
 
-    private const SEED_TEMPLATE = <<<'PHP'
+    private const string SEED_TEMPLATE = <<<'PHP'
         <?php
 
         declare(strict_types=1);

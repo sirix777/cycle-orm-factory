@@ -68,7 +68,7 @@ class RollbackCommandFactoryTest extends TestCase
             ->method('get')
             ->with(MigratorService::class)
             ->willReturn(
-                $this->createMock(MigratorService::class)
+                $this->createStub(MigratorService::class)
             )
         ;
 

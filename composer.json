@@ -10,7 +10,7 @@
         }
     ],
     "require": {
-        "php": "~8.2.0 || ~8.3.0 || ~8.4.0 || ~8.5.0",
+        "php": "~8.3.0 || ~8.4.0 || ~8.5.0 || ~8.6.0",
         "cycle/annotated": "^4.4",
         "cycle/database": "^2.15",
         "cycle/orm": "^2.12.3",
@@ -25,8 +25,7 @@
         "cycle/schema-migrations-generator": "^2.3",
         "laminas/laminas-servicemanager": "^3.0 || ^4.0",
         "mockery/mockery": "^1.6",
-        "phpstan/phpstan-mockery": "^1.1",
-        "phpunit/phpunit": "^11.5",
+        "phpunit/phpunit": "^12.5",
         "symfony/console": "^7.3"
     },
     "suggest": {

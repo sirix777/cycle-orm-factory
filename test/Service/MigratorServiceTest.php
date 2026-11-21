@@ -10,13 +10,17 @@ use Cycle\Migrations\MigrationInterface;
 use Cycle\Migrations\State;
 use DateTime;
 use Mockery;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use Mockery\MockInterface;
 use PHPUnit\Framework\TestCase;
 use Sirix\Cycle\Service\MigratorInterface;
 use Sirix\Cycle\Service\MigratorService;
+use Sirix\Cycle\Service\SeedInterface;
 
 final class MigratorServiceTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     private MigratorInterface|MockInterface $migratorMock;
     private MigratorService $migratorService;
 
@@ -28,23 +32,11 @@ final class MigratorServiceTest extends TestCase
         /** @var MigratorInterface $migratorMock */
         $migratorMock          = $this->migratorMock;
         $this->migratorService = new MigratorService($migratorMock);
-
-        $this->migratorMock
-            ->shouldReceive('isConfigured')
-            ->once()
-            ->andReturnFalse()
-        ;
-        $this->migratorMock->shouldReceive('configure')->once();
-    }
-
-    public function tearDown(): void
-    {
-        parent::tearDown();
-        Mockery::close();
     }
 
     public function testMigrate(): void
     {
+        $this->expectConfigure(true);
         $migrationInterfaceMock = Mockery::mock(MigrationInterface::class);
 
         $state = new State(
@@ -72,5 +64,40 @@ final class MigratorServiceTest extends TestCase
         $this->migratorService->migrate(function($message) {
             echo $message . PHP_EOL;
         });
+    }
+
+    public function testRollbackConfiguresMigratorWhenNeeded(): void
+    {
+        $this->expectConfigure(true);
+        $this->migratorMock->shouldReceive('rollback')->once();
+
+        $this->migratorService->rollback();
+    }
+
+    public function testRollbackSkipsConfigureWhenAlreadyConfigured(): void
+    {
+        $this->expectConfigure(false);
+        $this->migratorMock->shouldReceive('rollback')->once();
+
+        $this->migratorService->rollback();
+    }
+
+    public function testSeedRunsSeed(): void
+    {
+        $seed = Mockery::mock(SeedInterface::class);
+        $seed->shouldReceive('run')->once();
+
+        /** @var SeedInterface $seed */
+        $this->migratorService->seed($seed);
+    }
+
+    private function expectConfigure(bool $needed): void
+    {
+        $this->migratorMock
+            ->shouldReceive('isConfigured')
+            ->once()
+            ->andReturn(! $needed)
+        ;
+        $this->migratorMock->shouldReceive('configure')->times($needed ? 1 : 0);
     }
 }

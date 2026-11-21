@@ -12,10 +12,12 @@ use Psr\Container\ContainerInterface;
 use RuntimeException;
 use Sirix\ContainerResolver\ConfigReader;
 use Sirix\ContainerResolver\ContainerResolver;
+use Sirix\ContainerResolver\Exception\InvalidConfigValueException;
 use Sirix\Cycle\Internal\CollectionFactoryConfigurator;
 use Sirix\Cycle\Test\Fixture\Collection\TestBaseCollection;
 use Sirix\Cycle\Test\Fixture\Collection\TestCollection;
 use Sirix\Cycle\Test\Fixture\Collection\TestCollectionFactory;
+use stdClass;
 
 final class CollectionFactoryConfiguratorTest extends TestCase
 {
@@ -73,6 +75,70 @@ final class CollectionFactoryConfiguratorTest extends TestCase
         $this->assertInstanceOf(TestCollectionFactory::class, $resolvedFactory);
         $this->assertNotSame($collectionFactory, $resolvedFactory);
         $this->assertSame(TestCollection::class, $resolvedFactory->collectionClass);
+    }
+
+    public function testUsesCollectionFactoryInstanceAsIs(): void
+    {
+        $collectionFactory = new TestCollectionFactory();
+
+        $factory = $this->createFactory([
+            'cycle' => [
+                'collections' => [
+                    'default' => $collectionFactory,
+                ],
+            ],
+        ]);
+
+        $this->assertSame($collectionFactory, $factory->collection());
+    }
+
+    public function testRejectsUnknownInterface(): void
+    {
+        $this->expectException(InvalidConfigValueException::class);
+        $this->expectExceptionMessage('cycle.collections.factories.test.interface');
+
+        $this->createFactory([
+            'cycle' => [
+                'collections' => [
+                    'factories' => [
+                        'test' => [
+                            'factory'   => TestCollectionFactory::class,
+                            'interface' => 'Definitely\Missing\Collection',
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+    }
+
+    public function testRejectsClassThatIsNotACollectionFactory(): void
+    {
+        $this->expectException(InvalidConfigValueException::class);
+        $this->expectExceptionMessage('cycle.collections.default');
+
+        $this->createFactory([
+            'cycle' => [
+                'collections' => [
+                    'default' => stdClass::class,
+                ],
+            ],
+        ]);
+    }
+
+    public function testRejectsNonStringDefinition(): void
+    {
+        $this->expectException(InvalidConfigValueException::class);
+        $this->expectExceptionMessage('cycle.collections.factories.test');
+
+        $this->createFactory([
+            'cycle' => [
+                'collections' => [
+                    'factories' => [
+                        'test' => 123,
+                    ],
+                ],
+            ],
+        ]);
     }
 
     /**

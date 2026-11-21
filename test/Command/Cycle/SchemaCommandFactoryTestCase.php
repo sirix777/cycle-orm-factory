@@ -7,6 +7,7 @@ namespace Sirix\Cycle\Test\Command\Cycle;
 use Cycle\Database\Config\DatabaseConfig;
 use Cycle\Database\DatabaseManager;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
 use ReflectionMethod;
@@ -32,7 +33,7 @@ use function sys_get_temp_dir;
 
 abstract class SchemaCommandFactoryTestCase extends TestCase
 {
-    protected MockObject|SchemaCompilerInterface $schemaCompiler;
+    protected MockObject|SchemaCompilerInterface|Stub $schemaCompiler;
     protected CompiledSchemaStorage $storage;
     protected DatabaseManager $dbal;
 
@@ -47,7 +48,7 @@ abstract class SchemaCommandFactoryTestCase extends TestCase
         mkdir($this->tmpDir, 0o777, true);
         $this->schemaPath = $this->tmpDir . '/schema.php';
 
-        $this->schemaCompiler = $this->createMock(SchemaCompilerInterface::class);
+        $this->schemaCompiler = $this->createStub(SchemaCompilerInterface::class);
         $this->storage        = new CompiledSchemaStorage();
         $this->dbal           = new DatabaseManager(new DatabaseConfig([]));
     }
@@ -77,8 +78,11 @@ abstract class SchemaCommandFactoryTestCase extends TestCase
 
     public function testFactoryReportsConcreteContextWhenCompilerMissing(): void
     {
+        $container = $this->createStub(ContainerInterface::class);
+        $container->method('has')->willReturn(false);
+
         try {
-            $this->buildCommandWithContainer($this->createMock(ContainerInterface::class));
+            $this->buildCommandWithContainer($container);
             $this->fail('Expected a missing compiler service exception.');
         } catch (MissingContainerServiceException $exception) {
             $this->assertStringContainsString(SchemaCompilerInterface::class, $exception->getMessage());
@@ -92,6 +96,7 @@ abstract class SchemaCommandFactoryTestCase extends TestCase
             'foo' => 'bar',
         ];
 
+        $this->schemaCompiler = $this->createMock(SchemaCompilerInterface::class);
         $this->schemaCompiler
             ->expects($this->once())
             ->method($this->operationMethod())
@@ -140,6 +145,7 @@ abstract class SchemaCommandFactoryTestCase extends TestCase
             'foo' => 'bar',
         ];
 
+        $this->schemaCompiler = $this->createMock(SchemaCompilerInterface::class);
         $this->schemaCompiler
             ->expects($this->once())
             ->method($this->operationMethod())
@@ -195,7 +201,7 @@ abstract class SchemaCommandFactoryTestCase extends TestCase
      */
     protected function containerWithConfig(array $config): ContainerInterface
     {
-        $container = $this->createMock(ContainerInterface::class);
+        $container = $this->createStub(ContainerInterface::class);
 
         $container
             ->method('has')

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Sirix\Cycle\Test\Command\Migrator;
 
 use Cycle\Database\DatabaseProviderInterface;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\MockObject\Exception;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -18,6 +19,7 @@ use Sirix\Cycle\Service\MigratorService;
 
 use function in_array;
 
+#[AllowMockObjectsWithoutExpectations]
 class SeedCommandFactoryTest extends TestCase
 {
     private ContainerInterface|MockObject $container;

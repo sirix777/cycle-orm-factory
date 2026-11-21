@@ -6,7 +6,9 @@ namespace Sirix\Cycle\Test\Command\Migrator;
 
 use Cycle\Database\DatabaseInterface;
 use Cycle\Database\DatabaseProviderInterface;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 use RuntimeException;
@@ -30,6 +32,7 @@ use function sys_get_temp_dir;
 use function uniqid;
 use function unlink;
 
+#[AllowMockObjectsWithoutExpectations]
 class SeedCommandTest extends TestCase
 {
     private const SEED_TEMPLATE = <<<'PHP'
@@ -58,7 +61,7 @@ class SeedCommandTest extends TestCase
     /** @var MigratorService&MockObject */
     private MigratorService $migratorService;
 
-    /** @var DatabaseProviderInterface&MockObject */
+    /** @var DatabaseProviderInterface&(MockObject|Stub) */
     private DatabaseProviderInterface $dbal;
     private string $seedDirectory;
 
@@ -97,6 +100,30 @@ class SeedCommandTest extends TestCase
         $this->createSeedFile('ThirdSeed');
         $result = $this->runCommand([], 3);
         $this->assertCommandResult($result, Command::SUCCESS, 'All 3 seeds executed successfully.');
+    }
+
+    public function testExecuteAllSeedsReportsFailuresAndReturnsFailure(): void
+    {
+        $this->createSeedFile('HealthyMixedRunSeed');
+        $this->createSeedFile('BrokenMixedRunSeed', SeedInterface::class, '', 'NotTheBrokenMixedRunSeed');
+
+        $result = $this->runCommand([]);
+
+        $this->assertCommandResult($result, Command::FAILURE, '1 succeeded, 1 failed');
+    }
+
+    public function testExecuteFailsWhenDatabaseInjectionFails(): void
+    {
+        $this->createSeedFile('UnreachableDatabaseSeed');
+        $this->dbal = $this->createStub(DatabaseProviderInterface::class);
+        $this->dbal->method('database')->willThrowException(new RuntimeException('Database "main-db" is down'));
+
+        $result = $this->runCommand([
+            'seed' => 'UnreachableDatabaseSeed',
+        ], 0);
+
+        $this->assertCommandResult($result, Command::FAILURE, 'Could not inject database into seed class');
+        $this->assertStringContainsString('Database "main-db" is down', $result['output']);
     }
 
     public function testExecuteWithNoSeedFiles(): void
