@@ -9,8 +9,10 @@ use Cycle\Database\Config\SQLiteDriverConfig;
 use Cycle\Database\DatabaseInterface;
 use Cycle\Database\DatabaseManager;
 use InvalidArgumentException;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
+use ReflectionMethod;
 use Sirix\ContainerResolver\Exception\InvalidContainerServiceException;
 use Sirix\ContainerResolver\Exception\MissingContainerServiceException;
 use Sirix\Cycle\Factory\NamedDatabaseAbstractFactory;
@@ -45,6 +47,28 @@ final class NamedDatabaseAbstractFactoryTest extends TestCase
                 'archive'   => new SQLiteDriverConfig(),
             ],
         ]));
+    }
+
+    /**
+     * laminas-servicemanager 3.x declares $requestedName without a type; narrowing it is a fatal error on class load.
+     */
+    #[DataProvider('serviceManagerMethods')]
+    public function testRequestedNameStaysUntypedForServiceManager3(string $method): void
+    {
+        $parameter = (new ReflectionMethod(NamedDatabaseAbstractFactory::class, $method))->getParameters()[1];
+
+        $this->assertSame('requestedName', $parameter->getName());
+        $this->assertFalse($parameter->hasType());
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function serviceManagerMethods(): iterable
+    {
+        yield 'canCreate' => ['canCreate'];
+
+        yield '__invoke' => ['__invoke'];
     }
 
     public function testCanCreateOnlyListedServiceIds(): void

@@ -28,12 +28,13 @@ final class NamedDatabaseAbstractFactory implements AbstractFactoryInterface
     public const string CONFIG_PATH = 'cycle.database_services';
 
     /**
+     * @param string            $requestedName untyped for laminas-servicemanager 3.x compatibility
      * @param null|array<mixed> $options
      *
      * @throws ContainerExceptionInterface
      * @throws ResolverException
      */
-    public function __invoke(ContainerInterface $container, string $requestedName, ?array $options = null): DatabaseInterface
+    public function __invoke(ContainerInterface $container, $requestedName, ?array $options = null): DatabaseInterface
     {
         $databaseServices = $this->databaseServices($container);
 
@@ -63,10 +64,12 @@ final class NamedDatabaseAbstractFactory implements AbstractFactoryInterface
     }
 
     /**
+     * @param string $requestedName untyped for laminas-servicemanager 3.x compatibility
+     *
      * @throws ContainerExceptionInterface
      * @throws ResolverException
      */
-    public function canCreate(ContainerInterface $container, string $requestedName): bool
+    public function canCreate(ContainerInterface $container, $requestedName): bool
     {
         return array_key_exists($requestedName, $this->databaseServices($container));
     }
