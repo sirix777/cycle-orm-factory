@@ -101,6 +101,30 @@ class SeedCommandTest extends TestCase
         $this->assertCommandResult($result, Command::SUCCESS, 'All 3 seeds executed successfully.');
     }
 
+    public function testExecuteAllSeedsReportsFailuresAndReturnsFailure(): void
+    {
+        $this->createSeedFile('HealthyMixedRunSeed');
+        $this->createSeedFile('BrokenMixedRunSeed', SeedInterface::class, '', 'NotTheBrokenMixedRunSeed');
+
+        $result = $this->runCommand([]);
+
+        $this->assertCommandResult($result, Command::FAILURE, '1 succeeded, 1 failed');
+    }
+
+    public function testExecuteFailsWhenDatabaseInjectionFails(): void
+    {
+        $this->createSeedFile('UnreachableDatabaseSeed');
+        $this->dbal = $this->createMock(DatabaseProviderInterface::class);
+        $this->dbal->method('database')->willThrowException(new RuntimeException('Database "main-db" is down'));
+
+        $result = $this->runCommand([
+            'seed' => 'UnreachableDatabaseSeed',
+        ], 0);
+
+        $this->assertCommandResult($result, Command::FAILURE, 'Could not inject database into seed class');
+        $this->assertStringContainsString('Database "main-db" is down', $result['output']);
+    }
+
     public function testExecuteWithNoSeedFiles(): void
     {
         $this->removePath($this->seedDirectory);
